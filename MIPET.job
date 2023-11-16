@@ -1,0 +1,19 @@
+# Force fields
+# Please, put an asterisk front of the force field name for the energy calculation
+#  and use $ symbol in front of the force field name for the coordination number calculation.
+# Please be aware You can't use MM3 force field parameters for the coordination number calculation.
+# -------------------------
+* OPLSAA
+$ OPLSAA
+
+
+# -------------------------
+# Particles
+# -------------------------
+H2O
+Me
+Et
+MeOH
+EtOH
+Me2O
+#HAc

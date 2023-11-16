@@ -1,0 +1,37 @@
+
+                    ########################################
+                    Pre-Built Tinker Executables for Windows
+                    Version 8.10.2
+                    ########################################
+
+        This subdirectory contains compressed 64-bit Tinker executables
+        for Intel-compatible machines running under Windows XP or later.
+        The files can be expanded to .EXE files using any of the common
+        ZIP compression/expansion utilities. Each executable is provided
+        as a separate ZIP'd file. The programs were built using the MinGW
+        GNU gfortran compiler. The executables will run from the command
+        line within a Command Prompt window or via the Cygwin shell, and
+        will not work with the Force Field Explorer Tinker interface.
+
+        Please note that in order to use the Tinker package, other files
+        are required. In particular, force field parameter sets, examples
+        and test cases, and documentation can be found as part of the full
+        distribution on http://dasher.wustl.edu/tinker/. Source code is
+        also provided in case you want to build a customized version.
+
+        The Tinker executables are dimensioned to 1 million atoms maximum.
+        Other, more restrictive, limits apply to certain memory intensive
+        programs. The limits have been increased at the request of many
+        users. Since Tinker is written in static allocated Fortran and
+        makes no attempt to manage its own memory usage, your computer
+        must make available at startup all the memory or virtual memory
+        the Tinker programs might eventually require. Instructions for
+        changing the virtual memory size on most versions of Windows are
+        readily available on the Internet.
+
+        If larger or smaller versions of the executables are desired, it
+        is straightforward to change master dimensions in the "sizes.i"
+        source file and build your own set of executables using the MinGW
+        gfortran compiler or a commercial Fortran compiler such as Intel,
+        PGI, Absoft or Lahey.
+
