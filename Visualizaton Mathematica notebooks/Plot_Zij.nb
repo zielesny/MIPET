@@ -1,0 +1,198 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7994,        190]
+NotebookOptionsPosition[      7531,        175]
+NotebookOutlinePosition[      7944,        191]
+CellTagsIndexPosition[      7901,        188]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"ExportZijPlotsAsPngs", "[", "\[IndentingNewLine]", 
+    RowBox[{"dimerName_", "/;", 
+     RowBox[{"StringQ", "[", "dimerName", "]"}]}], "\[IndentingNewLine]", 
+    "]"}], " ", ":=", "\[IndentingNewLine]", 
+   RowBox[{"Block", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{
+      "particle1", ",", "\[IndentingNewLine]", "particle2", ",", 
+       "\[IndentingNewLine]", "ZijNumbers", ",", "\[IndentingNewLine]", 
+       "ZijAveraged", ",", "\[IndentingNewLine]", "ZijPlot"}], 
+      "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"particle1", " ", "=", " ", 
+       RowBox[{
+        RowBox[{"StringSplit", "[", 
+         RowBox[{
+          RowBox[{"FileBaseName", "[", "dimerName", "]"}], ",", " ", 
+          "\"\<_\>\""}], "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"particle2", " ", "=", " ", 
+       RowBox[{
+        RowBox[{"StringSplit", "[", 
+         RowBox[{
+          RowBox[{"FileBaseName", "[", "dimerName", "]"}], ",", " ", 
+          "\"\<_\>\""}], "]"}], "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"pairs", " ", "=", 
+       RowBox[{"DeleteDuplicates", "[", " ", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"particle1", "<>", "\"\<_\>\"", "<>", "particle2"}], ",", 
+          RowBox[{"particle2", "<>", "\"\<_\>\"", "<>", "particle1"}]}], 
+         "}"}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"(", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"ZijNumbers", "=", "\[IndentingNewLine]", 
+           RowBox[{"Import", "[", "\[IndentingNewLine]", 
+            RowBox[{"FileNameJoin", "[", "\[IndentingNewLine]", 
+             RowBox[{"{", "\[IndentingNewLine]", 
+              RowBox[{
+               RowBox[{"Directory", "[", "]"}], ",", "\[IndentingNewLine]", 
+               "dimerName", ",", "\[IndentingNewLine]", 
+               RowBox[{"#", "<>", "\"\<_ZijTable.dat\>\""}]}], 
+              "\[IndentingNewLine]", "}"}], "\[IndentingNewLine]", "]"}], 
+            "\[IndentingNewLine]", "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"ZijNumbers", "=", 
+           RowBox[{"Drop", "[", 
+            RowBox[{"ZijNumbers", ",", "1"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"ZijNumbers", "=", 
+           RowBox[{"Flatten", "[", "ZijNumbers", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"ZijAveraged", " ", "=", " ", 
+           RowBox[{
+            RowBox[{"Accumulate", "[", "ZijNumbers", "]"}], "/", 
+            RowBox[{"Range", "[", 
+             RowBox[{"1", ",", 
+              RowBox[{"Length", "[", "ZijNumbers", "]"}]}], "]"}]}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"ZijPlot", "=", " ", 
+           RowBox[{"ListLinePlot", "[", "\[IndentingNewLine]", 
+            RowBox[{"ZijAveraged", ",", "\[IndentingNewLine]", 
+             RowBox[{"Frame", "->", "True"}], ",", "\[IndentingNewLine]", 
+             RowBox[{"PlotLabel", "->", 
+              RowBox[{"StringForm", "[", "\"\<Average value\>\"", "]"}]}], 
+             ",", "\[IndentingNewLine]", 
+             RowBox[{"FrameLabel", "->", 
+              RowBox[{"{", 
+               RowBox[{"\"\<steps\>\"", ",", "\"\<<Z>\>\""}], "}"}]}], ",", 
+             "\[IndentingNewLine]", 
+             RowBox[{"PlotRange", "->", "All"}], ",", "\[IndentingNewLine]", 
+             RowBox[{"PlotRangePadding", "->", 
+              RowBox[{"Scaled", "[", ".05", "]"}]}], ",", 
+             "\[IndentingNewLine]", 
+             RowBox[{"PlotTheme", "->", "\"\<Scientific\>\""}], ",", 
+             "\[IndentingNewLine]", 
+             RowBox[{"PlotStyle", "->", 
+              RowBox[{"RGBColor", "[", "\"\<#3277a8\>\"", "]"}]}], ",", 
+             "\[IndentingNewLine]", 
+             RowBox[{"ImageSize", "->", "1000"}]}], "\[IndentingNewLine]", 
+            "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"Export", "[", 
+           RowBox[{
+            RowBox[{"FileNameJoin", "[", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"Directory", "[", "]"}], ",", "dimerName", ",", 
+               RowBox[{"#", "<>", "\"\<_ZijPlot.png\>\""}]}], "}"}], "]"}], 
+            ",", "ZijPlot"}], "]"}], ";"}], "\[IndentingNewLine]", ")"}], 
+        "&"}], "/@", "pairs"}], ";"}]}], "\[IndentingNewLine]", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetAttributes", "[", 
+   RowBox[{"ExportZijPlotsAsPngs", ",", " ", "Listable"}], "]"}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.892625849234498*^9, 3.8926259039451485`*^9}, {
+  3.892625965454414*^9, 3.8926261213920593`*^9}, {3.8926261516326065`*^9, 
+  3.892626151812806*^9}, {3.8926261926443405`*^9, 3.892626201561751*^9}, {
+  3.892626271742579*^9, 3.8926264267973375`*^9}, {3.892626468142065*^9, 
+  3.892626480155757*^9}, {3.8926273398847165`*^9, 3.892627441269888*^9}, {
+  3.8926274784935794`*^9, 3.8926274867175026`*^9}, {3.892629671686108*^9, 
+  3.8926296845864305`*^9}, {3.8926298232342014`*^9, 3.892629858291618*^9}, {
+  3.892629930976014*^9, 3.8926301110180936`*^9}, {3.892630143183672*^9, 
+  3.89263015747163*^9}, {3.8926307417894487`*^9, 3.892630833259322*^9}, {
+  3.892630866370391*^9, 3.8926308665807314`*^9}},
+ CellLabel->"In[58]:=",ExpressionUUID->"17560cda-5e22-44cf-9260-8c8998950202"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"forceField", " ", "=", "\"\<OPLSAA\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"If", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"!", 
+     RowBox[{"DirectoryQ", "[", "forceField", "]"}]}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{
+     "Print", "[", "\"\<Error: F0F \\nForce field not found\>\"", "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Quit", "[", "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetDirectory", "[", "forceField", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"pairs", " ", "=", " ", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"\"\<*\>\"", ",", "\"\<\>\""}], "]"}], ",", " ", "DirectoryQ"}],
+     "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ExportZijPlotsAsPngs", "[", "pairs", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Quit", "[", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{
+  3.89262608631649*^9, {3.892626409877554*^9, 3.89262643224397*^9}, {
+   3.8926308716571555`*^9, 3.89263090532563*^9}, {3.892630956049351*^9, 
+   3.892630957373118*^9}, {3.8926318107940874`*^9, 
+   3.8926318195447464`*^9}},ExpressionUUID->"7c0634b0-6fc7-4872-aa4b-\
+e97e21b83933"]
+},
+WindowSize->{581.25, 643.5},
+WindowMargins->{{Automatic, 533.25}, {Automatic, 52.5}},
+FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"e853090b-9327-43d1-b070-3ca441728762"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 5494, 111, 904, "Input",ExpressionUUID->"17560cda-5e22-44cf-9260-8c8998950202"],
+Cell[6055, 133, 1472, 40, 238, "Input",ExpressionUUID->"7c0634b0-6fc7-4872-aa4b-e97e21b83933"]
+}
+]
+*)
+

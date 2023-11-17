@@ -1,0 +1,448 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     17783,        440]
+NotebookOptionsPosition[     17324,        425]
+NotebookOutlinePosition[     17732,        441]
+CellTagsIndexPosition[     17689,        438]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[TextData[{
+ "This script creates a plot for each dimer where the minimum sampled energy \
+configuration at a specific distance (red) and the averaged interaction \
+energy at a specific distance is plotted against the distance (see example \
+below).\nJust run this script in the result folder.\n\n",
+ Cell[BoxData[
+  GraphicsBox[{{}, {{{}, {}, 
+      {RGBColor[0.790588, 0.201176, 0.], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], AbsoluteThickness[1.6], 
+       CapForm["Butt"], LineBox[CompressedData["
+1:eJxdkn1IU1EYxodFDBEZ91zFRNZmc5vO7RQh0R/iE2Eff0hlIf4hEYNCopaF
+Rq0PiJgREibSl33YyugDkQqRJaKHZR/0MWIGkmExQkpMYpWBRdE997ww6IXL
+5ce593mf532PM7i3dkeWxWKpMB75VmXF2oHvf94ctEJxDoa7C/mkSxOKbfA/
+uPL1VquTWMPlUce9/V6v2GmWhiWRmc2x9x7x6qUsDdfk761lYoVZDHfTyZrg
+mYCozB6/0VTJcCGknRDPA2J9Kqz3rWOYel38bv5vQNTG7IYSw6LjZ9e0lXPR
+0B6f8zYw/Dq2a6h5C6d+DI0ds0eqWrjYZwoyPDbsNHZwcdhQS4UZck3DXEhb
+9gjDWE3QVv+QC1OunSl/T7jouiiLoaWzYGFdgoueJinI8GHj6fOhJBdSTe/L
+sGkvlvn+kZSLZ/RUfgbTxyAXMm32OMOhafdyay8XZtwUQ/+zA8PdXVx8kfZm
+GOQ0ohEufkq5OQazb4jTvPX/8utQun7qp2PPp9930kkfzTsPQ82GwXOllC8P
+K0+t3j61yUN6+dj68ealUUcJcQE8hruiicXEhXDKcc7mEhcpvboFxHZ8S8qB
+zo8odmDSJTeWJnbiaFXFtsENn4mLaT8p4qUwj3MmiF2Q8asHxohLqF+C2I0s
+38n8t4mnxB607ZaB48Re2OpXyZESl+J6tbzQMeIytY9wP7EPP4zbPu2+T1xO
+++kl9qt5d94mDuBFVAr2EHOovUWJl0Hdi6sj/wDWPEOq
+        "]]}, 
+      {RGBColor[0.192157, 0.388235, 0.807843], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], AbsoluteThickness[1.6], 
+       CapForm["Butt"], LineBox[CompressedData["
+1:eJxdkVtIVFEUhgeTkEFLzj6GyCQzqeP1bI2wqJB+8KEbUUpIhUQMFoNFTWY9
+jCFGdAGhYYgi7TJBdxAZpEIkbGUSIfUSgQ9RMfTQg5n4YFAItS+roFlwOHzs
+vf/1/2uFIsdaD+b4fL5G9em/rTxUrs4bCuxbDsv5CKW7osnZJWS5EK2jpedm
+WgLMDiKFe9Y/vhimQ6Yc9LjDmzMbwvT2jS4HSqxjY6qa1pgS+NaiBA571OSf
+vhNrErgxGUx3PfRoSyauXgokZ09vavzkke0joF5/3lkgqT0xsVDVLqDbvV4r
+uZ/A4ICqvZKOG0E+PyXJ+IgLnLxcnNt2SZISU4oCu7/cuz55W5KRSwjoW+6w
+JKMzwO+fSrob04LC5hmTZO8JfFf29is29kYFotrwE0kvtdyEwNIzV5r7hyTn
+F9BuxlOSdFr/tMBKHSghycTNCFxt7j/ytUeSmcuMwHiqpP5jh6QfWm5B4NpR
+5yxtkzxv1+7D+5vftXvqq+N+LsxY/TU87yKc0AZ/hzlfEW7NPXi1fV05661A
+2YefvZ2LIeZi6HRb8x3mErQt80Zuzs0/txxAhQn4nrnU+pt6wRyEHm8wPcIc
+QuezbrWB+8yreB6DzGV2/9EkczlU85zaC+eZK7D4aP7djkgfc9juI97NXMnn
+MeYq/OrVHaPM1Xx+gLkmi2uZdzHXZbGXxTKL6+H7rxr+8R/v7zKY
+        "]]}}, {
+      {RGBColor[0.790588, 0.201176, 0.], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], AbsoluteThickness[1.6], 
+       CapForm["Butt"], GeometricTransformationBox[InsetBox[
+         FormBox[
+          StyleBox[
+           GraphicsBox[
+            {EdgeForm[None], DiskBox[{0, 0}]}],
+           StripOnInput->False,
+           GraphicsBoxOptions->{DefaultBaseStyle->Directive[
+             PointSize[
+              Rational[1, 72]], 
+             RGBColor[0.790588, 0.201176, 0.], 
+             CapForm["Butt"], 
+             AbsoluteThickness[1.6]]}],
+          TraditionalForm], {0., 0.}, Automatic, Offset[
+         6.272]], CompressedData["
+1:eJxdkmtIk1EYx5dGDBEZO69iImuzuU3ndoqQ6IP4j7DLB6ksxA8SMSgkallo
+1LpAxIyQMJFudrGV0QWRCpEpoodlF7qMmIFkWIyQEpNYZWBR9J73PDHogfPh
+x3nf//P/P89xBPbW7Mg0mUzl+lmgnwzTvzJjbf+3368PmqE4G8NdBXzSaRWK
+LfA9uPLlVouD2IrLo/Z7+z0esdMoK5aEZzZH37nFyxeyrLgmf28pFSuMYrib
+SlQHzvhFRdb4jcYKhgtB6wnxzC/WJ0Na7zqGqVdFb+f/+EVN1KYrMSw6fnZN
+axkX9W2xOU89w89ju4aatnDqx9DQPnukspmLfYYgwyPdTkM7F4d1tWSIIccw
+zIW0ZQszjFUHLHUDXBhybUz5e8xF50VZDM0d+Qtr41x0N0pBhvcbT58PJriQ
+alpvmg170fT3D6VcLK2n8jMYPga5kGmzxhkOTbuWm3u4MOImGfqeHhju6uTi
+s7Q3wyCnEQlz8UPKzTEYfYOc5q39l1+D0vVRPw17Pv66k0p4ad65GGrSDZ4r
+oXy5WHlq9fapTW7Sy8PWDzcvjdqLifPh1t0VTiwmLoBDjnM2h7hQ6dVmEtvw
+NSEHOj+i2I5Jp9xYitiBo5Xl2wY3fCIuov0kiZfCuM6eIHZCxq/qHyMupn5x
+YhcyvCfz3sSfELvRulsGjhF7YKlbJUdKXILrVfJBR4lL1T5CfcRefNdf+7Tr
+PnEZ7aeH2Kfm3XGb2I/nESnYTcyh9hYhXgb1Lq6O/AXkeEOs
+        "]]}, 
+      {RGBColor[0.192157, 0.388235, 0.807843], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], AbsoluteThickness[1.6], 
+       CapForm["Butt"], GeometricTransformationBox[InsetBox[
+         FormBox[
+          StyleBox[
+           GraphicsBox[
+            {EdgeForm[None], 
+             PolygonBox[{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}]}],
+           StripOnInput->False,
+           GraphicsBoxOptions->{DefaultBaseStyle->Directive[
+             PointSize[
+              Rational[1, 72]], 
+             RGBColor[0.192157, 0.388235, 0.807843], 
+             CapForm["Butt"], 
+             AbsoluteThickness[1.6]]}],
+          TraditionalForm], {0., 0.}, Automatic, Offset[
+         6.72]], CompressedData["
+1:eJxdkVtIlFEUhf80QgYrmfMbIpPMpI7X/1iERYW0wIduRCkhFSIxWAwWNZn1
+MIYY0QWEhiGKtMsE3UFkkAqJsJ2JRNRLBD5ExdBDD2big0Eh1Llsg2bDefg4
+56y91t6hyLHmg7mO49Srs0idHGeh8lCxJm8wsH85LOcjlO6MJqdzyXIBmkdK
+zk01BZj9iBTs3fD4YpgOmfKj2x3aktkYpndvdfmhxNo3paporSmB701K4LBH
+Db7JO7EGgRvjwXTnQ4+2ZuLqp0By+vTm+s8e2T4C6veXXUsltSbG5ipbBXS7
+1+sk9xMY6Fe1T9JxI8j3pyQZH3GBk5eLFrdckqTElKLAnq/3ro/flmTkEgL6
+lTskyej08/+nku7GtKCweZ5Jsu8Efih7bYqNvRGBqDb8RNIrLTcmsOTMlca+
+Qcn5BbSb0ZQkndY3KbBSB0pIMnEzAlcb+45865Zk5jIlMJoqrvvULumnlpsT
+uHbUf5a2S563a/fhLeR37Z56a7mfCzNWXzXPuxAntME/Yc5XiFszDyZ2rC9j
+vRUo/firp2M+xFwEnW5bvp+5GC3LvOGbM7MvLAdQbgJ+YC6x/t68ZA5CjzeY
+HmYOoeN5l9rAfeZVPI8B5lK7/2iSuQyqeU7NhfPM5Zh/NPt+Z6SXOWz3Ee9i
+ruD7GHMlfvfojlHmKr4/wFydxTXMu5lrs9jLYpnFdXD+q9X/+C/+KzKa
+        "]]}}}, {{}, {}}},
+   AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+   Axes->{False, False},
+   AxesLabel->{None, None},
+   AxesOrigin->{2.2777777777777835`, 0},
+   DisplayFunction->Identity,
+   Frame->{{True, False}, {True, False}},
+   FrameLabel->{{
+      FormBox[
+       TagBox["\"Interaction energy [kcal/mole]\"", HoldForm], 
+       TraditionalForm], None}, {
+      FormBox[
+       TagBox["\"r [\[CapitalARing]]\"", HoldForm], TraditionalForm], None}},
+   FrameStyle->Directive[
+     GrayLevel[0]],
+   FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+   GridLines->{None, Automatic},
+   GridLinesStyle->Directive[
+     GrayLevel[0.4, 0.5], 
+     AbsoluteThickness[1], 
+     AbsoluteDashing[{1, 2}]],
+   LabelStyle->Directive[Bold],
+   Method->{
+    "AxisPadding" -> Scaled[0.02], "DefaultBoundaryStyle" -> Automatic, 
+     "DefaultGraphicsInteraction" -> {
+      "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+       "Effects" -> {
+        "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+         "Droplines" -> {
+          "freeformCursorMode" -> True, 
+           "placement" -> {"x" -> "All", "y" -> "None"}}}}, 
+     "DefaultMeshStyle" -> AbsolutePointSize[6], "DefaultPlotStyle" -> {
+       Directive[
+        RGBColor[0.790588, 0.201176, 0.], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.192157, 0.388235, 0.807843], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[1., 0.607843, 0.], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0., 0.596078, 0.109804], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.567426, 0.32317, 0.729831], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0., 0.588235, 0.705882], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.8505, 0.4275, 0.13185], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.499929, 0.285875, 0.775177], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.12490296143062507`, 0.63, 0.47103259454284074`], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[
+        0.823948950768196, 0.29474475384097976`, 0.19291741323314934`], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.42126358105951733`, 0.33224185136428963`, 0.9], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.7239916650994997, 0.6554435183443889, 0.], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[0.6746366424582266, 0.252, 0.45055901160272827`], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[
+        0.12582006271512805`, 0.5293439498278976, 0.7809840752581536], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]], 
+       Directive[
+        RGBColor[
+        0.8604677779867332, 0.4773388899336664, 0.10673699943582014`], 
+        CapForm["Butt"], 
+        AbsoluteThickness[1.6]]}, "DomainPadding" -> Scaled[0.02], 
+     "RangePadding" -> Scaled[0.05], "OptimizePlotMarkers" -> True, 
+     "OptimizePlotMarkers" -> True, 
+     "CoordinatesToolOptions" -> {"DisplayFunction" -> ({
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}& )}},
+   PlotRange->{{2.2777777777777835`, 16.}, {-15.911, 3.919}},
+   PlotRangeClipping->True,
+   PlotRangePadding->{{
+      Scaled[0.05], 
+      Scaled[0.05]}, {
+      Scaled[0.05], 
+      Scaled[0.05]}},
+   Ticks->{Automatic, Automatic}]], "Output",
+  CellChangeTimes->{
+   3.894101811864515*^9, 3.894424854887367*^9, {3.9000536537379313`*^9, 
+    3.900053676734696*^9}},ExpressionUUID->
+  "57f9370c-f7cf-458f-b5a7-19a5bbc2d7ee"]
+}], "Text",
+ CellChangeTimes->{{3.9085210095215054`*^9, 3.9085210297728214`*^9}, {
+  3.9085210840176015`*^9, 
+  3.9085212081654663`*^9}},ExpressionUUID->"8af4dbae-054e-4c05-80b0-\
+f5eca4189989"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"ExportPlots", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"dimerNameFolder_", "/;", 
+     RowBox[{"StringQ", "[", "dimerNameFolder", "]"}]}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"outputFolder_", "/;", 
+     RowBox[{"StringQ", "[", "outputFolder", "]"}]}]}], "\[IndentingNewLine]",
+    "]"}], ":=", "\[IndentingNewLine]", 
+  RowBox[{"Block", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{
+     "data", ",", "\[IndentingNewLine]", "points", ",", "\[IndentingNewLine]",
+       "dimerName", ",", "\[IndentingNewLine]", "plot"}], 
+     "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"dimerName", " ", "=", " ", 
+      RowBox[{
+       RowBox[{"FileNameSplit", "[", "dimerNameFolder", "]"}], "//", 
+       "Last"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"data", " ", "=", " ", 
+      RowBox[{
+       RowBox[{"Import", " ", "[", 
+        RowBox[{"FileNameJoin", "[", 
+         RowBox[{"{", 
+          RowBox[{"dimerNameFolder", ",", 
+           RowBox[{"StringJoin", "[", 
+            RowBox[{"{", 
+             RowBox[{"dimerName", ",", "\"\<_dist_vs_energy.dat\>\""}], " ", 
+             "}"}], "]"}]}], "}"}], "]"}], "]"}], "[", 
+       RowBox[{"[", 
+        RowBox[{"2", ";;"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"points", " ", "=", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"#", "[", 
+             RowBox[{"[", "1", "]"}], "]"}], ",", 
+            RowBox[{"#", "[", 
+             RowBox[{"[", "2", "]"}], "]"}]}], "}"}], "&"}], "/@", "data"}], 
+        ",", " ", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"#", "[", 
+             RowBox[{"[", "1", "]"}], "]"}], ",", 
+            RowBox[{"#", "[", 
+             RowBox[{"[", "3", "]"}], "]"}]}], "}"}], "&"}], "/@", "data"}]}],
+        "}"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"plot", "=", 
+      RowBox[{"ListLinePlot", "[", "\[IndentingNewLine]", 
+       RowBox[{"points", ",", "\[IndentingNewLine]", 
+        RowBox[{"Frame", "->", 
+         RowBox[{"{", 
+          RowBox[{"True", ",", "True", ",", "False", ",", "False"}], "}"}]}], 
+        ",", "\[IndentingNewLine]", 
+        RowBox[{"FrameLabel", "->", 
+         RowBox[{"{", "\[IndentingNewLine]", 
+          RowBox[{
+          "\"\<r [\[CapitalARing]]\>\"", ",", "\[IndentingNewLine]", 
+           "\"\<Interaction energy [kcal/mole]\>\""}], "}"}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"FrameStyle", "->", 
+         RowBox[{"Directive", "[", "Black", "]"}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"PlotMarkers", "->", "Automatic"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"LabelStyle", "\[Rule]", 
+         RowBox[{"Directive", "[", "Bold", "]"}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"PlotRange", "->", "All"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"PlotRangePadding", "->", 
+         RowBox[{"Scaled", "[", ".05", "]"}]}], ",", "\[IndentingNewLine]", 
+        RowBox[{"PlotTheme", "->", 
+         RowBox[{"{", 
+          RowBox[{
+          "\"\<Scientific\>\"", ",", " ", "\"\<VibrantColor\>\"", ",", " ", 
+           "\"\<HeightGrid\>\""}], "}"}]}]}], 
+       RowBox[{"(*", 
+        RowBox[{",", "\[IndentingNewLine]", 
+         RowBox[{"PlotStyle", "->", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"RGBColor", "[", "\"\<#3277a8\>\"", "]"}], ",", 
+            RowBox[{"RGBColor", "[", "\"\<#4ecf13\>\"", "]"}]}], "}"}]}]}], 
+        "*)"}], "\[IndentingNewLine]", "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Export", "[", 
+      RowBox[{
+       RowBox[{"FileNameJoin", "[", 
+        RowBox[{"{", 
+         RowBox[{"outputFolder", ",", 
+          RowBox[{"dimerName", "<>", "\"\<_Eij_plot.png\>\""}]}], "}"}], 
+        "]"}], ",", " ", "plot", ",", " ", 
+       RowBox[{"Background", "->", "None"}]}], "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Export", "[", 
+      RowBox[{
+       RowBox[{"FileNameJoin", "[", 
+        RowBox[{"{", 
+         RowBox[{"outputFolder", ",", 
+          RowBox[{"dimerName", "<>", "\"\<_Eij_plot.svg\>\""}]}], "}"}], 
+        "]"}], ",", " ", "plot", ",", " ", 
+       RowBox[{"Background", "->", "None"}]}], "]"}], ";"}]}], " ", 
+   "\[IndentingNewLine]", "]"}]}], "\n", 
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"forceField", " ", "=", " ", 
+   RowBox[{"forceField", " ", "=", 
+    RowBox[{"FileBaseName", "[", 
+     RowBox[{
+      RowBox[{"FileNames", "[", 
+       RowBox[{"All", ",", "\"\<IE\>\"", ",", "1"}], "]"}], "//", "Last"}], 
+     "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"results", " ", "=", " ", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"\"\<*\>\"", ",", 
+       RowBox[{"\"\<IE/\>\"", "<>", "forceField"}]}], "]"}], ",", " ", 
+     "DirectoryQ"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"plotsDir", " ", "=", " ", "\"\<Eij_plots\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"If", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"!", 
+     RowBox[{"DirectoryQ", "[", "plotsDir", "]"}]}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"CreateDirectory", "[", "plotsDir", "]"}], ";"}]}], 
+   "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Do", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"subPlotDir", " ", "=", " ", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"plotsDir", ",", " ", 
+         RowBox[{"results", "[", 
+          RowBox[{"[", "i", "]"}], "]"}]}], "}"}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"If", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"!", 
+        RowBox[{"DirectoryQ", "[", "subPlotDir", "]"}]}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"CreateDirectory", "[", "subPlotDir", "]"}]}], 
+      "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"dimers", "=", 
+      RowBox[{"results", "[", 
+       RowBox[{"[", "i", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"ExportPlots", "[", 
+      RowBox[{"dimers", ",", "subPlotDir"}], "]"}]}], "\[IndentingNewLine]", 
+    ",", 
+    RowBox[{"{", 
+     RowBox[{"i", ",", " ", 
+      RowBox[{"Length", "[", "results", "]"}]}], "}"}]}], 
+   "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.900050834852292*^9, 3.900050898951457*^9}, {
+   3.900050998805928*^9, 3.9000510948268633`*^9}, {3.9000522363308864`*^9, 
+   3.900052237173359*^9}, {3.900052276705725*^9, 3.9000522923842688`*^9}, {
+   3.900053007251809*^9, 3.900053013192605*^9}, {3.9000535169780464`*^9, 
+   3.900053556995121*^9}, {3.900053660634661*^9, 3.900053661611744*^9}, 
+   3.9085212381755476`*^9, {3.908521273629154*^9, 3.908521281840391*^9}},
+ CellLabel->"In[64]:=",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
+},
+WindowSize->{958.5, 1011.},
+WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
+FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8eefefb4-a094-42b2-907c-a7d205356260"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 9567, 225, 340, "Text",ExpressionUUID->"8af4dbae-054e-4c05-80b0-f5eca4189989"],
+Cell[10128, 247, 7192, 176, 977, "Input",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
+}
+]
+*)
+
