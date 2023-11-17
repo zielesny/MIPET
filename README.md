@@ -17,7 +17,7 @@ MIPET ('Mesoscopic Interaction Parameter Estimation with Tinker') is an open sof
 
 ## Content of this repository 
 ### Sources 
-The <a href="https://github.com/zielsny/MIPET/tree/main/resources/de/whs/ibci/mipet">"src"</a> subfolder contains all source code packages. The test can be found in the <a href="https://github.com/zielsny/MIPET/tree/main/test/de/whs/ibci">"test"</a> subfolder.
+The <a href="https://github.com/zielsny/MIPET/tree/main/resources/de/whs/ibci/mipet">"src"</a> subfolder contains all source code packages. The tests can be found in the <a href="https://github.com/zielsny/MIPET/tree/main/test/de/whs/ibci">"test"</a> subfolder.
 
 ### Molecules
 The <a href="https://github.com/zielsny/MIPET/tree/main/Molecules"> Molecules</a> subfolder contains Tinker .xyz files for different molecules for the force fields AMOEBA09, MM3, MMFF, OPLSAA and SMOOTHAA as well as their SMILES codes in the <a href="https://github.com/zielsny/MIPET/tree/main/Molecules/SMILES">SMILES</a> subfolder.
@@ -44,7 +44,7 @@ A convenient Windows OS installer executable for MIPET is available (click <a hr
 Not yet implemented
 
 ### Tinker - Software Tools for Molecular Design
-In order to run MIPET, the Tinker molecular modeling tool package has to be added. For this, the Tinker executables and the files for the atomic parameters of version 8.10.2 have to be downloaded (click <a href="https://dasher.wustl.edu/tinker/">here</a> to go to the Tinker website). Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. The executables and the parameter files have to be placed in a subfolder named "tinker", which you have to create in the root directory of MIPET.
+In order to run MIPET, the Tinker molecular modeling tool package has to be added. For this, the Tinker executables and the files for the atomic parameters of version 8.10.2 have to be downloaded (click <a href="https://dasher.wustl.edu/tinker/">here</a> to go to the Tinker website). Choose the correct version for your OS. Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. The executables and the parameter files have to be placed in a subfolder named "tinker", which you have to create in the root directory of MIPET.
 Exampled directory structure:  
 
     ├── MIPET                   # MIPET root directory  
@@ -57,16 +57,16 @@ Exampled directory structure:
     │   └── ...                 
 
 ## Dependencies
-* Java Development Kit (JDK) version 17
+* Java Development Kit (JDK) version 21
     * [AdoptOpenJDK](https://adoptopenjdk.net) (as one possible source of the JDK)
-* Chemistry Development Kit (CDK) version 2.5
+* Chemistry Development Kit (CDK) version 2.9
     * [Chemistry Development Kit on GitHub](https://cdk.github.io/)
 * Tinker - Software Tools for Molecular Design version 8.10.2
     * [Tinker](https://dasher.wustl.edu/tinker/)
-* Apache Maven version 4
-    * [Apache Maven](http://maven.apache.org)
-* JUnit version 4.13.1
+* JUnit version 4.13.2
     * [JUnit 4](https://junit.org/junit4/)
+* Apache commons-lang3 version 3.12.0
+    * [commons-lang3](https://commons.apache.org/proper/commons-lang/)
 
 ## Acknowledgments 
 ### Developers
