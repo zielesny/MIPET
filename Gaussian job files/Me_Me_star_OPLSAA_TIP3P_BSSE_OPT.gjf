@@ -1,0 +1,28 @@
+%nprocshared=8
+%chk=D:\Zielesny\G16W\Me_Me_star_OPLSAA_ TIP3P_BSSE_OPT.chk
+# opt=(MaxCycles=999) wb97xd/6-311++g(d,p) geom=connectivity counterpoise=2
+
+Me_Me_star_OPLSAA_ TIP3P_BSSE_OPT
+
+0 1 0 1 0 1
+ C(Fragment=1)      0.00000000    0.00000000    0.00000000
+ H(Fragment=1)      0.44742200   -0.65535500   -0.74727800
+ H(Fragment=1)      0.34563500   -0.29085300    0.99198900
+ H(Fragment=1)      0.29267800    1.03095400   -0.19893100
+ H(Fragment=1)     -1.08573600   -0.08474600   -0.04578000
+ C(Fragment=2)      3.57000000    0.00000000    0.00000000
+ H(Fragment=2)      3.12257800    0.70027700    0.70535500
+ H(Fragment=2)      3.22436500   -1.00969300    0.22171300
+ H(Fragment=2)      3.27732200    0.26959200   -1.01477100
+ H(Fragment=2)      4.65573600    0.03982400    0.08770300
+
+ 1 2 1.0 3 1.0 4 1.0 5 1.0
+ 2
+ 3
+ 4
+ 5
+ 6 7 1.0 8 1.0 9 1.0 10 1.0
+ 7
+ 8
+ 9
+ 10
