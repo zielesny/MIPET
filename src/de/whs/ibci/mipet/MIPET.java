@@ -3306,18 +3306,10 @@ public class MIPET {
                 tmpBW.append("# Fraction for Boltzmann averaging: ");
                 tmpBW.append(String.valueOf(boltzmannFraction));
                 tmpBW.append(LINESEPARATOR);
-                tmpBW.append("# Number of solvent molecules: ");
-                tmpBW.append(String.valueOf(solventMoleculeNumber));
-                tmpBW.append(LINESEPARATOR);
-                tmpBW.append("# MD step number for warm up: ");
-                tmpBW.append(String.valueOf(warmUpStepNumber));
-                tmpBW.append(LINESEPARATOR);
-                tmpBW.append("# MD step number: ");
-                tmpBW.append(String.valueOf(stepNumber));
-                tmpBW.append(LINESEPARATOR);
-                tmpBW.append("# Catch radius for MD simulation analysis: ");
-                tmpBW.append(String.valueOf(catchRadius));
-                tmpBW.append(LINESEPARATOR);
+                if (i == 1) {
+                    tmpBW.append("# CN = 1 for all particle pairs");
+                    tmpBW.append(LINESEPARATOR);
+                }
                 tmpBW.append(LINESEPARATOR);
                 tmpBW.append("[Title]\n" + aTitle + "\n[/Title]\n\n");
                 tmpBW.append("[Version]\n" 
@@ -3375,22 +3367,23 @@ public class MIPET {
                 tmpBW.append("[/Particle interactions]");
                 tmpBW.append(LINESEPARATOR);
                 tmpBW.append(LINESEPARATOR);
+                if (i == 0) {
+                    // Coordination numbers
+                    tmpBW.append("[Coordination numbers]");
+                    tmpCNListLength = cnList.size();
 
-                // Coordination numbers
-                tmpBW.append("[Coordination numbers]");
-                tmpCNListLength = cnList.size();
+                    for (int j = 0; j < tmpCNListLength; j++) {
+                        tmpBW.append(LINESEPARATOR);
+                        tmpBW.append(cnList.get(j).particleName1() + "_"
+                                + cnList.get(j).particleName2());
+                        tmpBW.append(String.format(" %.2f", 
+                                cnList.get(j).cnValue()));
+                    }
 
-                for (int j = 0; j < tmpCNListLength; j++) {
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append(cnList.get(j).particleName1() + "_"
-                            + cnList.get(j).particleName2());
-                    tmpBW.append(String.format(" %.2f", 
-                            cnList.get(j).cnValue()));
+                    tmpBW.append("[/Coordination numbers]");
+                    tmpBW.append(LINESEPARATOR);
                 }
-
-                tmpBW.append(LINESEPARATOR);
-                tmpBW.append("[/Coordination numbers]");
-                tmpBW.append(LINESEPARATOR);
 
                 // Particle SMILES
                 tmpBW.append(LINESEPARATOR);
@@ -3400,10 +3393,12 @@ public class MIPET {
                 tmpKeySet = smiles.keySet();
 
                 for(String tmpKey : tmpKeySet){
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append(tmpKey); 
-                    tmpBW.append(" ");
-                    tmpBW.append(smiles.get(tmpKey));
+                    if (tmpParticleNames.contains(tmpKey)) {
+                        tmpBW.append(LINESEPARATOR);
+                        tmpBW.append(tmpKey); 
+                        tmpBW.append(" ");
+                        tmpBW.append(smiles.get(tmpKey));
+                    }
                 }
 
                 tmpBW.append(LINESEPARATOR);
