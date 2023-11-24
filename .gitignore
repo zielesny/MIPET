@@ -45,6 +45,7 @@ gradle-app.setting
 AdoptOpenJDK.zip
 /nbproject/private/
 /dist/
+tinker/
 tinker/0version.txt
 tinker/critical.exe
 tinker/params/amoebapluscf.prm
