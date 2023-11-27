@@ -13,6 +13,9 @@
   * [Molecules](#Molecules)
   * [Visualization Tools](#Visualization-Tools)
   * [Tutorial/Usage](#tutorialusage)
+  * [C10E4-water bilayer formation study](#c10e4-water-bilayer-formation-study)
+  * [Gaussian job files](#gaussian-job-files)
+  * [Legacy](#legacy)
 * [Installation](#Installation)
     * [Application](#application)
     * [Tinker - Software Tools for Molecular Design](#tinker---software-tools-for-molecular-design)
@@ -53,6 +56,25 @@ Mathematica 13 (or higher) is required to use these notebooks.
 ### Tutorial/Usage
 The <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">"Tutorial" folder</a> contains a detailed tutorial 
 on how to install and use MIPET, together with tutorial job files.
+
+### C10E4-water bilayer formation study
+The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/C10E4-water%20bilayer%20formation%20study">C10E4-water bilayer formation study</a>
+contains a bunch of job files for DPD simulations performed with MFsim. Detailed information can be found in our scientific
+articles (<a href="TODO add link to article">
+An automated Calculation Pipeline for Differential Pair Interaction Energies with Molecular Force Fields using the Tinker Molecular Modeling Package
+</a>).
+
+### Gaussian job files
+The subfolder <a hre="https://github.com/zielesny/MIPET/tree/main/Gaussian%20job%20files"> Gaussian job files</a>
+contains a bunch of job files for DFT calculations that were carried out as part of the development of MIPET using Gaussian.
+Detailed information can be found in our scientific
+articles (<a href="TODO add link to article">
+An automated Calculation Pipeline for Differential Pair Interaction Energies with Molecular Force Fields using the Tinker Molecular Modeling Package
+</a>).
+
+### Legacy
+The <a href="https://github.com/zielesny/MIPET/tree/main/Legacy"> Legacy </a> subfolder contains legacy source code and 
+files which were developed as part of the development of MIPET.
 
 ## Installation
 ### Application
