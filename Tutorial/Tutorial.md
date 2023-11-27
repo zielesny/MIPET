@@ -88,4 +88,28 @@ model inside the force field directory and rename the new file to "H2O.xyz". By 
 if nothing was changed, the TIP5P water model is chosen.
 
 ## Create and configure molecules
+To create a new molecule file in the Tinker xyz file format, which can be used in the calculation pipeline, a mol file of the desired molecule is needed. This mol file can be transformed into a Tinker xyz file by using the Tinker tool "mol2xyz". Therefore, a key file is needed which refers to the parameter file of the desired force field, e.g. for OPLSAA:
+    
+    PARAMETERS "<Path to Tinker directory>\Tinker\params\oplsaa.prm"  
 
+The Tinker xyz file generated for methanol using this method looks like the following:
+
+    6    MeOH
+    1  C      0.680000   -0.025000    0.000000     0     2     3     4     5
+    2  H      1.047000    1.011000   -0.000000     0     1
+    3  H      1.009000   -0.547000   -0.904000     0     1
+    4  H      1.009000   -0.547000    0.904000     0     1
+    5  O     -0.746000    0.124000    0.000000     0     1     6
+    6  H     -1.172000   -0.756000    0.000000     0     5
+
+The first row following the coordinates must be replaced with the corresponding atom type numbers of the force field:
+
+    6    MeOH
+    1  C      0.680000   -0.025000    0.000000     99     2     3     4     5
+    2  H      1.047000    1.011000   -0.000000     98     1
+    3  H      1.009000   -0.547000   -0.904000     98     1
+    4  H      1.009000   -0.547000    0.904000     98     1
+    5  O     -0.746000    0.124000    0.000000     96     1     6
+    6  H     -1.172000   -0.756000    0.000000     97     5
+
+This file must be copied in the directory of the force field inside the "Molecules" directory.
