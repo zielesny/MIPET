@@ -1,0 +1,1129 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     49110,       1121]
+NotebookOptionsPosition[     48348,       1103]
+NotebookOutlinePosition[     48771,       1119]
+CellTagsIndexPosition[     48728,       1116]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{":", "Title", ":", " ", "TinkerReadResult"}], " ", "*)"}], "\n", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{":", "Authors", ":", " ", 
+     RowBox[{"Mirco", " ", "Daniel"}]}], ",", " ", 
+    RowBox[{"Felix", " ", "B\[ADoubleDot]nsch"}]}], " ", "*)"}], "\n", 
+  RowBox[{"(*", " ", 
+   RowBox[{":", "Summary", ":", "\n", "\t", 
+    RowBox[{
+    "This", " ", "package", " ", "imports", " ", "datas", " ", "from", " ", 
+     "MIPET", " ", "and", " ", "generates", " ", "parameterset", " ", "data", 
+     " ", "in", " ", "excel", " ", "sheet", " ", "format", " ", "and", " ", 
+     "in", " ", "ascii", " ", "format", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"for", " ", "one", " ", "temperature"}], ")"}], "."}]}]}], 
+   "\n", " ", "*)"}], "\n", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{":", "Copyright", ":", " ", 
+     RowBox[{"Copyright", " ", "2018"}]}], ",", " ", 
+    RowBox[{"University", " ", "of", " ", "Westphalia"}]}], " ", "*)"}], "\n", 
+  RowBox[{"(*", " ", 
+   RowBox[{":", "Version", ":", " ", "0.1"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", " ", 
+   RowBox[{":", 
+    RowBox[{"Mathematica", " ", "Version"}], ":", " ", "12.0"}], " ", "*)"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"title", " ", "=", " ", "\"\<AminoAcids\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"titleAbr", " ", "=", " ", "\"\<AA\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"versionNr", " ", "=", " ", "\"\<1.0.0.0\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"forceField", " ", "=", " ", "\"\<AMOEBA09\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"header", " ", "=", 
+     RowBox[{
+     "\"\<# Particle set for MFSim\\n\\n[Title]\\n\>\"", " ", "<>", "title", 
+      " ", "<>", "\"\<\\n[/Title]\\n\\n[Version]\\n\>\"", "<>", "versionNr", 
+      "<>", "\"\<\\n[/Version]\\n\\n\>\""}]}], " ", ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"import", " ", 
+     RowBox[{"notebooks", "/", "data"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"dataDirectory", " ", "=", " ", 
+     RowBox[{"FileNameJoin", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"ParentDirectory", "[", 
+         RowBox[{
+          RowBox[{"NotebookDirectory", "[", "]"}], ",", "2"}], "]"}], ",", 
+        "\"\<Results\>\"", ",", " ", "forceField"}], "}"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"exportDataName", " ", "=", " ", "\"\<MMFF.xlsx\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"boltzmannConst", " ", "=", " ", 
+     RowBox[{"3.1668105", "*", 
+      RowBox[{"10", "^", 
+       RowBox[{"-", "3"}]}]}]}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"in", " ", 
+     RowBox[{"mHartree", "/", "K"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"temperature", " ", "=", " ", "298"}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"in", " ", "K"}], " ", "*)"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"SetDirectory", "[", "dataDirectory", "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"inputPathName", "=", 
+     RowBox[{"Select", "[", 
+      RowBox[{
+       RowBox[{"FileNames", "[", 
+        RowBox[{"\"\<*\>\"", ",", "\"\<\>\"", ",", "Infinity"}], "]"}], ",", 
+       "DirectoryQ"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"fragments", " ", "=", " ", 
+     RowBox[{"List", "[", "]"}]}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Length", "[", "inputPathName", "]"}], "\[Equal]", " ", "0"}], 
+      ",", " ", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"Quit", "[", "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], 
+    ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"maxRow", "=", "0"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"particleName1", " ", "=", " ", 
+        RowBox[{
+         RowBox[{"StringSplit", "[", 
+          RowBox[{
+           RowBox[{"inputPathName", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], ",", "\"\<_\>\""}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"AppendTo", "[", 
+        RowBox[{"fragments", ",", "particleName1"}], "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"particleName2", " ", "=", " ", 
+        RowBox[{
+         RowBox[{"StringSplit", "[", 
+          RowBox[{
+           RowBox[{"inputPathName", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], ",", "\"\<_\>\""}], "]"}], "[", 
+         RowBox[{"[", "2", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"AppendTo", "[", 
+        RowBox[{"fragments", ",", "particleName2"}], "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"particleName1", " ", "\[Equal]", " ", "particleName2"}], 
+         ",", "\[IndentingNewLine]", 
+         RowBox[{"maxRow", "++"}], ",", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"maxRow", " ", "+=", " ", "2"}], ";"}]}], 
+        "\[IndentingNewLine]", "]"}]}], ",", "\[IndentingNewLine]", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", " ", 
+        RowBox[{"Length", "[", "inputPathName", "]"}]}], "}"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"fragments", " ", "=", " ", 
+     RowBox[{"Sort", "[", 
+      RowBox[{"DeleteDuplicates", "[", "fragments", "]"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"particle", " ", "desrciptions"}], " ", "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"particleDescription", " ", "=", " ", 
+     RowBox[{"Table", "[", 
+      RowBox[{"null", ",", " ", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"Length", "[", "fragments", "]"}], "+", "1"}], "}"}], ",", 
+       "8"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"massDPD", " ", "=", " ", "1"}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"set", " ", "to", " ", "1", " ", "for", " ", "all"}], " ", "*)"}],
+    "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"graphicsRadius", " ", "=", " ", "0.5"}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"set", " ", "to", " ", "0.5", " ", "for", " ", "all"}], " ", 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"charge", " ", "=", " ", "0"}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"check", " ", "TODO"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"standardColor", " ", "=", " ", "black"}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "1"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<# Particle\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", "Particle", " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "2"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Name\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Name", " ", 
+     RowBox[{"TODO", ":", " ", 
+      RowBox[{"get", " ", "full", " ", "name"}]}]}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "3"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Mass[DPD]\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Mass", "[", "DPD", "]"}], " ", "*)"}], " ", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "4"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Charge\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", "Charge", " ", "*)"}], " ", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "5"}], "]"}], "]"}], " ", "=", "  ", 
+     "\"\<Mass[g/mol]\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+     RowBox[{"Mass", "[", 
+      RowBox[{"g", "/", "mol"}], "]"}], " ", 
+     RowBox[{"TODO", ":", " ", 
+      RowBox[{"get", " ", "it", " ", "from", " ", "CDK"}]}]}], " ", "*)"}], 
+   " ", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "6"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Volume[A^3]\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+     RowBox[{"Volume", "[", 
+      RowBox[{"A", "^", "3"}], "]"}], " ", 
+     RowBox[{"TODO", ":", " ", 
+      RowBox[{"get", " ", "it", " ", "from", " ", "CDK"}]}]}], " ", "*)"}], 
+   " ", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "7"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Graphics-Radius\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Graphics", "-", "Radius"}], " ", "*)"}], " ", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleDescription", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", " ", "8"}], "]"}], "]"}], " ", "=", " ", 
+     "\"\<Standard-Color\>\""}], ";"}], " ", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Standard", "-", "Color"}], " ", "*)"}], " ", 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"currentIndexNumber", " ", "=", " ", "1"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"currentIndexNumber", " ", "++"}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "1"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", 
+         RowBox[{"fragments", "[", 
+          RowBox[{"[", "i", "]"}], "]"}], " ", "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", "Particle", " ", "*)"}], "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "2"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", 
+         RowBox[{"fragments", "[", 
+          RowBox[{"[", "i", "]"}], "]"}], " ", "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", 
+        RowBox[{"Name", " ", 
+         RowBox[{"TODO", ":", " ", 
+          RowBox[{"get", " ", "full", " ", "name"}]}]}], "*)"}], 
+       "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "3"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", "massDPD", "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", 
+        RowBox[{"Mass", "[", "DPD", "]"}], " ", "*)"}], " ", 
+       "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "4"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", "charge", "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", "Charge", " ", "*)"}], " ", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "5"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", 
+         RowBox[{"12.0107", " ", "*", " ", "currentIndexNumber"}], "]"}]}], 
+       ";", " ", 
+       RowBox[{"(*", " ", 
+        RowBox[{
+         RowBox[{"Mass", "[", 
+          RowBox[{"g", "/", "mol"}], "]"}], " ", 
+         RowBox[{"TODO", ":", " ", 
+          RowBox[{"get", " ", "it", " ", "from", " ", "CDK"}]}]}], " ", 
+        "*)"}], " ", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "6"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", 
+         RowBox[{
+         "12.0107", " ", "*", " ", "currentIndexNumber", " ", "*", " ", 
+          "100"}], "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", 
+        RowBox[{
+         RowBox[{"Volume", "[", 
+          RowBox[{"A", "^", "3"}], "]"}], " ", 
+         RowBox[{"TODO", ":", " ", 
+          RowBox[{"get", " ", "it", " ", "from", " ", "CDK"}]}]}], " ", 
+        "*)"}], " ", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "7"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", "graphicsRadius", "]"}]}], ";", " ", 
+       RowBox[{"(*", " ", 
+        RowBox[{"Graphics", "-", "Radius"}], " ", "*)"}], " ", 
+       "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleDescription", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "8"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", "standardColor", "]"}]}], ";"}], " ", 
+      RowBox[{"(*", " ", 
+       RowBox[{"Standard", "-", "Color"}], " ", "*)"}], " ", 
+      "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", " ", 
+        RowBox[{"Length", "[", "fragments", "]"}]}], "}"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Particle", " ", "interactions", " ", "excel", " ", "file"}], " ",
+     "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"outputData", " ", "=", " ", 
+     RowBox[{"Table", "[", 
+      RowBox[{"Null", ",", 
+       RowBox[{"{", "maxRow", "}"}], ",", 
+       RowBox[{"{", "8", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"isSameParticle", " ", "=", " ", "False"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"coordinationNumber2", " ", "=", " ", "0"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"currentIndexNumber", " ", "=", " ", "0"}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"currentIndexNumber", " ", "++"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"inputPath", " ", "=", " ", 
+        RowBox[{"FileNameJoin", "[", 
+         RowBox[{"{", 
+          RowBox[{"dataDirectory", ",", 
+           RowBox[{"inputPathName", "[", 
+            RowBox[{"[", "i", "]"}], "]"}]}], " ", "}"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"particleName1", " ", "=", " ", 
+        RowBox[{
+         RowBox[{"StringSplit", "[", 
+          RowBox[{
+           RowBox[{"inputPathName", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], ",", "\"\<_\>\""}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"particleName2", " ", "=", " ", 
+        RowBox[{
+         RowBox[{"StringSplit", "[", 
+          RowBox[{
+           RowBox[{"inputPathName", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], ",", "\"\<_\>\""}], "]"}], "[", 
+         RowBox[{"[", "2", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"particleName1", " ", "\[Equal]", " ", "particleName2"}], 
+         ",", "\[IndentingNewLine]", 
+         RowBox[{"isSameParticle", " ", "=", " ", "True"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"isSameParticle", " ", "=", " ", "False"}], ";"}]}], 
+        "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"SetDirectory", "[", "inputPath", "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"inputData", " ", "=", " ", 
+        RowBox[{"Import", "[", 
+         RowBox[{
+          RowBox[{"inputPathName", "[", 
+           RowBox[{"[", "i", "]"}], "]"}], " ", "<>", " ", "\"\<.dat\>\""}], 
+         "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"intermolecularEnergy", " ", "=", " ", 
+        RowBox[{"NumberForm", "[", 
+         RowBox[{
+          RowBox[{"ToExpression", "[", 
+           RowBox[{"inputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"2", ",", "4"}], "]"}], "]"}], "]"}], ",", " ", "4"}], 
+         "]"}]}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"isSameParticle", " ", "\[Equal]", " ", "False"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"coordinateNumber1", " ", "=", " ", 
+           RowBox[{"NumberForm", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"ToExpression", "[", 
+               RowBox[{"inputData", "[", 
+                RowBox[{"[", 
+                 RowBox[{"11", ",", "3"}], "]"}], "]"}], "]"}], "[", 
+              RowBox[{"[", "1", "]"}], "]"}], ",", " ", "2"}], "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"coordinateNumber2", " ", "=", " ", 
+           RowBox[{"NumberForm", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"ToExpression", "[", 
+               RowBox[{"inputData", "[", 
+                RowBox[{"[", 
+                 RowBox[{"18", ",", "3"}], "]"}], "]"}], "]"}], "[", 
+              RowBox[{"[", "1", "]"}], "]"}], ",", " ", "2"}], "]"}]}]}], ",",
+          "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"coordinateNumber1", " ", "=", " ", 
+           RowBox[{"NumberForm", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"ToExpression", "[", 
+               RowBox[{"inputData", "[", 
+                RowBox[{"[", 
+                 RowBox[{"11", ",", "3"}], "]"}], "]"}], "]"}], "[", 
+              RowBox[{"[", "1", "]"}], "]"}], ",", " ", "2"}], "]"}]}], 
+          ";"}]}], "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+       "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "1"}], "]"}], "]"}], " ", 
+        "=", " ", "particleName1"}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "2"}], "]"}], "]"}], " ", 
+        "=", " ", "particleName2"}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "3"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{"ToString", "[", "intermolecularEnergy", "]"}]}], ";", 
+       "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"isSameParticle", " ", "\[Equal]", " ", "True"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "4"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber1", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "5"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber1", "]"}]}]}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "4"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber1", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "5"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber2", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"currentIndexNumber", "++"}], ";", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "1"}], "]"}], "]"}], " ",
+            "=", " ", "particleName2"}], ";", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "2"}], "]"}], "]"}], " ",
+            "=", " ", "particleName1"}], ";", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "3"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "intermolecularEnergy", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "4"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber2", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"outputData", "[", 
+            RowBox[{"[", 
+             RowBox[{"currentIndexNumber", ",", " ", "5"}], "]"}], "]"}], " ",
+            "=", " ", 
+           RowBox[{"ToString", "[", "coordinateNumber1", "]"}]}], ";"}]}], 
+        "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", " ", 
+        RowBox[{"Length", "[", "inputPathName", "]"}]}], "}"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"outputData", "=", 
+     RowBox[{"SortBy", "[", 
+      RowBox[{
+       RowBox[{"DeleteDuplicates", "[", "outputData", "]"}], ",", "First"}], 
+      "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"particleNamePair", " ", "=", " ", 
+     RowBox[{"outputData", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", 
+        RowBox[{"1", ";;", "2"}]}], "]"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"particleName1", " ", "=", " ", 
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "1"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"particleName2", " ", "=", " ", 
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "2"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"intermolecularEnergy12", "=", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "3"}], "]"}], "]"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"coordinateNumber12", " ", "=", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "4"}], "]"}], "]"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"coordinateNumber21", " ", "=", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "5"}], "]"}], "]"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"rowNumberParticle1", " ", "=", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Position", "[", 
+           RowBox[{"particleNamePair", ",", " ", 
+            RowBox[{"{", 
+             RowBox[{"particleName1", ",", " ", "particleName1"}], "}"}]}], 
+           "]"}], "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"rowNumberParticle2", " ", "=", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Position", "[", 
+           RowBox[{"particleNamePair", ",", " ", 
+            RowBox[{"{", 
+             RowBox[{"particleName2", ",", " ", "particleName2"}], "}"}]}], 
+           "]"}], "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"coordinateNumber11", " ", "=", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"rowNumberParticle1", ",", "4"}], "]"}], "]"}], "]"}]}], 
+       ";", "\[IndentingNewLine]", 
+       RowBox[{"coordinateNumber22", " ", "=", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"rowNumberParticle2", ",", "4"}], "]"}], "]"}], "]"}]}], 
+       ";", "\[IndentingNewLine]", 
+       RowBox[{"intermolecularEnergy11", " ", "=", " ", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"rowNumberParticle1", ",", " ", "3"}], "]"}], "]"}], 
+         "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"intermolecularEnergy22", " ", "=", " ", 
+        RowBox[{"ToExpression", "[", 
+         RowBox[{"outputData", "[", 
+          RowBox[{"[", 
+           RowBox[{"rowNumberParticle2", ",", " ", "3"}], "]"}], "]"}], 
+         "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"floryHugginsParameter", " ", "=", " ", 
+        RowBox[{"0.5", "*", "intermolecularEnergy12", 
+         RowBox[{"(", 
+          RowBox[{"coordinateNumber12", " ", "+", "coordinateNumber21"}], 
+          ")"}]}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"floryHugginsParameter", " ", "-=", " ", 
+        RowBox[{"0.5", "*", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{
+           "coordinateNumber11", " ", "*", " ", "intermolecularEnergy11"}], 
+           " ", "+", " ", 
+           RowBox[{
+           "coordinateNumber22", " ", "*", " ", "intermolecularEnergy22"}]}], 
+          ")"}]}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"floryHugginsParameter", " ", "=", " ", 
+        RowBox[{"floryHugginsParameter", "/", 
+         RowBox[{"(", 
+          RowBox[{"boltzmannConst", "*", " ", "temperature"}], ")"}]}]}], ";",
+        "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "6"}], "]"}], "]"}], " ", "=", " ", 
+        RowBox[{"ToString", "[", "floryHugginsParameter", "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"aParameter", " ", "=", 
+        RowBox[{
+         RowBox[{"25", " ", "*", " ", 
+          RowBox[{"temperature", "/", "298"}]}], " ", "+", " ", 
+         RowBox[{"3.497", "*", "floryHugginsParameter"}]}]}], ";", " ", 
+       "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "7"}], "]"}], "]"}], " ", "=", 
+        RowBox[{"ToString", "[", "aParameter", "]"}]}]}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", " ", "maxRow"}], "}"}]}], "\[IndentingNewLine]", 
+     "]"}], ";"}], "\n", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"read", " ", "aij"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"aij", " ", "=", 
+     RowBox[{"ToExpression", "[", 
+      RowBox[{"outputData", "[", 
+       RowBox[{"[", 
+        RowBox[{
+         RowBox[{"1", ";;"}], ",", "7"}], "]"}], "]"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"aijMax", " ", "=", " ", 
+     RowBox[{"Max", "[", "aij", "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"aijMin", " ", "=", " ", 
+     RowBox[{"Min", "[", "aij", "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Abs", "[", 
+        RowBox[{"aijMax", "-", "25"}], "]"}], ">=", 
+       RowBox[{"Abs", "[", 
+        RowBox[{"aijMin", "-", "25"}], "]"}]}], ",", " ", 
+      "\[IndentingNewLine]", 
+      RowBox[{"scaleFactor", "=", " ", 
+       RowBox[{"20", "/", 
+        RowBox[{"Abs", "[", 
+         RowBox[{"aijMax", "-", "25"}], "]"}]}]}], ",", "\[IndentingNewLine]", 
+      RowBox[{"scaleFactor", "=", 
+       RowBox[{"20", "/", " ", 
+        RowBox[{"Abs", "[", 
+         RowBox[{"aijMin", " ", "-", "25"}], "]"}]}]}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"determine", " ", "mapped", " ", "aij"}], " ", "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"aijAdjusted", "=", 
+     RowBox[{"25", "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"aij", "-", "25"}], ")"}], "*", "scaleFactor"}]}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"outputData", "[", 
+        RowBox[{"[", 
+         RowBox[{"i", ",", "8"}], "]"}], "]"}], "=", " ", 
+       RowBox[{"ToString", "[", 
+        RowBox[{"aijAdjusted", "[", 
+         RowBox[{"[", "i", "]"}], "]"}], "]"}]}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", "maxRow"}], "}"}]}], "\[IndentingNewLine]", "]"}], 
+    ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+    "Create", " ", "first", " ", "line", " ", "of", " ", "particle", " ", 
+     "interactions"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"particleInteractions", " ", "=", " ", 
+     RowBox[{"Table", "[", 
+      RowBox[{"\"\<\>\"", ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"Length", "[", "inputPathName", "]"}], "+", "1"}], "}"}], 
+       ",", "4"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleInteractions", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", "1"}], "]"}], "]"}], " ", "=", " ", "\"\<Pair\>\""}],
+     ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"particleInteractions", "[", 
+      RowBox[{"[", 
+       RowBox[{"1", ",", "2"}], "]"}], "]"}], " ", "=", " ", 
+     RowBox[{"ToExpression", "[", 
+      RowBox[{"inputData", "[", 
+       RowBox[{"[", 
+        RowBox[{"3", ",", "4"}], "]"}], "]"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"particleNamePairs", " ", "=", " ", 
+     RowBox[{"Sort", "/@", 
+      RowBox[{"outputData", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", 
+         RowBox[{"1", ";;", "2"}]}], "]"}], "]"}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"particleNamePairs", " ", "=", " ", 
+     RowBox[{"DeleteDuplicates", "[", "particleNamePairs", "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"currentIndexNumber", " ", "=", "1"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"currentIndexNumber", "++"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"fragment1", " ", "=", 
+        RowBox[{"particleNamePairs", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "1"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"fragment2", " ", "=", 
+        RowBox[{"particleNamePairs", "[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "2"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleInteractions", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", " ", "1"}], "]"}], "]"}], " ", 
+        "=", " ", 
+        RowBox[{
+        "fragment1", " ", "<>", " ", "\"\<_\>\"", " ", "<>", " ", 
+         "fragment2"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"outputDataIndex", " ", "=", " ", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Position", "[", 
+           RowBox[{
+            RowBox[{"outputData", "[", 
+             RowBox[{"[", 
+              RowBox[{"All", ",", 
+               RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], ",", " ", 
+            RowBox[{"{", 
+             RowBox[{"fragment1", ",", " ", "fragment2"}], "}"}]}], "]"}], 
+          "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"particleInteractions", "[", 
+         RowBox[{"[", 
+          RowBox[{"currentIndexNumber", ",", "2"}], "]"}], "]"}], " ", "=", 
+        " ", 
+        RowBox[{"outputData", "[", 
+         RowBox[{"[", 
+          RowBox[{"outputDataIndex", ",", "8"}], "]"}], "]"}]}], ";"}], 
+      "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", 
+        RowBox[{"Length", "[", "particleNamePairs", "]"}]}], "}"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"outputData", " ", "=", " ", 
+     RowBox[{"Insert", "[", 
+      RowBox[{"outputData", ",", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<particle1\>\"", ",", "\"\<particle2\>\"", ",", 
+         "\"\<interaction energy [mHartree]\>\"", ",", " ", 
+         "\"\<CN(1in2)\>\"", ",", "\"\<CN(2in1)\>\"", ",", 
+         "\"\<flory-huggins-parameter\>\"", ",", "\"\<a(i,j)[kBT]]\>\"", ",", 
+         "\"\<a(i,j)adjusted[kBT]\>\""}], "}"}], ",", "1"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"export", " ", "adjusted", " ", "aij"}], " ", "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Export", "[", 
+     RowBox[{
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"dataDirectory", ",", "exportDataName"}], "}"}], "]"}], ",", 
+      " ", "outputData"}], "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Create", " ", "and", " ", "write", " ", "to", " ", "file"}], " ",
+     "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{"SetDirectory", "[", "dataDirectory", "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"file", " ", "=", " ", 
+      RowBox[{"CreateFile", "[", 
+       RowBox[{"StringJoin", "[", 
+        RowBox[{"titleAbr", ",", "\"\<.txt\>\""}], "]"}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", "header"}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"(*", 
+      RowBox[{"Write", " ", "particle", " ", "Description"}], "*)"}], 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", "\"\<[Particle description]\\n\>\""}], "]"}], 
+     ";", "\[IndentingNewLine]", 
+     RowBox[{"particleDescriptionGrid", " ", "=", " ", 
+      RowBox[{"Grid", "[", "particleDescription", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", "particleDescriptionGrid"}], "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", "\"\<\\n[/Particle description]\\n\>\""}], 
+      "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"(*", 
+      RowBox[{"Write", " ", "particle", " ", "interactions"}], "*)"}], 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+       "\"\<\\n[Particle interactions]\\n\>\"", "<>", 
+        "\"\<# Repulsion parameters a(ij) for different temperatures (in \
+K)\\n\>\""}]}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"particleInteractionsGrid", " ", "=", " ", 
+      RowBox[{"Grid", "[", "particleInteractions", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", "particleInteractionsGrid"}], "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", "\"\<\\n[/Particle interactions]\\n\>\""}], 
+      "]"}], ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"FilePrint", "[", "file", "]"}], "\[IndentingNewLine]", 
+      RowBox[{"Close", "[", "file", "]"}]}], ";"}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{"Quit", "[", "]"}], ";"}], "*)"}]}]}]], "Input",
+ CellChangeTimes->{{3.7880719997792087`*^9, 3.7880721100026326`*^9}, {
+   3.788072191348405*^9, 3.788072283481405*^9}, {3.7880723259972467`*^9, 
+   3.7880723657711906`*^9}, {3.7880724002671185`*^9, 
+   3.7880724052687383`*^9}, {3.7880726380259447`*^9, 3.788072723951006*^9}, {
+   3.7880728250016527`*^9, 3.78807288601344*^9}, {3.788072941882155*^9, 
+   3.788072942320981*^9}, {3.788072980131934*^9, 3.788073024136216*^9}, {
+   3.7880732285022163`*^9, 3.7880732412989826`*^9}, {3.7880831958857336`*^9, 
+   3.78808319781735*^9}, 3.788083438852949*^9, {3.7880834831117487`*^9, 
+   3.7880836002307806`*^9}, {3.788083667495739*^9, 3.7880836829808617`*^9}, {
+   3.788083972995229*^9, 3.78808398548569*^9}, {3.7880840838539104`*^9, 
+   3.7880840961541867`*^9}, {3.7880841285209293`*^9, 3.788084189167624*^9}, {
+   3.788084252467059*^9, 3.7880843336386023`*^9}, {3.788084451709911*^9, 
+   3.788084469074078*^9}, {3.788084502269459*^9, 3.7880845691120405`*^9}, {
+   3.788084616912326*^9, 3.7880846875415974`*^9}, {3.7880848335403614`*^9, 
+   3.7880848362444324`*^9}, {3.7880848900620174`*^9, 3.788084949891176*^9}, {
+   3.7880850489321127`*^9, 3.7880850772448645`*^9}, {3.7880852118213577`*^9, 
+   3.7880853345203075`*^9}, {3.7880853875114713`*^9, 3.788085391479765*^9}, {
+   3.7880854485798483`*^9, 3.7880854954161654`*^9}, {3.788085736963876*^9, 
+   3.788085751246115*^9}, {3.7880857815392127`*^9, 3.7880858990077972`*^9}, {
+   3.7880863163086443`*^9, 3.7880863464802046`*^9}, {3.788086411823279*^9, 
+   3.788086447291671*^9}, {3.7880865500401917`*^9, 3.788086558334846*^9}, {
+   3.7880865908822403`*^9, 3.7880866115396976`*^9}, {3.788086659351056*^9, 
+   3.7880869413545265`*^9}, {3.7880869731621866`*^9, 3.7880869899777074`*^9}, 
+   3.788087038158558*^9, {3.788087078971517*^9, 3.788087108537388*^9}, {
+   3.7880872610801826`*^9, 3.788087312119238*^9}, {3.78808786746175*^9, 
+   3.7880878857749233`*^9}, {3.7880879432596283`*^9, 
+   3.7880879461776953`*^9}, {3.788088132980523*^9, 3.7880881388095865`*^9}, {
+   3.7880881853779707`*^9, 3.7880881892156196`*^9}, {3.7880885078300886`*^9, 
+   3.788088595784561*^9}, {3.7880886281188507`*^9, 3.7880888459186945`*^9}, {
+   3.7880889112061825`*^9, 3.7880889271283197`*^9}, {3.7880889864837847`*^9, 
+   3.7880890904633284`*^9}, {3.7880891797564807`*^9, 3.788089216965543*^9}, {
+   3.7880892607002115`*^9, 3.788089267136545*^9}, {3.7880893845572023`*^9, 
+   3.7880894292521887`*^9}, 3.7880894686997566`*^9, {3.788089517703974*^9, 
+   3.788089533418378*^9}, {3.788089662205224*^9, 3.788089698346306*^9}, {
+   3.7880897408845787`*^9, 3.788089742678809*^9}, {3.788089781112961*^9, 
+   3.788089786267845*^9}, {3.7880898641262226`*^9, 3.7880898660720215`*^9}, {
+   3.788089897135915*^9, 3.788089917959276*^9}, 3.7880899561899567`*^9, {
+   3.788090004358101*^9, 3.7880900059538307`*^9}, {3.788090066907897*^9, 
+   3.7880902130066643`*^9}, {3.788090253288903*^9, 3.78809032221286*^9}, {
+   3.7880903956738997`*^9, 3.78809040169179*^9}, {3.7880904674845405`*^9, 
+   3.788090477839801*^9}, {3.7880905469342327`*^9, 3.7880907313274946`*^9}, {
+   3.788090823869506*^9, 3.7880908248977556`*^9}, {3.7880909290335107`*^9, 
+   3.7880910194621854`*^9}, {3.7880920194244056`*^9, 
+   3.7880920205040665`*^9}, {3.788092196705783*^9, 3.788092214858341*^9}, {
+   3.788092328960363*^9, 3.788092349807437*^9}, {3.7880923828688917`*^9, 
+   3.788092448355088*^9}, {3.788092485022041*^9, 3.7880925129730926`*^9}, {
+   3.7880926813751163`*^9, 3.7880927988876534`*^9}, {3.788092917093551*^9, 
+   3.7880929699801474`*^9}, {3.788153415985097*^9, 3.7881534168467884`*^9}, {
+   3.788153657954869*^9, 3.7881536621376705`*^9}, {3.7881537684973755`*^9, 
+   3.78815376933499*^9}, {3.7881538569723897`*^9, 3.7881538757041817`*^9}, 
+   3.7881539830347185`*^9, {3.7881540267313857`*^9, 3.7881540426389656`*^9}, {
+   3.788154098446087*^9, 3.7881541017396827`*^9}, {3.7881541386853356`*^9, 
+   3.788154157627837*^9}, {3.788154200520133*^9, 3.788154200848192*^9}, {
+   3.7881542566840496`*^9, 3.7881543061857877`*^9}, {3.7881543500599365`*^9, 
+   3.788154368291897*^9}, {3.7881552078663654`*^9, 3.7881552258788724`*^9}, {
+   3.788155260881616*^9, 3.7881552643161783`*^9}, {3.788155377106246*^9, 
+   3.788155421207118*^9}, 3.788155506627818*^9, {3.788156136225994*^9, 
+   3.788156156401783*^9}, {3.7881562029167414`*^9, 3.7881562218663535`*^9}, {
+   3.7881563240753784`*^9, 3.788156359634286*^9}, {3.788156419915518*^9, 
+   3.788156439167531*^9}, {3.7881618889568787`*^9, 3.7881619186947527`*^9}, {
+   3.7881619542820253`*^9, 3.7881620435174932`*^9}, {3.7881621555822363`*^9, 
+   3.7881621590212345`*^9}, {3.7881720885661163`*^9, 
+   3.7881721343625546`*^9}, {3.788249350640831*^9, 3.7882493551711717`*^9}, {
+   3.7882503038930845`*^9, 3.78825043444116*^9}, {3.7882505086918526`*^9, 
+   3.7882505726563783`*^9}, 3.788250612327011*^9, {3.788250658122264*^9, 
+   3.7882506591333675`*^9}, {3.788250707481982*^9, 3.7882507082911744`*^9}, {
+   3.7882514029110913`*^9, 3.788251414405591*^9}, {3.7882529518326387`*^9, 
+   3.788252971566882*^9}, {3.7882530033297453`*^9, 3.788253003688917*^9}, {
+   3.7882530521007366`*^9, 3.7882530542035837`*^9}, {3.788253111561689*^9, 
+   3.78825311394554*^9}, {3.78825317836489*^9, 3.788253186932169*^9}, {
+   3.7882562389936714`*^9, 3.788256239488117*^9}, {3.7882565546996927`*^9, 
+   3.7882565549558244`*^9}, {3.7882594239587564`*^9, 
+   3.7882594894618764`*^9}, {3.788259525303316*^9, 3.7882596859972267`*^9}, {
+   3.7882597274298525`*^9, 3.7882597566124773`*^9}, {3.7882597903808513`*^9, 
+   3.7882597909015026`*^9}, {3.788259824830471*^9, 3.7882598479510593`*^9}, {
+   3.788260191332416*^9, 3.788260198630047*^9}, {3.7882602480010777`*^9, 
+   3.788260252045653*^9}, {3.7882602972692103`*^9, 3.788260312794727*^9}, {
+   3.7882604147031655`*^9, 3.788260491872042*^9}, {3.7882610771872168`*^9, 
+   3.7882610801698885`*^9}, {3.7882612850877485`*^9, 3.788261340147957*^9}, {
+   3.7882613767758303`*^9, 3.7882614455613813`*^9}, 3.78826150633307*^9, {
+   3.78826177265947*^9, 3.7882617760194016`*^9}, {3.788587666400958*^9, 
+   3.7885878989133387`*^9}, {3.788587954065624*^9, 3.788587962940119*^9}, {
+   3.7885887930728397`*^9, 3.788588831009454*^9}, {3.788588879883892*^9, 
+   3.7885888813390236`*^9}, {3.7885893415619483`*^9, 
+   3.7885893426570215`*^9}, {3.7885893745476274`*^9, 3.788589415066389*^9}, {
+   3.7885894649948626`*^9, 3.788589471687951*^9}, {3.7885896314233236`*^9, 
+   3.7885896367990074`*^9}, {3.7885897410634074`*^9, 3.788589966792282*^9}, {
+   3.7885900788864326`*^9, 3.7885900792265224`*^9}, {3.788590395278528*^9, 
+   3.7885903961352296`*^9}, {3.788592976498708*^9, 3.788592997972791*^9}, {
+   3.7886030974610915`*^9, 3.7886030999624257`*^9}, 3.7886032261569214`*^9, {
+   3.7886032647218165`*^9, 3.788603289649087*^9}, 3.7886046497747993`*^9, {
+   3.788671317665021*^9, 3.788671383622506*^9}, 3.7886714346573505`*^9, 
+   3.788671479360777*^9, {3.7886715151474066`*^9, 3.7886715740456643`*^9}, 
+   3.788671631024004*^9, {3.788671696053363*^9, 3.7886717535501566`*^9}, {
+   3.788671820056301*^9, 3.7886718241164546`*^9}, {3.7886719011120834`*^9, 
+   3.788671905518303*^9}, {3.78867201182696*^9, 3.788672033525715*^9}, {
+   3.7886720671768723`*^9, 3.788672075152586*^9}, {3.788672113019845*^9, 
+   3.7886721566829295`*^9}, {3.788672290712946*^9, 3.7886722997607517`*^9}, {
+   3.788672379385908*^9, 3.7886724102587442`*^9}, {3.7886724421664667`*^9, 
+   3.7886725310578117`*^9}, {3.7886725837669134`*^9, 3.788672620563591*^9}, {
+   3.788672683008989*^9, 3.7886726895325212`*^9}, {3.7886727486159163`*^9, 
+   3.788672795284542*^9}, {3.7886728757185245`*^9, 3.788673042714371*^9}, {
+   3.7886731564324036`*^9, 3.78867316739294*^9}, {3.7886732077221503`*^9, 
+   3.7886732207064414`*^9}, {3.7886735927207236`*^9, 3.788673625233808*^9}, {
+   3.7886736738133287`*^9, 3.7886736939317255`*^9}, {3.788673787902842*^9, 
+   3.7886737914102125`*^9}, 3.788673847303891*^9, {3.788673920001582*^9, 
+   3.7886739234234285`*^9}, {3.788673966031359*^9, 3.788673972134094*^9}, {
+   3.7886740336665945`*^9, 3.7886740408044853`*^9}, 3.7886740997414207`*^9, {
+   3.7886742808134427`*^9, 3.788674365204818*^9}, {3.788674405729421*^9, 
+   3.7886744059617863`*^9}, {3.7886749204034624`*^9, 
+   3.7886749650451794`*^9}, {3.788674996417974*^9, 3.788675001507338*^9}, 
+   3.7886755175162945`*^9, {3.7886755695387025`*^9, 3.7886755942197275`*^9}, 
+   3.788675941105832*^9, {3.7886764660750484`*^9, 3.7886764719383717`*^9}, {
+   3.7886767732207184`*^9, 3.7886767739707484`*^9}, {3.7886784820627003`*^9, 
+   3.788678496005472*^9}, {3.7886785582400694`*^9, 3.788678628168292*^9}, {
+   3.7886787035611625`*^9, 3.78867871400624*^9}, {3.788678756581732*^9, 
+   3.7886787714619904`*^9}, {3.788678805752246*^9, 3.7886788087103386`*^9}, {
+   3.788678910824645*^9, 3.788678920110823*^9}, {3.788678976912985*^9, 
+   3.7886789943454237`*^9}, {3.7886790301843925`*^9, 3.7886790883509445`*^9}, 
+   3.7886833702319803`*^9, {3.7886839335324955`*^9, 3.7886839607251697`*^9}, {
+   3.7887601148260794`*^9, 3.7887601223942523`*^9}, {3.7887603284441504`*^9, 
+   3.788760331434397*^9}, 3.788760475295326*^9, {3.788760511489051*^9, 
+   3.788760513046379*^9}, {3.803900941635785*^9, 3.8039009512929735`*^9}, {
+   3.803911662635276*^9, 3.803911679592746*^9}},
+ EmphasizeSyntaxErrors->
+  True,ExpressionUUID->"f00f5a29-b57b-46f1-92fc-b2d7bc8e0510"],
+
+Cell[BoxData[
+ RowBox[{"outputList", " ", "=", " ", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"{", "\"\<[Particle description]\\n\>\"", "}"}], ",", 
+    RowBox[{"{", "\"\<\\n[/Particle description]\\n\>\"", "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<\\n[Particle interactions]\\n\>\"", "<>", 
+      "\"\<# Repulsion parameters a(ij) for different temperatures (in \
+K)\\n\>\""}], "}"}], ",", 
+    RowBox[{"{", "\"\<\\n[/Particle interactions]\\n\>\"", "}"}]}], 
+   "}"}]}]], "Input",
+ CellChangeTimes->{{3.7887603603718367`*^9, 3.7887604284247427`*^9}},
+ CellLabel->"In[57]:=",ExpressionUUID->"bb8d5192-3945-4f78-bddf-9bc1248cd2ed"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Directory", "[", "]"}], "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{{3.788760439795188*^9, 3.788760455135237*^9}},
+ CellLabel->"In[58]:=",ExpressionUUID->"f93de672-60f7-4c84-a500-4c85d18e057c"],
+
+Cell[BoxData[
+ RowBox[{"huog", " ", "=", " ", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"{", "\"\<[Particle description]\\n\>\"", "}"}], ",", 
+    "particleDescription", ",", 
+    RowBox[{"{", "\"\<\\n[/Particle description]\\n\>\"", "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<\\n[Particle interactions]\\n\>\"", "<>", 
+      "\"\<# Repulsion parameters a(ij) for different temperatures (in \
+K)\\n\>\""}], "}"}], ",", "particleInteractions", ",", 
+    RowBox[{"{", "\"\<\\n[/Particle interactions]\\n\>\"", "}"}]}], 
+   "}"}]}]], "Input",
+ CellChangeTimes->{{3.7886834047776375`*^9, 3.788683494865329*^9}, {
+  3.7886835836223817`*^9, 3.788683583865344*^9}, {3.78868364687211*^9, 
+  3.788683654166657*^9}, {3.7886836985937495`*^9, 3.7886837022539663`*^9}},
+ CellLabel->"In[75]:=",ExpressionUUID->"533602c6-f7b8-47e0-93df-82d3f006e29d"],
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<huog.dat\>\"", ",", 
+   RowBox[{"huog", "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.788683516792714*^9, 3.788683536369734*^9}, {
+  3.7886837082230425`*^9, 3.7886837113973093`*^9}},
+ CellLabel->"In[76]:=",ExpressionUUID->"2a2e8576-b60e-4fc7-99d6-5e89b6661ba6"]
+},
+WindowSize->{1440., 755.25},
+WindowMargins->{{-4.7999999999999545`, Automatic}, {Automatic, -4.8}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 19, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"6dbe431a-127d-40bf-9c1b-ee675578694e"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 45695, 1031, 3816, "Input",ExpressionUUID->"f00f5a29-b57b-46f1-92fc-b2d7bc8e0510"],
+Cell[46256, 1053, 643, 14, 47, "Input",ExpressionUUID->"bb8d5192-3945-4f78-bddf-9bc1248cd2ed"],
+Cell[46902, 1069, 238, 4, 47, "Input",ExpressionUUID->"f93de672-60f7-4c84-a500-4c85d18e057c"],
+Cell[47143, 1075, 846, 17, 47, "Input",ExpressionUUID->"533602c6-f7b8-47e0-93df-82d3f006e29d"],
+Cell[47992, 1094, 352, 7, 28, "Input",ExpressionUUID->"2a2e8576-b60e-4fc7-99d6-5e89b6661ba6"]
+}
+]
+*)
+

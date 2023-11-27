@@ -1,0 +1,395 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     15804,        387]
+NotebookOptionsPosition[     14812,        363]
+NotebookOutlinePosition[     15212,        379]
+CellTagsIndexPosition[     15169,        376]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"GetNeighborParticleIndices", "[", "\[IndentingNewLine]", 
+    RowBox[{"solubleCoords_", ",", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j", ",", "k", ",", "l"}], "]"}], "]"}], " ", 
+        RowBox[{"i", ":", "nDyamicIterationPerCore"}]}], ",", 
+       RowBox[{"j", ":", "nCpuCoreNumbers"}], ",", 
+       RowBox[{"k", ":", "nAtoms1"}], ",", 
+       RowBox[{"l", ":", 
+        RowBox[{"xyz", "-", "coordinate"}]}]}], "*)"}], "\[IndentingNewLine]",
+      "solubleNames_", ",", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j", ",", "k"}], "]"}], "]"}], " ", 
+        RowBox[{"i", ":", "nDyamicIterationPerCore"}]}], ",", 
+       RowBox[{"j", ":", "nCpuCoreNumbers"}], ",", 
+       RowBox[{"k", ":", "nAtoms1"}]}], "*)"}], "\[IndentingNewLine]", 
+     "solventCoords_", ",", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j", ",", "k", ",", "l", ",", "m"}], "]"}], "]"}],
+         " ", 
+        RowBox[{"i", ":", "nDyamicIterationPerCore"}]}], ",", 
+       RowBox[{"j", ":", "nCpuCoreNumbers"}], ",", 
+       RowBox[{"k", ":", "solventMoleculeCount"}], ",", 
+       RowBox[{"l", ":", "nAtoms2"}], ",", 
+       RowBox[{"m", ":", 
+        RowBox[{"xyz", "-", "coordinate"}]}]}], "*)"}], "\[IndentingNewLine]",
+      "solventNames_", ",", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j", ",", "k", ",", "l"}], "]"}], "]"}], " ", 
+        RowBox[{"i", ":", "nDyamicIterationPerCore"}]}], ",", 
+       RowBox[{"j", ":", "nCpuCoreNumbers"}], ",", 
+       RowBox[{"k", ":", "solventMoleculeCount"}], ",", 
+       RowBox[{"l", ":", "nAtoms2"}]}], "*)"}], "\[IndentingNewLine]", 
+     "solventMolCount_", ",", "\[IndentingNewLine]", "catchR_", ",", 
+     "\[IndentingNewLine]", "iterations_", ",", "\[IndentingNewLine]", 
+     "cpuCores_", ",", "\[IndentingNewLine]", "vdWRadii_", ",", 
+     "\[IndentingNewLine]", "boxLength_"}], "\[IndentingNewLine]", "]"}], " ",
+    ":=", "\[IndentingNewLine]", 
+   RowBox[{"Block", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{
+      "solubleMoleculeAtomCount", ",", "\[IndentingNewLine]", 
+       "solventMoleculeAtomCount", ",", "\[IndentingNewLine]", "distances", 
+       ",", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", "j", ",", "k", ",", "l", ",", "m"}], "]"}], 
+           "]"}], " ", 
+          RowBox[{"i", ":", "nCpuCoreNumbers"}]}], ",", " ", 
+         RowBox[{"j", ":", "nDyamicIterationPerCore"}], ",", 
+         RowBox[{"k", ":", "solubleMoleculeAtomCount"}], ",", 
+         RowBox[{"l", ":", "solventMoleculeCount"}], ",", " ", 
+         RowBox[{"m", ":", "solventMoleculeAtomCount"}]}], "*)"}], 
+       "\[IndentingNewLine]", "neighborIndices"}], " ", 
+      RowBox[{"(*", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "j"}], "]"}], "]"}], " ", 
+         RowBox[{"i", ":", "nDyamicIterationPerCore"}]}], ",", " ", 
+        RowBox[{"j", ":", "nCpuCoreNumbers"}]}], "*)"}], 
+      "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"solubleMoleculeAtomCount", "=", 
+       RowBox[{"Length", "[", 
+        RowBox[{"solubleCoords", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ",", "1"}], "]"}], "]"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"solventMoleculeAtomCount", "=", 
+       RowBox[{"Length", "[", 
+        RowBox[{"solventCoords", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ",", "1", ",", "1"}], "]"}], "]"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"distances", "=", "\[IndentingNewLine]", 
+       RowBox[{"GetPbcFixedDistanceList", "[", "\[IndentingNewLine]", 
+        RowBox[{
+        "solubleCoords", ",", "\[IndentingNewLine]", 
+         "solubleMoleculeAtomCount", ",", "\[IndentingNewLine]", 
+         "solventCoords", ",", "\[IndentingNewLine]", 
+         "solventMoleculeAtomCount", ",", "\[IndentingNewLine]", 
+         "solventMolCount", ",", "\[IndentingNewLine]", "boxLength", ",", 
+         "\[IndentingNewLine]", "iterations", ",", "\[IndentingNewLine]", 
+         "cpuCores"}], "\[IndentingNewLine]", "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"neighborIndices", "=", 
+       RowBox[{"Table", "[", 
+        RowBox[{"0", ",", 
+         RowBox[{"{", "cpuCores", "}"}], ",", 
+         RowBox[{"{", "iterations", "}"}], ",", 
+         RowBox[{"{", "solventMolCount", "}"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Do", "[", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"If", "[", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"distances", "[", 
+            RowBox[{"[", 
+             RowBox[{"i", ",", "j", ",", "k", ",", "l", ",", "m"}], "]"}], 
+            "]"}], "\[LessEqual]", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"vdWRadii", "[", 
+              RowBox[{"[", 
+               RowBox[{"solubleNames", "[", 
+                RowBox[{"[", 
+                 RowBox[{"i", ",", "j", ",", "k"}], "]"}], "]"}], "]"}], 
+              "]"}], "+", 
+             RowBox[{"vdWRadii", "[", 
+              RowBox[{"[", 
+               RowBox[{"solventNames", "[", 
+                RowBox[{"[", 
+                 RowBox[{"i", ",", "j", ",", "l", ",", "m"}], "]"}], "]"}], 
+               "]"}], "]"}], "+", "catchR"}], ")"}]}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"neighborIndices", "[", 
+            RowBox[{"[", 
+             RowBox[{"i", ",", "j", ",", "l"}], "]"}], "]"}], "=", "l"}]}], 
+         "\[IndentingNewLine]", "]"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "cpuCores"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"j", ",", "iterations"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "solubleMoleculeAtomCount"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"l", ",", "solventMolCount"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"m", ",", "solventMoleculeAtomCount"}], "}"}]}], 
+       "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Return", "[", "neighborIndices", "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.804222325200704*^9, 3.8042224063048677`*^9}, {
+  3.8042224516805515`*^9, 3.804222490845996*^9}, {3.804228426679841*^9, 
+  3.8042284726469793`*^9}, {3.8042307991907616`*^9, 
+  3.8042308349321966`*^9}},ExpressionUUID->"78158129-0ed7-47dd-9f1e-\
+755260a129fd"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"x", " ", "=", " ", "10000000"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xRange", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"RandomInteger", "[", "100", "]"}], ",", " ", "x"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xTable", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{"0", ",", "x"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"AbsoluteTiming", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"Do", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"If", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"xRange", "[", 
+         RowBox[{"[", "i", "]"}], "]"}], " ", "\[GreaterEqual]", " ", "25"}], 
+       ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"xTable", "[", 
+         RowBox[{"[", "i", "]"}], "]"}], " ", "=", " ", 
+        RowBox[{"xRange", "[", 
+         RowBox[{"[", "i", "]"}], "]"}]}]}], "\[IndentingNewLine]", "]"}], 
+     ",", "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", "x"}], "}"}]}], "\[IndentingNewLine]", "]"}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"xTable", " ", "=", " ", 
+    RowBox[{"Select", "[", 
+     RowBox[{"xTable", ",", " ", 
+      RowBox[{"UnequalTo", "[", "0", "]"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"AbsoluteTiming", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"xSelect", " ", "=", " ", 
+    RowBox[{"Select", "[", 
+     RowBox[{"xRange", ",", " ", 
+      RowBox[{
+       RowBox[{"Or", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"UnequalTo", "[", "0", "]"}], "#"}], ",", " ", 
+         RowBox[{"#", "\[GreaterEqual]", "25"}]}], "]"}], "&"}]}], " ", 
+     "]"}]}], ";"}], "\[IndentingNewLine]", "]"}]}], "Input",
+ CellChangeTimes->{{3.8042369942281294`*^9, 3.8042370207721276`*^9}, {
+  3.80423847945784*^9, 3.8042386726253643`*^9}, {3.804238714092625*^9, 
+  3.804238802069414*^9}, {3.804239015112837*^9, 3.8042390487160764`*^9}, {
+  3.804239202560633*^9, 3.8042392510755224`*^9}},
+ CellLabel->"In[74]:=",ExpressionUUID->"72f69b9f-e744-4399-822b-61d19256b57e"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"28.95572`", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.8042386309747515`*^9, {3.8042387373234806`*^9, 3.8042387511994085`*^9}, {
+   3.8042387826174*^9, 3.8042388024752846`*^9}, 3.804239049479002*^9, {
+   3.8042392148218465`*^9, 3.804239244421708*^9}, 3.8042392812073064`*^9},
+ CellLabel->"Out[77]=",ExpressionUUID->"eb237c82-4cd3-4445-ad18-4499c765c1dd"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"21.4690118`", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.8042386309747515`*^9, {3.8042387373234806`*^9, 3.8042387511994085`*^9}, {
+   3.8042387826174*^9, 3.8042388024752846`*^9}, 3.804239049479002*^9, {
+   3.8042392148218465`*^9, 3.804239244421708*^9}, 3.804239302676078*^9},
+ CellLabel->"Out[78]=",ExpressionUUID->"abbe409f-c207-45ed-bb30-b94f8a4a5e89"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"tableFun", " ", "=", " ", "\[IndentingNewLine]", 
+   RowBox[{"Compile", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", " ", "_Integer"}], "}"}], "\[IndentingNewLine]", 
+      "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"Block", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"{", "\[IndentingNewLine]", 
+        RowBox[{"xRange", ",", "\[IndentingNewLine]", "xTable"}], 
+        "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"xRange", " ", "=", " ", 
+         RowBox[{"Table", "[", 
+          RowBox[{
+           RowBox[{"RandomInteger", "[", "100", "]"}], ",", " ", "x"}], 
+          "]"}]}], ";", "\[IndentingNewLine]", 
+        RowBox[{"xTable", " ", "=", " ", 
+         RowBox[{"Table", "[", 
+          RowBox[{"0", ",", "x"}], "]"}]}], ";", "\[IndentingNewLine]", 
+        RowBox[{"Do", "[", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"If", "[", "\[IndentingNewLine]", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"xRange", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], " ", "\[GreaterEqual]", " ", 
+             "25"}], ",", "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{"xTable", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], " ", "=", " ", 
+             RowBox[{"xRange", "[", 
+              RowBox[{"[", "i", "]"}], "]"}]}]}], "\[IndentingNewLine]", 
+           "]"}], ",", "\[IndentingNewLine]", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "x"}], "}"}]}], "\[IndentingNewLine]", "]"}], 
+        ";", "\[IndentingNewLine]", 
+        RowBox[{"xTable", " ", "=", " ", 
+         RowBox[{"Select", "[", 
+          RowBox[{"xTable", ",", " ", 
+           RowBox[{"UnequalTo", "[", "0", "]"}]}], "]"}]}], ";"}]}], 
+      "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"selectFun", "=", 
+   RowBox[{"Compile", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", " ", "_Integer"}], "}"}], "\[IndentingNewLine]", 
+      "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"Block", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"{", "\[IndentingNewLine]", 
+        RowBox[{"xRange2", ",", "\[IndentingNewLine]", "xSelect"}], 
+        "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"xRange2", " ", "=", " ", 
+         RowBox[{"Table", "[", 
+          RowBox[{
+           RowBox[{"RandomInteger", "[", "100", "]"}], ",", " ", "x"}], 
+          "]"}]}], ";", "\[IndentingNewLine]", 
+        RowBox[{"xSelect", " ", "=", " ", 
+         RowBox[{"Select", "[", 
+          RowBox[{"xRange2", ",", " ", 
+           RowBox[{
+            RowBox[{"#", "\[GreaterEqual]", "25"}], "&"}]}], " ", "]"}]}], 
+        ";"}]}], "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"x", "=", "10000000"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"AbsoluteTiming", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"tableFun", "[", "x", "]"}], ";"}], "\[IndentingNewLine]", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"AbsoluteTiming", "[", "\[IndentingNewLine]", 
+  RowBox[{"selectFun", "[", "x", "]"}], "\[IndentingNewLine]", 
+  "]"}]}], "Input",
+ CellChangeTimes->{{3.8042395887563815`*^9, 3.804239633481411*^9}, {
+  3.804239667761269*^9, 3.8042398159143505`*^9}, {3.8042398460535765`*^9, 
+  3.8042398727895713`*^9}, {3.8042399918750677`*^9, 3.8042400035787735`*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"2f65b2db-1b64-47ac-8d55-2c061df6f9c5"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"85.4909602`", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{{3.8042398194998198`*^9, 3.8042398569488297`*^9}, 
+   3.8042399585281873`*^9},
+ CellLabel->"Out[18]=",ExpressionUUID->"9b665072-17bf-4106-86f1-c286525eab1e"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0.0144384`", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{{3.8042398194998198`*^9, 3.8042398569488297`*^9}, 
+   3.804239958558117*^9},
+ CellLabel->"Out[19]=",ExpressionUUID->"18b9a7b5-007f-43e5-be7f-5ef6c228b860"]
+}, Open  ]]
+},
+WindowSize->{717., 743.25},
+WindowMargins->{{Automatic, 0}, {Automatic, 0}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 19, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"b899d9c8-a116-4392-a885-541607ed7ffc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 6908, 162, 929, "Input",ExpressionUUID->"78158129-0ed7-47dd-9f1e-755260a129fd"],
+Cell[CellGroupData[{
+Cell[7491, 186, 2165, 53, 310, "Input",ExpressionUUID->"72f69b9f-e744-4399-822b-61d19256b57e"],
+Cell[9659, 241, 408, 7, 32, "Output",ExpressionUUID->"eb237c82-4cd3-4445-ad18-4499c765c1dd"],
+Cell[10070, 250, 408, 7, 32, "Output",ExpressionUUID->"abbe409f-c207-45ed-bb30-b94f8a4a5e89"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10515, 262, 3752, 84, 797, "Input",ExpressionUUID->"2f65b2db-1b64-47ac-8d55-2c061df6f9c5"],
+Cell[14270, 348, 263, 5, 32, "Output",ExpressionUUID->"9b665072-17bf-4106-86f1-c286525eab1e"],
+Cell[14536, 355, 260, 5, 32, "Output",ExpressionUUID->"18b9a7b5-007f-43e5-be7f-5ef6c228b860"]
+}, Open  ]]
+}
+]
+*)
+

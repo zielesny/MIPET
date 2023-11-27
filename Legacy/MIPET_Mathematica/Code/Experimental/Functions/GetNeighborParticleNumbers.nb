@@ -1,0 +1,198 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7719,        190]
+NotebookOptionsPosition[      7361,        176]
+NotebookOutlinePosition[      7764,        192]
+CellTagsIndexPosition[      7721,        189]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"GetNeighborParticleNumbers", "[", "\[IndentingNewLine]", 
+    RowBox[{"xyzDataCoords_", ",", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j"}], "]"}], "]"}], " ", 
+        RowBox[{"i", ":", "nCpuCoreNumbers"}]}], ",", 
+       RowBox[{"j", ":", "nDyamicIterationPerCore"}]}], "*)"}], 
+     "\[IndentingNewLine]", "iterations_", ",", "\[IndentingNewLine]", 
+     "atoms1_", ",", "\[IndentingNewLine]", "atoms2_", ",", 
+     "\[IndentingNewLine]", "allAtoms_", ",", "\[IndentingNewLine]", 
+     "solubleNames_", ",", "\[IndentingNewLine]", "solventNames_", ",", 
+     "\[IndentingNewLine]", "cpuCoreNumbers_", ",", "\[IndentingNewLine]", 
+     "catchRadius_", ",", "\[IndentingNewLine]", "vdWRadii_", ",", 
+     "\[IndentingNewLine]", "boxLength_"}], "\[IndentingNewLine]", "]"}], ":=",
+    "\[IndentingNewLine]", 
+   RowBox[{"Block", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{"solubleCoords", ",", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", "j", ",", "k", ",", "l"}], "]"}], "]"}], " ", 
+          RowBox[{"i", ":", "cpuCoreNumbers"}]}], ",", 
+         RowBox[{"j", ":", "iterations"}], ",", 
+         RowBox[{"k", ":", "atoms1"}], ",", 
+         RowBox[{"l", ":", 
+          RowBox[{"xyz", "-", "coordinate"}]}]}], "*)"}], 
+       "\[IndentingNewLine]", "solventCoords", ",", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", "j", ",", "k", ",", "l", ",", "m"}], "]"}], 
+           "]"}], " ", 
+          RowBox[{"i", ":", "cpuCoreNumbers"}]}], ",", 
+         RowBox[{"j", ":", "iterations"}], ",", 
+         RowBox[{"k", ":", "solventMolCount"}], ",", 
+         RowBox[{"l", ":", "atoms2"}], ",", 
+         RowBox[{"m", ":", 
+          RowBox[{"xyz", "-", "coordinate"}]}]}], "*)"}], 
+       "\[IndentingNewLine]", "solventMolCount", ",", "\[IndentingNewLine]", 
+       "solubleAtomNames", ",", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", "j", ",", "k"}], "]"}], "]"}], " ", 
+          RowBox[{"i", ":", "cpuCoreNumbers"}]}], ",", 
+         RowBox[{"j", ":", "iterations"}], ",", 
+         RowBox[{"k", ":", "atoms1"}]}], "*)"}], "\[IndentingNewLine]", 
+       "solventAtomNames", ",", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", "j", ",", "k", ",", "l"}], "]"}], "]"}], " ", 
+          RowBox[{"i", ":", "cpuCoreNumbers"}]}], ",", 
+         RowBox[{"j", ":", "iterations"}], ",", 
+         RowBox[{"k", ":", "solventMolCount"}], ",", 
+         RowBox[{"l", ":", "atoms2"}]}], "*)"}], "\[IndentingNewLine]", 
+       "neighborIndices"}], " ", 
+      RowBox[{"(*", 
+       RowBox[{
+        RowBox[{"[", 
+         RowBox[{"[", 
+          RowBox[{"i", ",", "j", ",", "k"}], "]"}], "]"}], " ", "i"}], "*)"}],
+       "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"solubleCoords", "=", "\[IndentingNewLine]", 
+       RowBox[{"Table", "[", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"xyzDataCoords", "[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "j", ",", 
+            RowBox[{"1", ";;", "atoms1"}]}], "]"}], "]"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "cpuCoreNumbers"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"j", ",", "iterations"}], "}"}]}], "\[IndentingNewLine]", 
+        "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"solubleAtomNames", "=", "\[IndentingNewLine]", 
+       RowBox[{"Table", "[", "\[IndentingNewLine]", 
+        RowBox[{"solubleNames", ",", "\[IndentingNewLine]", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "cpuCoreNumbers"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"j", ",", "iterations"}], "}"}]}], "\[IndentingNewLine]", 
+        "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"solventMolCount", "=", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"allAtoms", "-", "atoms1"}], ")"}], "/", "atoms2"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"solventCoords", "=", "\[IndentingNewLine]", 
+       RowBox[{"Table", "[", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"xyzDataCoords", "[", 
+          RowBox[{"[", 
+           RowBox[{"i", ",", "j", ",", 
+            RowBox[{
+             RowBox[{"atoms1", "+", "1", "+", 
+              RowBox[{"atoms2", "*", 
+               RowBox[{"(", 
+                RowBox[{"k", "-", "1"}], ")"}]}]}], ";;", 
+             RowBox[{"atoms1", "+", 
+              RowBox[{"(", 
+               RowBox[{"atoms2", "*", "k"}], ")"}]}]}]}], "]"}], "]"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "cpuCoreNumbers"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"j", ",", "iterations"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"k", ",", "solventMolCount"}], "}"}]}], 
+        "\[IndentingNewLine]", "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"solventAtomNames", "=", "\[IndentingNewLine]", 
+       RowBox[{"Table", "[", "\[IndentingNewLine]", 
+        RowBox[{"solventNames", ",", "\[IndentingNewLine]", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "cpuCoreNumbers"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"j", ",", "iterations"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"k", ",", "solventMolCount"}], "}"}]}], 
+        "\[IndentingNewLine]", "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"neighborIndices", "=", "\[IndentingNewLine]", 
+       RowBox[{"GetNeighborParticleIndices", "[", "\[IndentingNewLine]", 
+        RowBox[{
+        "solubleCoords", ",", "\[IndentingNewLine]", "solubleAtomNames", ",", 
+         "\[IndentingNewLine]", "solventCoords", ",", "\[IndentingNewLine]", 
+         "solventAtomNames", ",", "\[IndentingNewLine]", "solventMolCount", 
+         ",", "\[IndentingNewLine]", "catchRadius", ",", 
+         "\[IndentingNewLine]", "iterations", ",", "\[IndentingNewLine]", 
+         "cpuCoreNumbers", ",", "\[IndentingNewLine]", "vdWRadii", ",", 
+         "\[IndentingNewLine]", "boxLength"}], "\[IndentingNewLine]", "]"}]}],
+       ";", "\[IndentingNewLine]", 
+      RowBox[{"Return", "[", "neighborIndices", "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.8042206569972296`*^9, 3.804220665540745*^9}, {
+  3.8042207214223595`*^9, 
+  3.804220866094881*^9}},ExpressionUUID->"51f4ab5c-b5c3-4ee2-a7f3-\
+1f9af8dbd04d"]
+},
+WindowSize->{717., 747.75},
+WindowMargins->{{Automatic, -4.5}, {Automatic, 0}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 19, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8725ee94-7d84-4aea-a08b-9a950136eebf"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 6799, 154, 1154, "Input",ExpressionUUID->"51f4ab5c-b5c3-4ee2-a7f3-1f9af8dbd04d"]
+}
+]
+*)
+

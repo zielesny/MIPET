@@ -1,0 +1,85 @@
+--------------------------
+# Calculation File
+--------------------------
+# select particle set and desired temperature
+
+[particle set]
+# path
+C:\\Users\\WHS\\Documents\\Master\\ParticleSet_AA_V03_absoluteSMILES_withoutMeSHSS.txt
+[/particle set]
+
+[temperature]
+# temperature in Kelvin
+293
+[/temperature]
+
+--------------------------
+# select cdkJar and descriptors, fingerprints and tanimoto coefficients to be calculated
+
+[cdkJarPath]
+# path
+C:\\Users\\WHS\\Documents\\Master\\cdk-2.3.jar
+[/cdkJarPath]
+
+# following sections are structured as follows:
+# [section start]
+# 1: do calculation, 0: no calculation
+# wanted descriptors/ fingerprinter (only calculated)	
+# unwanted descritpros/ fingerprinter (not calculated)
+# descriptor components  to be selected after calculation
+# descriptor components to be deleted after calculation
+# [/section end]
+
+[atomic descriptors]
+0
+
+
+
+
+[/atomic descriptors]
+
+[bond descriptors]
+0
+
+
+
+
+[/bond descriptors]
+
+[molecular descriptors]
+1
+
+
+
+nAtomLC VABC
+[/molecular descriptors]
+
+[fingerprinter]
+0
+
+
+[/fingerprinter]
+
+[tanimoto]
+1
+
+MACCSFingerprinter SignatureFingerprinter ShortestPathFingerprinter PubchemFingerprinter
+[/tanimoto]
+
+# the following section is structured as follows:
+# [ start section align descriptors]
+# 1: FillUp, 2: BreakDown
+# [/ end section align descriptors]
+
+[align descriptors]
+1
+[/align descriptors]
+
+# the following section is structured as follows:
+# [data set]
+# 1: Concatenate, 2: Addition, 3: Subtraktion, 4: Multiplication, 5: Division
+# [/section end data set]
+
+[data set]
+3
+[/ data set]

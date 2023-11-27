@@ -1,0 +1,16 @@
+Particles
+|- H2O (folder)
+   |- H2O_SMILES.txt
+   |- H2O_Molfile.mol -> PM3/PM6 optimized
+   |- H2O_Gaussian.gjf -> PM3/PM6 optimized
+   |- H2O_PDB.pdb -> PM3/PM6 optimized
+   |- H2O_Volume.txt -> Molecular volume with CDK-VABCDescriptor in A^3
+   |- H2O_Weight.txt -> Molecular weight in g/mol
+   |- H2O_Graphics_White.jpg -> GaussView-Graphics, white background, Width/Height in Pixel 1251x904
+   |- H2O_Graphics_Black.jpg -> GaussView-Graphics, black background, Width/Height in Pixel 1251x904
+   |- AMOEBA (folder)
+      |- H2O.xyz
+   |- other force fields
+|- other particles
+
+DP = DummyParticle

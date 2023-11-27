@@ -1,0 +1,314 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     13214,        306]
+NotebookOptionsPosition[     12312,        283]
+NotebookOutlinePosition[     12720,        299]
+CellTagsIndexPosition[     12677,        296]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"particle", "=", "\"\<Furan\>\""}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"x", "=", 
+   RowBox[{"Import", "[", 
+    RowBox[{
+    "\"\<C:\\\\Users\\\\Master\\\\sciebo\\\\Particles\\\\\>\"", "<>", 
+     "particle", "<>", "\"\<\\\\\>\"", "<>", "particle", "<>", 
+     "\"\<_Molfile.mol\>\""}], "]"}]}], ";"}], "\n", 
+ RowBox[{"MoleculePlot3D", "[", 
+  RowBox[{
+   RowBox[{"Molecule", "[", "x", "]"}], ",", " ", 
+   RowBox[{"AtomLabels", "->", "\"\<AtomIndex\>\""}], ",", 
+   RowBox[{"AtomLabelStyle", "->", 
+    RowBox[{"{", 
+     RowBox[{"Bold", ",", " ", "15", ",", " ", "Orange"}], "}"}]}]}], 
+  "]"}]}], "Input",
+ CellChangeTimes->{{3.8840847641779547`*^9, 3.8840847940505323`*^9}, {
+   3.884157003708309*^9, 3.8841570630142636`*^9}, 3.8841570951975856`*^9, {
+   3.8841572248944383`*^9, 3.884157273261033*^9}, {3.8841573253585253`*^9, 
+   3.8841573826446505`*^9}, {3.884157418261986*^9, 3.884157420124756*^9}, {
+   3.8841576184781156`*^9, 3.884157648229418*^9}, {3.88416608502466*^9, 
+   3.8841661058985257`*^9}, {3.8841663071704082`*^9, 
+   3.8841663174304953`*^9}, {3.8841722233047504`*^9, 3.884172225015299*^9}, {
+   3.8841729865507317`*^9, 3.8841729942542534`*^9}, {3.884174071913712*^9, 
+   3.8841740774330626`*^9}, {3.8885906487054863`*^9, 3.8885906944676523`*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"81200472-5de0-44b7-b47c-8cc908861022"],
+
+Cell[BoxData[
+ Graphics3DBox[
+  {EdgeForm[None], Specularity[
+    GrayLevel[1], 100], GraphicsComplex3DBox[CompressedData["
+1:eJwBOQLG/SFib1JlAgAAABcAAAADAAAAP8bctYR8kL8kKH6MuWv1P1XBqKRO
+QIM/FYxK6gQ0YT8JG55eKctwv/yp8dJNYmA/nzws1Jrm8z+VZYhjXdz8Py1D
+HOviNhq/tFn1udqK9D9F2PD0SlnavxNhw9MrZYm/Imx4eqWsAECu2F92Tx7o
+P2x4eqUsQ4y/VFInoImw67+4HoXrUbjkv6yt2F92T34/ukkMAiuH+D9v8IXJ
+VMEGQC9uowG8BWI/EqW9wRcm+j8DCYofY+72v9cS8kHPZpW/OwFNhA1PCUBt
+Vn2utmLpP4C3QILix5i/eOkmMQisfL8Jih9j7lrlP9QrZRniWHc/hslUwaik
+4z/cRgN4CyT5P8+I0t7gC3M/DMoO0uylpL91KHnBHJrBv4R4yT3wn1s/Hr7v
+UBHd8z8KehlYlnHhv4KcxkDBCYq/jhtYb23Mpj/FRo8rao3AP7aX/oaj9GI/
+SvX6IqQ49T92vK45ac/Rv6QlwGaWwIi/yAc9m1Wf27/uWkI+6NnUv1XBqKRO
+QHM/PwAaw0em9T88Lsf0tkL+P0bRcP1v60W/8k3v8XuMAUD8ad2YAuvqP/pM
+e991bY2//3g+5e0m8j/unEnSA3b7P/WAU4Vuuz4/pBQDBp6Z/z9gR+JTnFHl
+P96jeWvjGIu/LEMc6+I29j+dEaW9wZcCQBWMSuoENFE/Y3/ZPXlY9z8UP8bc
+tYTtv7Dh6ZWyDJG/rrZif9n9BECOl24Sg8DoP9v5fmq8dJO/fiscdQ==
+    "], {{{
+       {RGBColor[0.800498, 0.201504, 0.192061], 
+        SphereBox[1, 0.31000000000000005`]}, Text3DBox[
+        StyleBox["1",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {0.3249000000000001, 1.3388, 
+        0.3504000000000001}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.4, 0.4, 0.4], SphereBox[2, 0.34]}, Text3DBox[
+        StyleBox["2",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {0.3761, -0.0041, 0.376}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.4, 0.4, 0.4], SphereBox[3, 0.34]}, Text3DBox[
+        StyleBox["3",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {1.6178000000000001`, 1.8038, 
+        0.3739}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.4, 0.4, 0.4], SphereBox[4, 0.34]}, Text3DBox[
+        StyleBox["4",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {1.6579000000000002`, -0.4117, 
+        0.36160000000000003`}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.4, 0.4, 0.4], SphereBox[5, 0.34]}, Text3DBox[
+        StyleBox["5",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {2.4582999999999995`, 0.7537, 
+        0.3602000000000001}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.65, 0.7, 0.7], SphereBox[6, 0.24]}, Text3DBox[
+        StyleBox["6",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {-0.6013, -0.6475, 0.2714}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.65, 0.7, 0.7], SphereBox[7, 0.24]}, Text3DBox[
+        StyleBox["7",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {1.797, 2.8444, 0.2662}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.65, 0.7, 0.7], SphereBox[8, 0.24]}, Text3DBox[
+        StyleBox["8",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {1.8983, -1.4332, 
+        0.24309999999999998`}, {-1, -1},
+        BaseStyle->"Graphics"]}, {
+       {RGBColor[0.65, 0.7, 0.7], SphereBox[9, 0.24]}, Text3DBox[
+        StyleBox["9",
+         StripOnInput->False,
+         LineColor->RGBColor[1, 0.5, 0],
+         FrontFaceColor->RGBColor[1, 0.5, 0],
+         BackFaceColor->RGBColor[1, 0.5, 0],
+         GraphicsColor->RGBColor[1, 0.5, 0],
+         FontSize->15,
+         FontWeight->Bold,
+         FontColor->RGBColor[1, 0.5, 0]], {3.4276, 0.7933, 
+        0.23979999999999999`}, {-1, -1},
+        BaseStyle->"Graphics"]}}, {{
+       {RGBColor[0.800498, 0.201504, 0.192061], CylinderBox[{1, 10}, 0.15]}, 
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{10, 2}, 0.15]}}, {
+       {RGBColor[0.800498, 0.201504, 0.192061], CylinderBox[{1, 11}, 0.15]}, 
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{11, 3}, 0.15]}}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{12, 13}, 0.08]}, 
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{14, 15}, 0.08]}}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{2, 16}, 0.15]}, 
+       {RGBColor[0.65, 0.7, 0.7], CylinderBox[{16, 6}, 0.15]}}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{17, 18}, 0.08]}, 
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{19, 20}, 0.08]}}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{3, 21}, 0.15]}, 
+       {RGBColor[0.65, 0.7, 0.7], CylinderBox[{21, 7}, 0.15]}}, 
+      {RGBColor[0.4, 0.4, 0.4], CylinderBox[{4, 5}, 0.15]}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{4, 22}, 0.15]}, 
+       {RGBColor[0.65, 0.7, 0.7], CylinderBox[{22, 8}, 0.15]}}, {
+       {RGBColor[0.4, 0.4, 0.4], CylinderBox[{5, 23}, 0.15]}, 
+       {RGBColor[0.65, 0.7, 0.7], CylinderBox[{23, 9}, 0.15]}}}, 
+     {Opacity[0.7]}}]},
+  Boxed->False,
+  Lighting->"Neutral",
+  Method->{
+   "ShrinkWrap" -> True, "DefaultBoundaryStyle" -> Automatic, 
+    "DefaultGraphicsInteraction" -> {
+     "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+      "Effects" -> {
+       "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+        "Droplines" -> {
+         "freeformCursorMode" -> True, 
+          "placement" -> {"x" -> "All", "y" -> "None"}}}}, "DefaultPlotStyle" -> 
+    Automatic},
+  ViewPoint->{0.032641102737323756`, -0.01761799108357309, 3.379796467955174},
+  ViewVertical->{0.46981550649957765`, 
+   0.8574485673659428, -0.20989364967677712`}]], "Output",
+ CellChangeTimes->{{3.88415738753095*^9, 3.884157425881075*^9}, {
+   3.8841574623048983`*^9, 3.884157466856318*^9}, 3.884157654523718*^9, 
+   3.884166107630601*^9, 3.8841663183036146`*^9, 3.8841722263845153`*^9, 
+   3.8841729962029886`*^9, 3.884174078128173*^9, 3.8885906969453435`*^9},
+ CellLabel->"Out[3]=",ExpressionUUID->"d2d3e0b2-5234-406f-829d-a7d2c1151eec"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"AtomList", "[", "x", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"MoleculeValue", "[", 
+  RowBox[{"x", ",", "\"\<OrbitalHybridization\>\""}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"MoleculeValue", "[", 
+  RowBox[{"x", ",", "\"\<AromaticAtomQ\>\""}], "]"}]}], "Input",
+ CellChangeTimes->{{3.88416319683115*^9, 3.8841632225632343`*^9}, {
+  3.884173048662012*^9, 3.884173078157802*^9}},
+ CellLabel->"In[4]:=",ExpressionUUID->"ba17fc60-ddb0-477e-aab1-1253529d3ae3"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"Atom", "[", "\<\"O\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"C\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"C\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"C\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"C\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"H\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"H\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"H\"\>", "]"}], ",", 
+   RowBox[{"Atom", "[", "\<\"H\"\>", "]"}]}], "}"}]], "Output",
+ CellChangeTimes->{{3.8841632120778065`*^9, 3.884163223068138*^9}, 
+   3.884166110204256*^9, 3.8841675882057395`*^9, 3.8841705045579686`*^9, 
+   3.8841722286235123`*^9, 3.884172999266289*^9, 3.884173078563308*^9, 
+   3.884174081410633*^9, 3.8885907027343793`*^9},
+ CellLabel->"Out[4]=",ExpressionUUID->"4c1dc68f-c255-4d1a-94dc-3eafb4107f16"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   TemplateBox[{
+     StyleBox["\"sp\"", Italic, StripOnInput -> False], "2"},
+    "Superscript"], ",", 
+   TemplateBox[{
+     StyleBox["\"sp\"", Italic, StripOnInput -> False], "2"},
+    "Superscript"], ",", 
+   TemplateBox[{
+     StyleBox["\"sp\"", Italic, StripOnInput -> False], "2"},
+    "Superscript"], ",", 
+   TemplateBox[{
+     StyleBox["\"sp\"", Italic, StripOnInput -> False], "2"},
+    "Superscript"], ",", 
+   TemplateBox[{
+     StyleBox["\"sp\"", Italic, StripOnInput -> False], "2"},
+    "Superscript"], ",", "\<\"S\"\>", ",", "\<\"S\"\>", ",", "\<\"S\"\>", 
+   ",", "\<\"S\"\>"}], "}"}]], "Output",
+ CellChangeTimes->{{3.8841632120778065`*^9, 3.884163223068138*^9}, 
+   3.884166110204256*^9, 3.8841675882057395`*^9, 3.8841705045579686`*^9, 
+   3.8841722286235123`*^9, 3.884172999266289*^9, 3.884173078563308*^9, 
+   3.884174081410633*^9, 3.88859070275238*^9},
+ CellLabel->"Out[5]=",ExpressionUUID->"3076381a-a237-4fef-a1ed-7c717b7b7987"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "True", ",", "True", ",", "True", ",", "True", ",", "True", ",", "False", 
+   ",", "False", ",", "False", ",", "False"}], "}"}]], "Output",
+ CellChangeTimes->{{3.8841632120778065`*^9, 3.884163223068138*^9}, 
+   3.884166110204256*^9, 3.8841675882057395`*^9, 3.8841705045579686`*^9, 
+   3.8841722286235123`*^9, 3.884172999266289*^9, 3.884173078563308*^9, 
+   3.884174081410633*^9, 3.888590702760378*^9},
+ CellLabel->"Out[6]=",ExpressionUUID->"f59250be-4f6c-47f2-847d-c95608bbb892"]
+}, Open  ]]
+},
+WindowSize->{958.5, 1011.},
+WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
+FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"abd59e73-5a2f-4916-abce-29cd39cdb85a"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 1398, 27, 67, "Input",ExpressionUUID->"81200472-5de0-44b7-b47c-8cc908861022"],
+Cell[1981, 51, 7423, 161, 478, "Output",ExpressionUUID->"d2d3e0b2-5234-406f-829d-a7d2c1151eec"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9441, 217, 487, 9, 67, "Input",ExpressionUUID->"ba17fc60-ddb0-477e-aab1-1253529d3ae3"],
+Cell[9931, 228, 845, 16, 32, "Output",ExpressionUUID->"4c1dc68f-c255-4d1a-94dc-3eafb4107f16"],
+Cell[10779, 246, 993, 23, 35, "Output",ExpressionUUID->"3076381a-a237-4fef-a1ed-7c717b7b7987"],
+Cell[11775, 271, 521, 9, 32, "Output",ExpressionUUID->"f59250be-4f6c-47f2-847d-c95608bbb892"]
+}, Open  ]]
+}
+]
+*)
+

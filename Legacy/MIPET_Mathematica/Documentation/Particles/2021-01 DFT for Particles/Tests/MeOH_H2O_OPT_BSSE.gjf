@@ -1,0 +1,27 @@
+%nprocshared=8
+%chk=D:\Data\Software Development\MIPET\Info und Diskussion\2020-12 Me2O vs MeOH with H2O\MeOH_H2O_OPT_BSSE.chk
+# opt=tight wb97xd/6-31+g(d) geom=connectivity counterpoise=2
+
+BSSE
+
+0 1 0 1 0 1
+ C(Fragment=1)     -0.15661100    0.33404500    0.00807200
+ H(Fragment=1)      0.12024900    1.34531600    0.37955200
+ H(Fragment=1)     -1.11823500    0.02712400    0.47650000
+ H(Fragment=1)     -0.28458700    0.37926500   -1.09657900
+ O(Fragment=1)      0.86282900   -0.58986600    0.34041800
+ H(Fragment=1)      0.58159100   -1.45238100   -0.00182200
+ O(Fragment=2)      3.55379000    0.03688600   -0.39441500
+ H(Fragment=2)      2.66547600   -0.16607700   -0.08254000
+ H(Fragment=2)      4.12549800    0.08568700    0.37081500
+
+ 1 2 1.0 3 1.0 4 1.0 5 1.0
+ 2
+ 3
+ 4
+ 5 6 1.0
+ 6
+ 7 8 1.0 9 1.0
+ 8
+ 9
+

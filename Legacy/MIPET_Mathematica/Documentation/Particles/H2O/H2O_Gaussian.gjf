@@ -1,0 +1,14 @@
+%chk=C:\Users\Master\Documents\Promotion\MIPET_non_code\Particles\H2O\H2O_Gaussian.chk
+# opt pm6 geom=connectivity
+
+Title Card Required
+
+0 1
+ O                 -0.00000000    0.11225995    0.00000000
+ H                  0.76534691   -0.44904404    0.00000000
+ H                 -0.76534691   -0.44903554    0.00000000
+
+ 1 2 1.0 3 1.0
+ 2
+ 3
+

@@ -1,0 +1,15 @@
+%nprocshared=8
+%chk=E:\Zielesny\G09W\H2O_OPT.chk
+# opt=tight wb97xd/6-311++g(d,p) geom=connectivity
+
+H2O_OPT
+
+0 1
+O	0.	0.	0.11044
+H	0.	0.777553	-0.44822
+H	0.	-0.777553	-0.44822
+
+ 1 2 1.0 3 1.0
+ 2
+ 3
+

@@ -1,0 +1,21 @@
+%nprocshared=8
+%chk=E:\Zielesny\G09W\H2O_H2O_OPT_BSSE.chk
+# opt=tight wb97xd/6-311++g(d,p) geom=connectivity counterpoise=2
+
+H2O_H2O_OPT_BSSE
+
+0 1 0 1 0 1
+ O(Fragment=1)     -0.12800000    0.09600000    0.35100000
+ H(Fragment=1)      0.78700000    0.01700000    0.06300000
+ H(Fragment=1)     -0.68800000   -0.12200000   -0.39400000
+ O(Fragment=2)      2.69300000   -0.07300000   -0.26100000
+ H(Fragment=2)      3.09200000    0.78500000   -0.10100000
+ H(Fragment=2)      3.09400000   -0.70300000    0.34200000
+
+ 1 2 1.0 3 1.0
+ 2
+ 3
+ 4 5 1.0 6 1.0
+ 5
+ 6
+
