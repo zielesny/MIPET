@@ -17,7 +17,7 @@ Reference version of MIPET 1.0.0.0\
 MIPET (Mesoscopic Interaction Parameter Estimation with Tinker) is an automated pipeline for comprehensive calculation
 of intermolecular interaction energies and coordination numbers based on molecular force-fields using the 
 <a href="https://dasher.wustl.edu/tinker/">Tinker</a> molecular modeling package.
-A scientific article describing MIPET can be found <a href="TODO: add link to paper"> here </a>. 
+A scientific article describing MIPET is pending. 
 The MIPET GitHub repository were you can download the software, browse the source code, and report issues can be found 
 <a href="https://github.com/zielesny/MIPET">here</a>.
 

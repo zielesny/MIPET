@@ -101,7 +101,7 @@ the files for the atomic parameters of version 8.10.2 have to be downloaded
 (click <a href="https://dasher.wustl.edu/tinker/">here</a> to go to the Tinker website). Choose the correct version for
 your OS. Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. 
 The executables and the parameter files have to be placed in a subfolder named "tinker", which you have to create in the
-root directory of MIPET.\
+root directory of MIPET.
 
 Example directory structure:  
 
