@@ -28,6 +28,9 @@ hs_err_pid*
 
 /nbproject/private/
 /dist/
+/lib/
+/nbproject/
+build.xml
 tinker/
 tinker/0version.txt
 tinker/critical.exe
