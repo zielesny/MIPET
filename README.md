@@ -97,9 +97,11 @@ in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</
 
 ### Tinker - Software Tools for Molecular Design
 In order to run MIPET, the Tinker molecular modeling tool package has to be added. For this, the Tinker executables and 
-the files for the atomic parameters of version 8.10.2 have to be downloaded 
+the files for the atomic parameters of version 8.10 must be downloaded 
 (click <a href="https://dasher.wustl.edu/tinker/">here</a> to go to the Tinker website). Choose the correct version for
-your OS. Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. 
+your OS. The atomic parameters can be found in the "Tinker Package Distribution" archive. 
+Inside is a directory named "params" in which all atomic parameter sets can be found.
+Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. 
 The executables and the parameter files have to be placed in a subfolder named "tinker", which you have to create in the
 root directory of MIPET.
 
@@ -107,7 +109,7 @@ Example directory structure:
 
     ├── MIPET                   # MIPET root directory  
     │   ├── ...              
-    │   ├── tinker              # Frequently asked questions  
+    │   ├── tinker              # Tinker directory
     │   │  ├── params           # Directory to put parameter files  
     │   │  ├── alchemy.exe      # Tinker executable  
     │   │  ├── analyze.exe      # Tinker executable  
@@ -119,7 +121,7 @@ Example directory structure:
     * [AdoptOpenJDK](https://adoptopenjdk.net) (as one possible source of the JDK)
 * Chemistry Development Kit (CDK) version 2.9
     * [Chemistry Development Kit on GitHub](https://cdk.github.io/)
-* Tinker - Software Tools for Molecular Design version 8.10.2
+* Tinker - Software Tools for Molecular Design version 8.10
     * [Tinker](https://dasher.wustl.edu/tinker/)
 * JUnit version 4.13.2
     * [JUnit 4](https://junit.org/junit4/)
