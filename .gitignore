@@ -28,7 +28,7 @@ hs_err_pid*
 
 /nbproject/private/
 /dist/
-/lib/
+lib/
 /nbproject/
 build.xml
 tinker/
