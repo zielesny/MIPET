@@ -23,10 +23,10 @@
 * [Acknowledgments](#acknowledgments)
 
 ## Description
-MIPET (Mesoscopic Interaction Parameter Estimation with Tinker) is an open software project for calculating non-bonding 
-intermolecular interaction energies and determining coordination numbers. With the results, MIPET can generate a 
-"particle set" for Dissipative Particle Dynamics (DPD) simulation. Tools from the 
-<a href="https://dasher.wustl.edu/tinker/">Tinker</a> are used for both the calculation of interaction energies and 
+MIPET (Mesoscopic Interaction Parameter Estimation with Tinker) is an open-source software project that calculates 
+non-bonding intermolecular interaction energies and determines coordination numbers. The results of these calculations 
+are used by MIPET to generate a "particle set" for the execution of a Dissipative Particle Dynamics (DPD) simulation.
+<a href="https://dasher.wustl.edu/tinker/">Tinker</a> tools are utilized for computing both interaction energies and 
 coordination numbers.
 
 ## Content of this repository 
@@ -59,18 +59,13 @@ on how to install and use MIPET, together with tutorial job files.
 
 ### C10E4-water bilayer formation study
 The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/C10E4-water%20bilayer%20formation%20study">C10E4-water bilayer formation study</a>
-contains a bunch of job files for DPD simulations performed with MFsim. Detailed information can be found in our scientific
-articles (<a href="TODO add link to article">
-An automated Calculation Pipeline for Differential Pair Interaction Energies with Molecular Force Fields using the Tinker Molecular Modeling Package
-</a>).
+contains a bunch of job files for DPD simulations performed with MFsim. Detailed information can be found in our 
+scientific articles, that will be published 2024.
 
 ### Gaussian job files
 The subfolder <a hre="https://github.com/zielesny/MIPET/tree/main/Gaussian%20job%20files"> Gaussian job files</a>
 contains a bunch of job files for DFT calculations that were carried out as part of the development of MIPET using Gaussian.
-Detailed information can be found in our scientific
-articles (<a href="TODO add link to article">
-An automated Calculation Pipeline for Differential Pair Interaction Energies with Molecular Force Fields using the Tinker Molecular Modeling Package
-</a>).
+Detailed information can be found in our scientific articles, that will be published 2024.
 
 ### Legacy
 The <a href="https://github.com/zielesny/MIPET/tree/main/Legacy"> Legacy </a> subfolder contains legacy source code and 
@@ -97,13 +92,15 @@ in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</
 
 ### Tinker - Software Tools for Molecular Design
 In order to run MIPET, the Tinker molecular modeling tool package has to be added. For this, the Tinker executables and 
-the files for the atomic parameters of version 8.10 must be downloaded 
-(click <a href="https://dasher.wustl.edu/tinker/">here</a> to go to the Tinker website). Choose the correct version for
+the files for the atomic parameters of version 8.10.2 must be downloaded 
+(click <a href="https://dasher.wustl.edu/tinker/downloads/">here</a> to go to the Tinker website). Choose the correct version for
 your OS. The atomic parameters can be found in the "Tinker Package Distribution" archive. 
 Inside is a directory named "params" in which all atomic parameter sets can be found.
 Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a>. 
 The executables and the parameter files have to be placed in a subfolder named "tinker", which you have to create in the
-root directory of MIPET.
+root directory of MIPET.\
+A more detailed instruction can be found in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</a>.
+
 
 Example directory structure:  
 
@@ -121,7 +118,7 @@ Example directory structure:
     * [AdoptOpenJDK](https://adoptopenjdk.net) (as one possible source of the JDK)
 * Chemistry Development Kit (CDK) version 2.9
     * [Chemistry Development Kit on GitHub](https://cdk.github.io/)
-* Tinker - Software Tools for Molecular Design version 8.10
+* Tinker - Software Tools for Molecular Design version 8.10.2
     * [Tinker](https://dasher.wustl.edu/tinker/)
 * JUnit version 4.13.2
     * [JUnit 4](https://junit.org/junit4/)
