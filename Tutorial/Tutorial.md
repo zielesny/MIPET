@@ -77,7 +77,9 @@ Example directory structure:
     │   └── ...                 
 
 ### Results
-Not yet implemented...
+The results of a MIPET run are available in the directory specified in the "MIPET.properties" file under "MIPET.Directory.result". In addition, the subdirectory "IE" contains the particle sets created for Dissipative Particle Dynamics (DPD) simulations with <a href="https://github.com/zielesny/MFsim">MFsim</a> as well as the results of the intermolecular energy calculation.  
+The numerical results of intermolecular energy calculation are in the .dat files located in the subfolders of the dimers within the "IE" folder. The "CN" folder has the coordination number determination results divided into subfolders named after the dimers. A .dat file with the numerical results is also available here.
+Mathematica notebooks for visual inspection of results are available in the <a href="https://github.com/zielesny/MIPET/tree/main/Mathematica%20notebooks%20for%20visualization">Mathematica notebooks for visualization</a> subfolder. Each notebook includes a brief description of its functionality and instructions for usage. A license for Mathematica 13 or newer is mandatory for accessing the notebooks.
 
 ## Change calculation properties, molecules and force fields
 The "MIPET.properties" file, located in the "resources" directory, enables users to modify calculation properties. For
