@@ -10,14 +10,26 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      9098,        220]
-NotebookOptionsPosition[      8509,        202]
-NotebookOutlinePosition[      8922,        218]
-CellTagsIndexPosition[      8879,        215]
+NotebookDataLength[      7856,        204]
+NotebookOptionsPosition[      7401,        189]
+NotebookOutlinePosition[      7809,        205]
+CellTagsIndexPosition[      7766,        202]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
+Cell["\<\
+This script exports both the minimum sampled energy configuration and the \
+minimum energy configuration for each dimer as png and svg files.
+To use this script, simply copy and paste it into the \
+\[OpenCurlyDoubleQuote]Results\[CloseCurlyDoubleQuote] folder, and then run \
+it. The images will be saved in a folder named \
+\[OpenCurlyDoubleQuote]lowest_energy _configs\[CloseCurlyDoubleQuote].\
+\>", "Text",
+ CellChangeTimes->{{3.9108542645583334`*^9, 
+  3.9108544208920527`*^9}},ExpressionUUID->"52c1557e-a9a0-43bf-b719-\
+ef493740c3bf"],
+
 Cell[BoxData[{
  RowBox[{
   RowBox[{
@@ -32,14 +44,14 @@ Cell[BoxData[{
    RowBox[{"Block", "[", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"{", "\[IndentingNewLine]", 
-      RowBox[{"config", ",", "\[IndentingNewLine]", "configOptimized"}], 
+      RowBox[{"configAveraged", ",", "\[IndentingNewLine]", "configStar"}], 
       "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
      RowBox[{
       RowBox[{"dimerName", " ", "=", " ", 
        RowBox[{
         RowBox[{"FileNameSplit", "[", "dimerNameFolder", "]"}], "//", 
         "Last"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"config", " ", "=", " ", 
+      RowBox[{"configAveraged", " ", "=", " ", 
        RowBox[{"Import", "[", 
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
@@ -50,9 +62,9 @@ Cell[BoxData[{
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
           RowBox[{"outputFolder", ",", " ", 
-           RowBox[{"dimerName", "<>", "\"\<_config.png\>\""}]}], "}"}], "]"}],
-         ",", " ", 
-        RowBox[{"MoleculePlot3D", "[", "config", "]"}], ",", " ", 
+           RowBox[{"dimerName", "<>", "\"\<_configAveraged.png\>\""}]}], 
+          "}"}], "]"}], ",", " ", 
+        RowBox[{"MoleculePlot3D", "[", "configAveraged", "]"}], ",", " ", 
         RowBox[{"Background", "->", "None"}]}], "]"}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"Export", "[", 
@@ -60,12 +72,12 @@ Cell[BoxData[{
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
           RowBox[{"outputFolder", ",", " ", 
-           RowBox[{"dimerName", "<>", "\"\<_config.svg\>\""}]}], "}"}], "]"}],
-         ",", " ", 
-        RowBox[{"MoleculePlot3D", "[", "config", "]"}], ",", " ", 
+           RowBox[{"dimerName", "<>", "\"\<_configAveraged.svg\>\""}]}], 
+          "}"}], "]"}], ",", " ", 
+        RowBox[{"MoleculePlot3D", "[", "configAveraged", "]"}], ",", " ", 
         RowBox[{"Background", "->", "None"}]}], "]"}], ";", 
       "\[IndentingNewLine]", 
-      RowBox[{"configOptimized", " ", "=", " ", 
+      RowBox[{"configStar", " ", "=", " ", 
        RowBox[{"Import", "[", 
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
@@ -76,9 +88,10 @@ Cell[BoxData[{
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
           RowBox[{"outputFolder", ",", 
-           RowBox[{"dimerName", "<>", "\"\<_config_optimized.png\>\""}]}], 
+           RowBox[{
+           "dimerName", "<>", "\"\<_configAveraged_optimized.png\>\""}]}], 
           "}"}], "]"}], ",", " ", 
-        RowBox[{"MoleculePlot3D", "[", "configOptimized", "]"}], ",", " ", 
+        RowBox[{"MoleculePlot3D", "[", "configStar", "]"}], ",", " ", 
         RowBox[{"Background", "->", "None"}]}], "]"}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"Export", "[", 
@@ -86,50 +99,39 @@ Cell[BoxData[{
         RowBox[{"FileNameJoin", "[", 
          RowBox[{"{", 
           RowBox[{"outputFolder", ",", 
-           RowBox[{"dimerName", "<>", "\"\<_config_optimized.svg\>\""}]}], 
+           RowBox[{
+           "dimerName", "<>", "\"\<_configAveraged_optimized.svg\>\""}]}], 
           "}"}], "]"}], ",", " ", 
-        RowBox[{"MoleculePlot3D", "[", "configOptimized", "]"}], ",", " ", 
+        RowBox[{"MoleculePlot3D", "[", "configStar", "]"}], ",", " ", 
         RowBox[{"Background", "->", "None"}]}], "]"}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"Return", "[", 
        RowBox[{"{", 
-        RowBox[{"config", ",", " ", "configOptimized"}], "}"}], "]"}]}]}], 
+        RowBox[{"configAveraged", ",", " ", "configStar"}], "}"}], "]"}]}]}], 
     "\[IndentingNewLine]", "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"SetAttributes", "[", 
-   RowBox[{"ExportConfigsAsPNG", ",", " ", "Listable"}], "]"}], 
-  ";"}], "\[IndentingNewLine]"}], "Input",
- CellChangeTimes->{{3.8926179450087805`*^9, 3.892617991637578*^9}, {
-  3.892618037324198*^9, 3.892618057081877*^9}, {3.8926182265265503`*^9, 
-  3.8926182546023192`*^9}, {3.8926182998890905`*^9, 3.892618326359828*^9}, {
-  3.8926183564822593`*^9, 3.8926183568868914`*^9}, {3.892618429615985*^9, 
-  3.8926185076104417`*^9}, {3.892618718756598*^9, 3.8926187571338053`*^9}, {
-  3.8926251122790623`*^9, 3.8926251134482007`*^9}, {3.8926251645501328`*^9, 
-  3.892625214392701*^9}, {3.892625245677025*^9, 3.8926252609337783`*^9}, {
-  3.892625335272046*^9, 3.892625342976135*^9}, {3.8926254452777276`*^9, 
-  3.8926254775730534`*^9}, {3.892625531973885*^9, 3.892625552752061*^9}, {
-  3.8928851890584974`*^9, 3.892885272154791*^9}, {3.8928856791866055`*^9, 
-  3.8928857072286263`*^9}, {3.892885822600493*^9, 3.8928858530977955`*^9}, {
-  3.9000502627225285`*^9, 3.900050287377043*^9}, {3.9071319174331226`*^9, 
-  3.907131939839139*^9}},ExpressionUUID->"fc9d1f42-dd94-461e-989a-\
-708302ce2605"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[{
+  RowBox[{
+   RowBox[{"SetAttributes", "[", 
+    RowBox[{"ExportConfigsAsPNG", ",", " ", "Listable"}], "]"}], ";"}], 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"SetDirectory", "[", 
    RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"forceField", " ", "=", " ", "\"\<MMFF\>\""}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{"results", " ", "=", " ", 
-  RowBox[{"Select", "[", 
-   RowBox[{
-    RowBox[{"FileNames", "[", 
-     RowBox[{"\"\<*\>\"", ",", "\"\<IE\>\""}], "]"}], ",", " ", 
-    "DirectoryQ"}], "]"}]}], "\[IndentingNewLine]", 
+  RowBox[{"forceField", " ", "=", " ", 
+   RowBox[{"FileBaseName", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"All", ",", "\"\<IE\>\"", ",", "1"}], "]"}], "//", "Last"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"results", " ", "=", " ", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"\"\<*\>\"", ",", "\"\<IE\>\""}], "]"}], ",", " ", 
+     "DirectoryQ"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"imagesDir", " ", "=", " ", "\"\<lowest_energy_configs\>\""}], 
   ";"}], "\[IndentingNewLine]", 
@@ -172,36 +174,21 @@ Cell[BoxData[{
    RowBox[{"{", 
     RowBox[{"i", ",", " ", 
      RowBox[{"Length", "[", "results", "]"}]}], "}"}]}], 
-  "\[IndentingNewLine]", "]"}], "\[IndentingNewLine]"}], "Input",
- CellChangeTimes->{{3.8926159780044365`*^9, 3.8926161894372187`*^9}, {
-   3.892616236387528*^9, 3.892616354586502*^9}, {3.892625120920789*^9, 
-   3.8926251469294477`*^9}, {3.8926254879094076`*^9, 
-   3.8926255094596324`*^9}, {3.8928847685894737`*^9, 3.892885016488603*^9}, {
-   3.892885059088844*^9, 3.8928851836372433`*^9}, {3.8928852883130293`*^9, 
-   3.8928853383445735`*^9}, {3.8928854001070833`*^9, 3.89288546224448*^9}, 
-   3.892885729403428*^9, {3.8928858692969174`*^9, 3.8928858804127183`*^9}, {
-   3.8931298859608994`*^9, 3.8931298868339496`*^9}, {3.900049787297021*^9, 
-   3.9000498083039427`*^9}, {3.9000498581384516`*^9, 
-   3.9000498625010667`*^9}, {3.900049908064392*^9, 3.900049917060489*^9}, {
-   3.9000499858104935`*^9, 3.900049990712837*^9}, {3.9000500480931363`*^9, 
-   3.9000500951704035`*^9}, {3.9000501580904207`*^9, 
-   3.9000501686522975`*^9}, {3.9000502022247515`*^9, 
-   3.9000502157001314`*^9}, {3.900050295671156*^9, 3.9000503121239433`*^9}},
- CellLabel->
-  "In[105]:=",ExpressionUUID->"1e942481-b53a-4e3b-a25c-da5f41dd5bf4"],
-
-Cell[BoxData[
- RowBox[{"{", "\<\"IE\\\\MMFF\"\>", "}"}]], "Output",
- CellChangeTimes->{
-  3.900049918051811*^9, 3.90004999149591*^9, {3.9000500659450703`*^9, 
-   3.9000500955279317`*^9}, 3.9000501584333763`*^9, {3.9000502071205845`*^9, 
-   3.90005021613943*^9}, 3.9000503131770096`*^9},
- CellLabel->
-  "Out[107]=",ExpressionUUID->"6fcf3174-78fa-4dfd-9735-82936e07ce25"]
-}, Open  ]]
+  "\[IndentingNewLine]", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Quit", "[", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->CompressedData["
+1:eJxTTMoPSmViYGAQBmIQ/c5dIXoKw1tHrvQvCSD6SvyqNBC9d55SJohuuBlQ
+B6KN3S43gui84pp2EL2t+XQXiF6d198HorMS54BptW2bp4P1dxQvBNG8Zjd2
+g2gljyUHQLTIO47b04H0ynA9ML1h1sSHIJpp4pnnINpg1dbXILr54dy3IHrW
+lhffQHS9zf3vIFr18QqWGUC6JGwTB4gW1KrnB9GPBCSEQLTZ/YU3xBjfOvJ8
+YXkMotf8eCoqDqRfBKRLgmhb88vqIFpFcbE2iP4idz3rIN9bxz0Cb3JBtMqd
+tY7OMm8drW5VuYDoeRlb9sQov3WcO2vCIRANAApkj7Q=
+  "],
+ CellLabel->"In[1]:=",ExpressionUUID->"fc9d1f42-dd94-461e-989a-708302ce2605"]
 },
-WindowSize->{581.25, 654.},
-WindowMargins->{{Automatic, 280.5}, {Automatic, 168.75}},
+WindowSize->{958.5, 1011.},
+WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
 FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"5fb24aa2-2d2c-47b6-9f31-0c11f302e395"
@@ -217,11 +204,8 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 4372, 94, 600, "Input",ExpressionUUID->"fc9d1f42-dd94-461e-989a-708302ce2605"],
-Cell[CellGroupData[{
-Cell[4955, 118, 3166, 72, 371, "Input",ExpressionUUID->"1e942481-b53a-4e3b-a25c-da5f41dd5bf4"],
-Cell[8124, 192, 369, 7, 32, "Output",ExpressionUUID->"6fcf3174-78fa-4dfd-9735-82936e07ce25"]
-}, Open  ]]
+Cell[558, 20, 549, 10, 104, "Text",ExpressionUUID->"52c1557e-a9a0-43bf-b719-ef493740c3bf"],
+Cell[1110, 32, 6287, 155, 847, "Input",ExpressionUUID->"fc9d1f42-dd94-461e-989a-708302ce2605"]
 }
 ]
 *)

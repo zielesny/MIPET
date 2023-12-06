@@ -10,21 +10,39 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      7994,        190]
-NotebookOptionsPosition[      7531,        175]
-NotebookOutlinePosition[      7944,        191]
-CellTagsIndexPosition[      7901,        188]
+NotebookDataLength[      9496,        226]
+NotebookOptionsPosition[      9039,        211]
+NotebookOutlinePosition[      9449,        227]
+CellTagsIndexPosition[      9406,        224]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
+Cell["\<\
+This script generates a plot for each dimer, plotting the averaged \
+coordination number against the number of simulation steps.
+To use this script, simply copy and paste it into the \
+\[OpenCurlyDoubleQuote]Results\[CloseCurlyDoubleQuote] folder, and then run \
+it. The resulting plots will be saved in a folder named \
+\[OpenCurlyDoubleQuote]Zij_plots\[CloseCurlyDoubleQuote].\
+\>", "Text",
+ CellChangeTimes->{
+  3.9108529114311476`*^9, {3.910853608987273*^9, 3.910853674024987*^9}, {
+   3.9108537904882956`*^9, 
+   3.910853811615918*^9}},ExpressionUUID->"2bd71840-25dd-4082-9588-\
+6abb238959e1"],
+
 Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"ExportZijPlotsAsPngs", "[", "\[IndentingNewLine]", 
-    RowBox[{"dimerName_", "/;", 
-     RowBox[{"StringQ", "[", "dimerName", "]"}]}], "\[IndentingNewLine]", 
-    "]"}], " ", ":=", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"dimerName_", "/;", 
+      RowBox[{"StringQ", "[", "dimerName", "]"}]}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"outputFolder_", "/;", 
+      RowBox[{"StringQ", "[", "outputFolder", "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}], " ", ":=", "\[IndentingNewLine]", 
    RowBox[{"Block", "[", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"{", "\[IndentingNewLine]", 
@@ -109,16 +127,73 @@ Cell[BoxData[{
            RowBox[{
             RowBox[{"FileNameJoin", "[", 
              RowBox[{"{", 
-              RowBox[{
-               RowBox[{"Directory", "[", "]"}], ",", "dimerName", ",", 
+              RowBox[{"outputFolder", ",", "dimerName", ",", 
                RowBox[{"#", "<>", "\"\<_ZijPlot.png\>\""}]}], "}"}], "]"}], 
+            ",", "ZijPlot"}], "]"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"Export", "[", 
+           RowBox[{
+            RowBox[{"FileNameJoin", "[", 
+             RowBox[{"{", 
+              RowBox[{"outputFolder", ",", "dimerName", ",", 
+               RowBox[{"#", "<>", "\"\<_ZijPlot.svg\>\""}]}], "}"}], "]"}], 
             ",", "ZijPlot"}], "]"}], ";"}], "\[IndentingNewLine]", ")"}], 
         "&"}], "/@", "pairs"}], ";"}]}], "\[IndentingNewLine]", "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"SetAttributes", "[", 
-   RowBox[{"ExportZijPlotsAsPngs", ",", " ", "Listable"}], "]"}], 
-  ";"}], "\[IndentingNewLine]"}], "Input",
+  RowBox[{
+   RowBox[{"SetAttributes", "[", 
+    RowBox[{"ExportZijPlotsAsPngs", ",", " ", "Listable"}], "]"}], ";"}], 
+  "\n"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"forceField", " ", "=", " ", 
+   RowBox[{"FileBaseName", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"All", ",", "\"\<IE\>\"", ",", "1"}], "]"}], "//", "Last"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"plotsDir", " ", "=", " ", "\"\<Zij_plots\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"If", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"!", 
+     RowBox[{"DirectoryQ", "[", "plotsDir", "]"}]}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"CreateDirectory", "[", "plotsDir", "]"}], ";"}]}], 
+   "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", " ", "\"\<CN\>\"", ",", 
+      "forceField"}], "}"}], "]"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"pairs", " ", "=", " ", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"\"\<*\>\"", ",", "\"\<\>\""}], "]"}], ",", " ", "DirectoryQ"}],
+     "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"outputDir", "=", 
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", " ", "plotsDir"}], "}"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ExportZijPlotsAsPngs", "[", 
+   RowBox[{"pairs", ",", " ", "outputDir"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Quit", "[", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.892625849234498*^9, 3.8926259039451485`*^9}, {
   3.892625965454414*^9, 3.8926261213920593`*^9}, {3.8926261516326065`*^9, 
   3.892626151812806*^9}, {3.8926261926443405`*^9, 3.892626201561751*^9}, {
@@ -128,53 +203,14 @@ Cell[BoxData[{
   3.8926296845864305`*^9}, {3.8926298232342014`*^9, 3.892629858291618*^9}, {
   3.892629930976014*^9, 3.8926301110180936`*^9}, {3.892630143183672*^9, 
   3.89263015747163*^9}, {3.8926307417894487`*^9, 3.892630833259322*^9}, {
-  3.892630866370391*^9, 3.8926308665807314`*^9}},
- CellLabel->"In[58]:=",ExpressionUUID->"17560cda-5e22-44cf-9260-8c8998950202"],
-
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"SetDirectory", "[", 
-   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"forceField", " ", "=", "\"\<OPLSAA\>\""}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"If", "[", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"!", 
-     RowBox[{"DirectoryQ", "[", "forceField", "]"}]}], ",", 
-    "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{
-     "Print", "[", "\"\<Error: F0F \\nForce field not found\>\"", "]"}], ";", 
-     "\[IndentingNewLine]", 
-     RowBox[{"Quit", "[", "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"SetDirectory", "[", "forceField", "]"}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"pairs", " ", "=", " ", 
-   RowBox[{"Select", "[", 
-    RowBox[{
-     RowBox[{"FileNames", "[", 
-      RowBox[{"\"\<*\>\"", ",", "\"\<\>\""}], "]"}], ",", " ", "DirectoryQ"}],
-     "]"}]}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"ExportZijPlotsAsPngs", "[", "pairs", "]"}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"Quit", "[", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
- CellChangeTimes->{
-  3.89262608631649*^9, {3.892626409877554*^9, 3.89262643224397*^9}, {
-   3.8926308716571555`*^9, 3.89263090532563*^9}, {3.892630956049351*^9, 
-   3.892630957373118*^9}, {3.8926318107940874`*^9, 
-   3.8926318195447464`*^9}},ExpressionUUID->"7c0634b0-6fc7-4872-aa4b-\
-e97e21b83933"]
+  3.892630866370391*^9, 3.8926308665807314`*^9}, {3.910853070124338*^9, 
+  3.9108530745170555`*^9}, {3.9108533520654097`*^9, 3.9108533790687838`*^9}, {
+  3.9108535778087564`*^9, 3.9108536001580114`*^9}, {3.9108536548066587`*^9, 
+  3.9108536667951736`*^9}},ExpressionUUID->"17560cda-5e22-44cf-9260-\
+8c8998950202"]
 },
-WindowSize->{581.25, 643.5},
-WindowMargins->{{Automatic, 533.25}, {Automatic, 52.5}},
+WindowSize->{958.5, 1005.75},
+WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
 FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"e853090b-9327-43d1-b070-3ca441728762"
@@ -190,8 +226,8 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 5494, 111, 904, "Input",ExpressionUUID->"17560cda-5e22-44cf-9260-8c8998950202"],
-Cell[6055, 133, 1472, 40, 238, "Input",ExpressionUUID->"7c0634b0-6fc7-4872-aa4b-e97e21b83933"]
+Cell[558, 20, 608, 12, 81, "Text",ExpressionUUID->"2bd71840-25dd-4082-9588-6abb238959e1"],
+Cell[1169, 34, 7866, 175, 1132, "Input",ExpressionUUID->"17560cda-5e22-44cf-9260-8c8998950202"]
 }
 ]
 *)

@@ -10,19 +10,22 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     17783,        440]
-NotebookOptionsPosition[     17324,        425]
-NotebookOutlinePosition[     17732,        441]
-CellTagsIndexPosition[     17689,        438]
+NotebookDataLength[     18114,        445]
+NotebookOptionsPosition[     17651,        430]
+NotebookOutlinePosition[     18063,        446]
+CellTagsIndexPosition[     18020,        443]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 Cell[TextData[{
- "This script creates a plot for each dimer where the minimum sampled energy \
-configuration at a specific distance (red) and the averaged interaction \
-energy at a specific distance is plotted against the distance (see example \
-below).\nJust run this script in the result folder.\n\n",
+ "This script generates a plot for each dimer, plotting the minimum sampled \
+energy configuration (in red) and the averaged interaction energy at a \
+specific distance against the corresponding distance (refer to the example \
+below).\nTo execute this script, copy and paste it to the \[OpenCurlyQuote]\
+\[CloseCurlyQuote]Result\[CloseCurlyQuote]\[CloseCurlyQuote] folder and run \
+it. The plots will be saved in a directory named \
+\[OpenCurlyDoubleQuote]Eij_plots\[CloseCurlyDoubleQuote].\n\n",
  Cell[BoxData[
   GraphicsBox[{{}, {{{}, {}, 
       {RGBColor[0.790588, 0.201176, 0.], PointSize[
@@ -241,8 +244,10 @@ ruD7GHMlfvfojlHmKr4/wFydxTXMu5lrs9jLYpnFdXD+q9X/+C/+KzKa
   "57f9370c-f7cf-458f-b5a7-19a5bbc2d7ee"]
 }], "Text",
  CellChangeTimes->{{3.9085210095215054`*^9, 3.9085210297728214`*^9}, {
-  3.9085210840176015`*^9, 
-  3.9085212081654663`*^9}},ExpressionUUID->"8af4dbae-054e-4c05-80b0-\
+  3.9085210840176015`*^9, 3.9085212081654663`*^9}, {3.9108525946560736`*^9, 
+  3.9108526625711527`*^9}, {3.910852694313801*^9, 3.9108527000865555`*^9}, {
+  3.9108527501766667`*^9, 
+  3.9108527537750235`*^9}},ExpressionUUID->"8af4dbae-054e-4c05-80b0-\
 f5eca4189989"],
 
 Cell[BoxData[{
@@ -361,12 +366,11 @@ Cell[BoxData[{
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"forceField", " ", "=", " ", 
-   RowBox[{"forceField", " ", "=", 
-    RowBox[{"FileBaseName", "[", 
-     RowBox[{
-      RowBox[{"FileNames", "[", 
-       RowBox[{"All", ",", "\"\<IE\>\"", ",", "1"}], "]"}], "//", "Last"}], 
-     "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"FileBaseName", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"All", ",", "\"\<IE\>\"", ",", "1"}], "]"}], "//", "Last"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"results", " ", "=", " ", 
    RowBox[{"Select", "[", 
@@ -420,11 +424,12 @@ Cell[BoxData[{
    3.900052237173359*^9}, {3.900052276705725*^9, 3.9000522923842688`*^9}, {
    3.900053007251809*^9, 3.900053013192605*^9}, {3.9000535169780464`*^9, 
    3.900053556995121*^9}, {3.900053660634661*^9, 3.900053661611744*^9}, 
-   3.9085212381755476`*^9, {3.908521273629154*^9, 3.908521281840391*^9}},
- CellLabel->"In[64]:=",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
+   3.9085212381755476`*^9, {3.908521273629154*^9, 3.908521281840391*^9}, 
+   3.9108529716209555`*^9},ExpressionUUID->"a2cff652-e760-4081-b87b-\
+8e96e9b088cb"]
 },
-WindowSize->{958.5, 1011.},
-WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
+WindowSize->{958.5, 1005.75},
+WindowMargins->{{5.25, Automatic}, {Automatic, 55.5}},
 FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"8eefefb4-a094-42b2-907c-a7d205356260"
@@ -440,8 +445,8 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 9567, 225, 340, "Text",ExpressionUUID->"8af4dbae-054e-4c05-80b0-f5eca4189989"],
-Cell[10128, 247, 7192, 176, 977, "Input",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
+Cell[558, 20, 9931, 230, 340, "Text",ExpressionUUID->"8af4dbae-054e-4c05-80b0-f5eca4189989"],
+Cell[10492, 252, 7155, 176, 977, "Input",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
 }
 ]
 *)
