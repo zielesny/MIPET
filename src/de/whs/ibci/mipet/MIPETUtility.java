@@ -1364,6 +1364,9 @@ public class MIPETUtility{
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     
     private void initialize() {
+        // For the development
+        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
 //        try {
 //            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
@@ -1372,11 +1375,6 @@ public class MIPETUtility{
 //            LOGGER.log(Level.SEVERE, 
 //                    "IOException during initialize().", ex);
 //        }
-        
-//        // For the development
-        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-                Locale.getDefault(), this.getClass().getClassLoader());
-        
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();

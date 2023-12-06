@@ -3215,45 +3215,43 @@ public class MIPET {
         for(int i = 0; i < tmpJobLength; i++) {
             tmpParticleName1 = aJobTaskRecords.get(i).particleName1();
             tmpParticleName2 = aJobTaskRecords.get(i).particleName2();
-            if (aJobTaskRecords.get(i).isReverse()) {
-                tmpE12 = tmpEnergieMap.get(tmpParticleName2 
-                    + "_" 
-                    + tmpParticleName1);
-            } else {
+            if (!aJobTaskRecords.get(i).isReverse()) {
                 tmpE12 = tmpEnergieMap.get(tmpParticleName1 
                     + "_" 
                     + tmpParticleName2);
-            }    
-            tmpE11 = tmpEnergieMap.get(tmpParticleName1 
-                    + "_" 
-                    + tmpParticleName1);
-            tmpE22 = tmpEnergieMap.get(tmpParticleName2 
-                    + "_" 
-                    + tmpParticleName2);
-            tmpZ11 = tmpCNMap.get(tmpParticleName1
-                    + "_" 
-                    + tmpParticleName1);
-            tmpZ22 = tmpCNMap.get(tmpParticleName2 
-                    + "_" 
-                    + tmpParticleName2);
-            tmpZ12 = tmpCNMap.get(tmpParticleName1 
-                    + "_" 
-                    + tmpParticleName2);
-            tmpZ21 = tmpCNMap.get(tmpParticleName2 
-                    + "_" 
-                    + tmpParticleName1);
-            tmpChiNumerator =
-                    tmpZ12 * tmpE12 +
-                    tmpZ21 * tmpE12 -
-                    tmpZ11 * tmpE11 -
-                    tmpZ22 * tmpE22;
-            tmpAij = (double)temperature / 12 + 1.7483 * tmpChiNumerator;
-            tmpAijMap.put(tmpParticleName1 + "_" + tmpParticleName2, tmpAij);
+                tmpE11 = tmpEnergieMap.get(tmpParticleName1 
+                        + "_" 
+                        + tmpParticleName1);
+                tmpE22 = tmpEnergieMap.get(tmpParticleName2 
+                        + "_" 
+                        + tmpParticleName2);
+                tmpZ11 = tmpCNMap.get(tmpParticleName1
+                        + "_" 
+                        + tmpParticleName1);
+                tmpZ22 = tmpCNMap.get(tmpParticleName2 
+                        + "_" 
+                        + tmpParticleName2);
+                tmpZ12 = tmpCNMap.get(tmpParticleName1 
+                        + "_" 
+                        + tmpParticleName2);
+                tmpZ21 = tmpCNMap.get(tmpParticleName2 
+                        + "_" 
+                        + tmpParticleName1);
+                tmpChiNumerator =
+                        tmpZ12 * tmpE12 +
+                        tmpZ21 * tmpE12 -
+                        tmpZ11 * tmpE11 -
+                        tmpZ22 * tmpE22;
+                tmpAij = (double)temperature / 12 + 1.7483 * tmpChiNumerator;
+                tmpAijMap.put(tmpParticleName1 + "_" + tmpParticleName2, 
+                        tmpAij);
             
-            // Calculation for CN = 1
-            tmpChiNumerator = tmpE12 + tmpE12 - tmpE11 - tmpE22;
-            tmpAij = (double)temperature / 12 + 1.7483 * tmpChiNumerator;
-            tmpAijMap1.put(tmpParticleName1 + "_" + tmpParticleName2, tmpAij);
+                // Calculation for CN = 1
+                tmpChiNumerator = tmpE12 + tmpE12 - tmpE11 - tmpE22;
+                tmpAij = (double)temperature / 12 + 1.7483 * tmpChiNumerator;
+                tmpAijMap1.put(tmpParticleName1 + "_" + tmpParticleName2, 
+                        tmpAij);
+            }
         }
 
         /* Write file */
@@ -3285,9 +3283,12 @@ public class MIPET {
                 tmpBW.append("# Force Field for energy calculation: ");
                 tmpBW.append(forcefield_IE);
                 tmpBW.append(LINESEPARATOR);
-                tmpBW.append("# Force Field for coordination number calculation: ");
-                tmpBW.append(forcefield_CN);
-                tmpBW.append(LINESEPARATOR);
+                if (i == 0) {
+                    tmpBW.append("# Force Field for coordination number calculation: ");
+                    tmpBW.append(forcefield_CN);
+                    tmpBW.append(LINESEPARATOR);
+                }
+                tmpBW.append("# Water model: TIP5P");
                 tmpBW.append("# CPU cores: ");
                 tmpBW.append(String.valueOf(cpuCoreNumber));
                 tmpBW.append(LINESEPARATOR);
