@@ -11,10 +11,11 @@
 * [Contents of this repository](#Contents-of-this-repository)
   * [Sources](#Sources)
   * [Molecules](#Molecules)
-  * [Visualization Tools](#Visualization-Tools)
-  * [Tutorial/Usage](#tutorialusage)
-  * [C10E4-water bilayer formation study](#c10e4-water-bilayer-formation-study)
-  * [Gaussian job files](#gaussian-job-files)
+  * [Mathematica notebooks for visualization](#mathematica-notebooks-for-visualization)
+  * [Tutorial](#tutorial)
+  * [Publication 2024](#publication-2024)
+    * [C10E4-water bilayer formation study](#c10e4-water-bilayer-formation-study)
+    * [Gaussian job files](#gaussian-job-files)
   * [Legacy](#legacy)
 * [Installation](#Installation)
     * [Application](#application)
@@ -47,23 +48,26 @@ a mol file of the molecule can be transformed into a Tinker .xyz file using the 
 force field atom type numbers of the atoms must be added manually. A more detailed instruction can be found
 in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</a>.
 
-### Visualization Tools
-The subfolder <a href="https://github.com/zielsny/MIPET/tree/main/Visualization_Tools">Visualization Tools</a> includes
+### Mathematica notebooks for visualization
+The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/Mathematica%20notebooks%20for%20visualization">Mathematica notebooks for visualization</a> includes
 multiple Mathematica notebooks designed to aid in evaluating and visualizing the results of the pipeline. Each notebook
 includes a short introductory tutorial on its usage. It is important to note that a licensed version of 
 Mathematica 13 (or higher) is required to use these notebooks.
 
-### Tutorial/Usage
+### Tutorial
 The <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">"Tutorial" folder</a> contains a detailed tutorial 
 on how to install and use MIPET, together with tutorial job files.
 
-### C10E4-water bilayer formation study
-The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/C10E4-water%20bilayer%20formation%20study">C10E4-water bilayer formation study</a>
+### Publication 2024
+The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/Publication%202024">Publication 2024<a>  contains supplementary and supporting materials for our forthcoming article on the calculation pipeline, set to be published in 2024.
+
+#### C10E4-water bilayer formation study
+The subfolder <a href="https://github.com/zielesny/MIPET/tree/main/Publication%202024/C10E4-water%20bilayer%20formation%20study">C10E4-water bilayer formation study</a>
 contains a bunch of job files for DPD simulations performed with MFsim. Detailed information can be found in our 
 scientific articles, that will be published 2024.
 
-### Gaussian job files
-The subfolder <a hre="https://github.com/zielesny/MIPET/tree/main/Gaussian%20job%20files"> Gaussian job files</a>
+#### Gaussian job files
+The subfolder <a hre="https://github.com/zielesny/MIPET/tree/main/Publication%202024/Gaussian%20job%20files"> Gaussian job files</a>
 contains a bunch of job files for DFT calculations that were carried out as part of the development of MIPET using Gaussian.
 Detailed information can be found in our scientific articles, that will be published 2024.
 
