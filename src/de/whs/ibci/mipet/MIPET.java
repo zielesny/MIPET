@@ -116,7 +116,7 @@ public class MIPET {
     /**
      * String for version number of exported parameter set file
      */
-    private static final String VERSION_NUMBER = "1.0.0";
+    private static final String VERSION_NUMBER = "1.0.1";
     
     /**
      * Weighted intermolecular differential pair interaction energies
@@ -529,7 +529,9 @@ public class MIPET {
         // <editor-fold defaultstate="collapsed" desc="Initialize and read .job file">
         Locale.setDefault(Locale.ENGLISH);
         long tmpTotalTime = System.currentTimeMillis();
+        System.out.println("Initializing...");
         initialize();
+        System.out.println("Reading job file...");
         readJobFile();
         
         //</editor-fold>
@@ -638,6 +640,7 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Optimize and scan particle">
+        System.out.println("Scan particle...");
         scanParticle(forcefield_IE);
         if (!forcefield_IE.equals(forcefield_CN)) {
             scanParticle(forcefield_CN);
@@ -745,6 +748,7 @@ public class MIPET {
         tmpKeyFileString = keyFileStringOrigin 
                 + "DIELECTRIC\t" 
                 + dielectricConstant;	
+        System.out.println("Calculating intermolecular energy...");
         
         while (tmpIsExitCondition == false) {
             // Exit condition is true when all particle pair combinations
@@ -1450,11 +1454,13 @@ public class MIPET {
             }
         }
         
+        System.out.println("Calculating coordination numbers...");
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">
         getCoordinationNumbers(tmpJobTaskRecordList);
         
         //</editor-fold>
         
+        System.out.println("Exporting parameterset...");
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
         long tmpTotalTimeMins;
         double tmpTotalTimeHours;
@@ -1475,7 +1481,7 @@ public class MIPET {
                 parameterSetTitleAbr);
         
         //</editor-fold>
-        
+        System.out.println("Ready.");
     } 
     // </editor-fold>
     
