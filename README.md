@@ -10,6 +10,10 @@
 * [Description](#Description)
 * [Contents of this repository](#Contents-of-this-repository)
   * [Sources](#Sources)
+  * [Test](#test)
+  * [Testdata](#testdata)
+  * [Resources](#resources)
+  * [MIPET.job](#mipetjob)
   * [Molecules](#Molecules)
   * [Mathematica notebooks for visualization](#mathematica-notebooks-for-visualization)
   * [Tutorial](#tutorial)
@@ -32,9 +36,21 @@ coordination numbers.
 
 ## Content of this repository 
 ### Sources 
-The <a href="https://github.com/zielsny/MIPET/tree/main/resources/de/whs/ibci/mipet">"src"</a> subfolder contains all
-source code packages. The tests can be found in the 
-<a href="https://github.com/zielsny/MIPET/tree/main/test/de/whs/ibci">"test"</a> subfolder.
+The <a href="https://github.com/zielesny/MIPET/tree/main/src/de/whs/ibci/mipet">"src"</a> subfolder contains all
+source code packages. 
+
+### Test
+The tests can be found in the <a href="https://github.com/zielesny/MIPET/tree/main/test/de/whs/ibci">"test"</a> subfolder.
+
+### Testdata
+The <a href="https://github.com/zielesny/MIPET/tree/main/testdata">"testdata"</a> subfolder contains the necessary files and data to test the pipeline.
+
+### Resources 
+The <a href="https://github.com/zielesny/MIPET/tree/main/src/de/whs/ibci/mipet">"resources"</a> subfolder contains all
+code resources.
+
+### MIPET.job
+The <a href="https://github.com/zielesny/MIPET/blob/main/MIPET.job">"MIPET.job"</a> file is the file to configure a calculation job.
 
 ### Molecules
 The <a href="https://github.com/zielsny/MIPET/tree/main/Molecules"> Molecules</a> subfolder contains Tinker .xyz files 
