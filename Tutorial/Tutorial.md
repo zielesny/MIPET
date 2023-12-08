@@ -40,7 +40,7 @@ which can be located in the MIPET root directory:
   * *MIPET.Directory.calculation* - intermediate results
   * *MIPET.Directory.result* - results
 
-Note: use "/" instead of "\" as separator. A directory on a RAM disk would be ideal for the scratch directory. 
+Note: use "/" instead of "\\" as separator. A directory on a RAM disk would be ideal for the scratch directory. 
 If the default install directory is utilized, modifying the MIPET.properties file necessitates 
 admin privileges. As a workaround, copy the file to a writable directory, personalize it, and copy it back to its 
 original location. Subsequently, double-click on the "MIPET.bat" batch file.
@@ -61,7 +61,7 @@ which can be located in the MIPET root directory:
 * *MIPET.Directory.calculation* - intermediate results
 * *MIPET.Directory.result* - results
 
-Note: use "/" instead of "\" as separator. A directory on a RAM disk would be ideal for the scratch directory.
+Note: use "/" instead of "\\" as separator. A directory on a RAM disk would be ideal for the scratch directory.
 Then, execute the JAR from the command line.
 
 ### Tinker
