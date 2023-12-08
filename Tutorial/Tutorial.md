@@ -31,8 +31,7 @@ A convenient dedicated Windows OS installer executable for MIPET is readily avai
 <a href="https://github.com/zielesny/MIPET/releases/download/MIPET/MIPET_win_x86_64.exe"> download </a>, 
 which includes a full Java runtime environment. Download and run the installation program and follow the installation 
 prompts. Once MIPET is installed successfully, proceed with the installation of [Tinker](#tinker) by following the 
-provided instructions. To execute the pipeline, it is imperative to configure a scratch directory (in compliance with 
-OS conventions) within the MIPET.properties file, which can be located in the MIPET root directory. A directory on a RAM
+provided instructions. To execute the pipeline, it is imperative to configure a scratch directory (use "/" instead of "\" as delimiter) within the MIPET.properties file, which can be located in the MIPET root directory. A directory on a RAM
 disk would be ideal. If the default install directory is utilized, modifying the MIPET.properties file necessitates 
 admin privileges. As a workaround, copy the file to a writable directory, personalize it, and copy it back to its 
 original location. Subsequently, double-click on the "MIPET.bat" batch file.
@@ -45,8 +44,7 @@ Every version includes a zip file that comprises the MIPET Java archive containi
 along with a comprehensive Java runtime environment. By clicking 
 <a href="https://github.com/zielesny/MIPET/releases/download/MIPET/MIPET_linux_x86_64.tar.gz">here</a>, 
 you can automatically download the zip file of the latest version. Follow the instructions for installing [Tinker](#tinker)
-after extracting the zip file.  Before running the pipeline, configure a scratch directory in accordance with the OS 
-conventions in the "MIPET.properties" file, located in the root directory of MIPET. A directory on a RAM disk would be 
+after extracting the zip file.  Before running the pipeline, configure a scratch directory (use "/" instead of "\" as delimiter) in the "MIPET.properties" file, located in the root directory of MIPET. A directory on a RAM disk would be 
 ideal. Then, execute the JAR from the command line.
 
 ### Tinker
