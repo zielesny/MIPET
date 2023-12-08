@@ -1,0 +1,97 @@
+# --------------------------------------------------------------------------------
+# Rescale settings:
+# Temperature factor     = 0.08333333
+# Lower repulsion range  = 20.0
+# Charge offset          = 1.0
+#
+# Temperature         = 298.0
+# - a(ii) old         = 24.8333
+# - a(ii) new         = 24.833333333333332
+# - a(ii) shift       = 3.333333333088717E-5
+# - a(ij) shifted min = 18.72023333333333
+# - a(ij) shifted max = 33.45753333333333
+# - Scaling factor    = 3.2716624952969835
+# - a(ij) scaled  min = 4.833333333333332
+# - a(ij) scaled  max = 53.04880502527357
+#
+# --------------------------------------------------------------------------------
+#
+# Particle set for MFSim created by MIPET4Java
+# Force Field for energy calculation: OPLSAA
+# Force Field for coordination number calculation: OPLSAA
+# CPU cores: 64
+# Temperature: 298
+# Sphere nodes calculated with Fibonacci algorithm: true
+# Sphere node number: 144
+# Sphere rotation number: 16
+# Fraction for Boltzmann averaging: 1.0
+# Number of solvent molecules: 400
+# MD step number for warm up: 10000
+# MD step number: 400000
+# Catch radius for MD simulation analysis: 1.0
+
+[Title]
+parameterSet
+[/Title]
+
+[Version]
+1.0.0.0
+[/Version]
+
+[Particle Description]
+# Particle        Name              Mass[DPD]         Charge            Mass[g/mol]       Volume[A^3]       Graphics-Radius   Standard-Color   
+Et                Et                1                 0                 30.0691           74.6314           0.5               black            
+EtOH              EtOH              1                 0                 46.0685           89.8354           0.5               black            
+H2O               H2O               1                 0                 18.0153           30.0036           0.5               black            
+Me                Me                1                 0                 16.0425           44.7155           0.5               black            
+Me2O              Me2O              1                 0                 46.0685           89.8354           0.5               black            
+MeOH              MeOH              1                 0                 32.0419           59.9195           0.5               black            
+[/Particle Description]
+
+[Particle interactions]
+# Repulsion parameters a(ij) for different temperatures (in K)
+Pair                 298                 
+Et_Et 24.833333
+EtOH_Et 47.226554
+EtOH_EtOH 24.833333
+H2O_Et 53.048805
+H2O_EtOH 16.665955
+H2O_H2O 24.833333
+Me2O_Et 27.854059
+Me2O_EtOH 25.163444
+Me2O_H2O 25.017528
+Me2O_Me2O 24.833333
+Me2O_Me 29.139823
+Me_Et 25.392788
+Me_EtOH 48.255165
+Me_H2O 51.639373
+Me_Me 24.833333
+MeOH_Et 47.102558
+MeOH_EtOH 19.293754
+MeOH_H2O 4.833333
+MeOH_Me2O 17.028128
+MeOH_Me 47.614901
+MeOH_MeOH 24.833333
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[/Particle interactions]
+

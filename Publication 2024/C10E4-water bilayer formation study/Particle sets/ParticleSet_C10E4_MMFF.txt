@@ -1,0 +1,120 @@
+# --------------------------------------------------------------------------------
+# Rescale settings:
+# Temperature factor     = 0.08333333
+# Lower repulsion range  = 20.0
+# Charge offset          = 1.0
+#
+# Temperature         = 298.0
+# - a(ii) old         = 24.833333333333332
+# - a(ii) new         = 24.833333333333332
+# - a(ii) shift       = 0.0
+# - a(ij) shifted min = -53.97793270666662
+# - a(ij) shifted max = 119.76258267893334
+# - Scaling factor    = 0.253770824971257
+# - a(ij) scaled  min = 4.833333333333332
+# - a(ij) scaled  max = 48.92360725366841
+#
+# --------------------------------------------------------------------------------
+#
+# Particle set for MFSim created by MIPET4Java
+# Force Field for energy calculation: MMFF
+# Force Field for coordination number calculation: MMFF
+# CPU cores: 64
+# Temperature: 298
+# Sphere nodes calculated with Fibonacci algorithm: true
+# Sphere node number: 144
+# Sphere rotation number: 16
+# Fraction for Boltzmann averaging: 1.0
+# Number of solvent molecules: 400
+# MD step number for warm up: 10000
+# MD step number: 400000
+# Catch radius for MD simulation analysis: 1.0
+
+[Title]
+Parameter
+[/Title]
+
+[Version]
+1.0.0.0
+[/Version]
+
+[Particle Description]
+# Particle	Name	Mass[DPD]	Charge	Mass[g/mol]	Volume[A^3]	Graphics-Radius	Standard-Color	
+Et Et 1 0 30.0691 74.6314 0.5 black 
+EtOH EtOH 1 0 46.0685 89.8354 0.5 black 
+H2O H2O 1 0 18.0153 30.0036 0.5 black 
+Me Me 1 0 16.0425 44.7155 0.5 black 
+Me2O Me2O 1 0 46.0685 89.8354 0.5 black 
+MeOH MeOH 1 0 32.0419 59.9195 0.5 black 
+[/Particle Description]
+
+[Particle interactions]
+# Repulsion parameters a(ij) for the temperature (in K)
+Pair 298
+Me_MeOH 45.170166
+Et_EtOH 44.315646
+Me_Me2O 29.240180
+Me2O_Et 28.655175
+EtOH_MeOH 20.682586
+MeOH_MeOH 24.833333
+EtOH_Me2O 15.043960
+H2O_Me 48.667820
+H2O_MeOH 24.034145
+H2O_H2O 24.833333
+EtOH_Me 44.626873
+H2O_Me2O 4.833333
+Me_Et 25.064548
+Et_Me2O 28.655175
+Me2O_EtOH 15.043960
+Me2O_H2O 4.833333
+Me2O_Me 29.240180
+Et_MeOH 45.111095
+EtOH_EtOH 24.833333
+MeOH_EtOH 20.682586
+MeOH_Et 45.111095
+Et_Me 25.064548
+Me2O_MeOH 8.972981
+H2O_Et 48.923607
+Me2O_Me2O 24.833333
+MeOH_Me 45.170166
+Me_Me 24.833333
+H2O_EtOH 16.492281
+MeOH_H2O 24.034145
+MeOH_Me2O 8.972981
+Et_H2O 48.923607
+Me_EtOH 44.626873
+EtOH_H2O 16.492281
+Et_Et 24.833333
+EtOH_Et 44.315646
+Me_H2O 48.667820
+[/Particle interactions]
+
+[Particle SMILES]
+# Particle	SMILES
+Guanidine N=C(N)N
+Azolid N1CCCC1
+EtOH CCO
+HAc CC(O)=O
+EtNH2 CCN
+Et2O CCOCC
+Et CC
+PhOH c1ccccc1(O)
+Imidazole N1C=CN=C1
+Ph c1ccccc1
+PrOH CCCO
+MeAc CC(OC)=O
+Pr CCC
+H2O O
+TriMeN CN(C)C
+DMP COP(=O)(O)OC
+MeAcNH CC(=O)NC
+MeSH CS
+MeNH2 CN
+Me2O COC
+Bu CCCC
+AcNH2 CC(=O)N
+MeOH CO
+Pyrrole N1C=CC=C1
+Me C
+CisButene C/C=C\C
+[/Particle SMILES]
