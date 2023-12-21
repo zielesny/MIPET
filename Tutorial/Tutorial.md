@@ -9,6 +9,7 @@ Reference version of MIPET 1.0.0.0\
   * [Windows](#windows)
   * [Linux](#linux)
   * [Tinker](#tinker)
+  * [Results](#results)
 * [Change calculation properties, molecules and force fields](#change-calculation-properties-molecules-and-force-fields) 
   * [Configure water model](#configure-water-model)
 * [Create and configure molecules](#create-and-configure-molecules)
@@ -31,11 +32,18 @@ A convenient dedicated Windows OS installer executable for MIPET is readily avai
 <a href="https://github.com/zielesny/MIPET/releases/download/MIPET/MIPET_win_x86_64.exe"> download </a>, 
 which includes a full Java runtime environment. Download and run the installation program and follow the installation 
 prompts. Once MIPET is installed successfully, proceed with the installation of [Tinker](#tinker) by following the 
-provided instructions. To execute the pipeline, it is imperative to configure a scratch directory (in compliance with 
-OS conventions) within the MIPET.properties file, which can be located in the MIPET root directory. A directory on a RAM
-disk would be ideal. If the default install directory is utilized, modifying the MIPET.properties file necessitates 
+provided instructions below. To execute the pipeline, it is necessary to configure a scratch directory, a directory for the results 
+and a directory for intermediate results that do not need to be recalculated within the MIPET.properties file, 
+which is located in the MIPET root directory:
+
+  * *MIPET.Directory.scratch* - scratch directory
+  * *MIPET.Directory.calculation* - intermediate results
+  * *MIPET.Directory.result* - results
+
+Note: use "/" instead of "\\" as separator. A directory on a RAM disk would be ideal for the scratch directory. 
+If the default install directory is utilized, modifying the MIPET.properties file necessitates 
 admin privileges. As a workaround, copy the file to a writable directory, personalize it, and copy it back to its 
-original location. Subsequently, double-click on the "MIPET.bat" batch file.
+original location. Subsequently, double-click on the "MIPET.bat" batch file to start the initial test job (see above).
 
 If this installation or the execution of the batch files does not function properly, refer to the Linux instructions 
 provided below. They can also be applied as an alternative method on Windows.
@@ -44,27 +52,37 @@ provided below. They can also be applied as an alternative method on Windows.
 Every version includes a zip file that comprises the MIPET Java archive containing all dependencies except Tinker, 
 along with a comprehensive Java runtime environment. By clicking 
 <a href="https://github.com/zielesny/MIPET/releases/download/MIPET/MIPET_linux_x86_64.tar.gz">here</a>, 
-you can automatically download the zip file of the latest version. Follow the instructions for installing [Tinker](#tinker)
-after extracting the zip file.  Before running the pipeline, configure a scratch directory in accordance with the OS 
-conventions in the "MIPET.properties" file, located in the root directory of MIPET. A directory on a RAM disk would be 
-ideal. Then, execute the JAR from the command line.
+you can automatically download the zip file of the latest version. Follow the instructions below for installing [Tinker](#tinker)
+after extracting the zip file. Before running the pipeline,  it is necessary to configure a scratch directory, a directory for the results
+and a directory for intermediate results that do not need to be recalculated within the MIPET.properties file,
+which is located in the MIPET root directory:
+
+* *MIPET.Directory.scratch* - scratch directory
+* *MIPET.Directory.calculation* - intermediate results
+* *MIPET.Directory.result* - results
+
+Note: use "/" instead of "\\" as separator. A directory on a RAM disk would be ideal for the scratch directory.
+Then, execute the JAR from the command line to start the initial test job (see above).
 
 ### Tinker
 Please note the current <a href="https://dasher.wustl.edu/tinker/downloads/license.pdf">licence</a> of Tinker.
 To use MIPET, add the Tinker molecular modeling tool package. For this task, you must download Tinker executables 
 version 8.10.2 and the atomic parameter files. Visit the Tinker downloads website by clicking <a href="https://dasher.wustl.edu/tinker/downloads/">here</a>
-to access the downloads. Make sure to choose the appropriate version for your operating system:
+to access the downloads.<br>
+To install Tinker's executables, download the archive from the Tinker website or choose one of the links provided for your operating system:
 
   * <a href="https://dasher.wustl.edu/tinker/downloads/bin-windows-8.10.2.zip"> Windows </a>
   * <a href="https://dasher.wustl.edu/tinker/downloads/bin-linux-8.10.2.tar.gz"> Linux</a>.
 
-The atomic parameter sets are located in the "Tinker Package Distribution" archive:
+After unpacking, move the executable files to the "tinker" subfolder located in your MIPET root directory. Please refer to the directory structure below for guidance.
+
+The atomic parameter sets are located in the "Tinker Package Distribution" archive. Download the archive from the Tinker website or choose one of the links provided for your operating system:
 
   * <a href="https://dasher.wustl.edu/tinker/downloads/tinker-8.10.2.zip"> Windows </a>
   * <a href="https://dasher.wustl.edu/tinker/downloads/tinker-8.10.2.tar.gz"> Linux</a>.
 
-Inside the "params" directory, all atomic parameter sets can be found. To set up MIPET, create a subfolder named 
-"tinker" (if it does not already exists) in the root directory and place the executables and parameter files inside. 
+After unpacking, move the force field parameter files from the "params" subfolder of the archive to the "params" subfolder of the "tinker" subfolder in your MIPET root directory. Please refer to the directory structure below for guidance.<br>
+
 Example directory structure:
 
     ├── MIPET                   # MIPET root directory  
@@ -79,7 +97,7 @@ Example directory structure:
 ### Results
 The results of a MIPET run are available in the directory specified in the "MIPET.properties" file under "MIPET.Directory.result". In addition, the subdirectory "IE" contains the particle sets created for Dissipative Particle Dynamics (DPD) simulations with <a href="https://github.com/zielesny/MFsim">MFsim</a> as well as the results of the intermolecular energy calculation.  
 The numerical results of intermolecular energy calculation are in the .dat files located in the subfolders of the dimers within the "IE" folder. The "CN" folder has the coordination number determination results divided into subfolders named after the dimers. A .dat file with the numerical results is also available here.
-Mathematica notebooks for visual inspection of results are available in the <a href="https://github.com/zielesny/MIPET/tree/main/Mathematica%20notebooks%20for%20visualization">Mathematica notebooks for visualization</a> subfolder. Each notebook includes a brief description of its functionality and instructions for usage. A license for Mathematica 13 or newer is mandatory for accessing the notebooks.
+Mathematica notebooks for visual inspection of results are available in the <a href="https://github.com/zielesny/MIPET/tree/main/Mathematica%20notebooks%20for%20visualization">Mathematica notebooks for visualization</a> subfolder. Each notebook includes a brief description of its functionality and instructions for usage. A license for Mathematica 13 or newer is necessary to run the notebooks.
 
 ## Change calculation properties, molecules and force fields
 The "MIPET.properties" file, located in the "resources" directory, enables users to modify calculation properties. For
