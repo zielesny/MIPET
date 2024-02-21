@@ -1,6 +1,7 @@
 H2O				O
 Me				C
 Et				CC
+Ethene          C=C
 MeOH			CO
 EtOH			CCO
 Me2O			COC
@@ -19,6 +20,7 @@ Azolid          N1CCCC1
 AcNH2           CC(=O)N
 MeAcNH          CC(=O)NC
 MeSH            CS
+MP              COP(=O)(O)O
 DMP             COP(=O)(O)OC
 Ph              c1ccccc1
 PhOH            c1ccccc1(O)
