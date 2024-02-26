@@ -4,6 +4,8 @@
  */
 package de.whs.ibci.mipet;
 
+import java.util.HashSet;
+
 /**
  * Record for storage job tasks
  * 
@@ -16,6 +18,8 @@ package de.whs.ibci.mipet;
  * @param particleName2: Name of the second particle
  * @param result_IE_PathName: Name of the energy result directory
  * @param result_CN_PathName: Name of the coordination number result directory
+ * @param hasSpecialForcefield_IE: Flag if there is a special force field file for intermolecular energy calculation
+ * @param hasSpecialForcefield_CN: Flag if there is a special force field file for coordination number calculation
  * @param hasEnergieJob: Flag of energy calculation job
  * @param hasCNJob: Flag of coordination number calculation job
  * @param isSameParticle: Flag of wether both particles are same

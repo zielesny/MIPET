@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -142,6 +143,16 @@ public class MIPET {
      * Job file name
      */
     private static String jobFileName;
+    
+    /**
+     * Extra force field name for intermolecular energy calculation
+     */
+    final private static HashSet<String> extraForcefield_IE = new HashSet<>();
+    
+    /**
+     * Extra force field name for coordination number calculation
+     */
+    final private static HashSet<String> extraForcefield_CN = new HashSet<>();
     
     /**
      * New particles for calculation
@@ -603,14 +614,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-//        String tmpFileNameSphereNode = 
-//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Distribution version
-        String tmpFileNameSphereNode = 
-                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -637,14 +648,6 @@ public class MIPET {
                     "IOException during writing in log file.", ex);
         }
         
-        //</editor-fold>
-        
-        //<editor-fold defaultstate="collapsed" desc="Optimize and scan particle">
-        System.out.println("Scan particle...");
-        scanParticle(forcefield_IE);
-        if (!forcefield_IE.equals(forcefield_CN)) {
-            scanParticle(forcefield_CN);
-        }
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Prepair input">
@@ -735,6 +738,12 @@ public class MIPET {
                         true));
             }
         }
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Optimize and scan particle">
+        System.out.println("Scan particle...");
+        scanParticle(tmpJobTaskRecordList);
         
         //</editor-fold>
         
@@ -888,13 +897,12 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpParticlePair 
                         + ".key";
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                            new FileWriter(tmpKeyPathName))) {
-                    tmpBW.append(tmpKeyContent);
-                } catch(IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing .key file in scratch.", ex);
-                }
+                MIPETUTIL.saveKeyFile(parameterDirectory,
+                        tmpForcefield, 
+                        tmpParticleName1,
+                        tmpParticleName2,
+                        tmpKeyPathName,
+                        tmpKeyContent);
 
                 for (int i = 0; i < tmpDistSize; i++) {
                     tmpDistanceCandidate = lowerBoundary + i * prescanStepSize;
@@ -1048,19 +1056,16 @@ public class MIPET {
                             "IOException during deleting .key file in scratch.",
                             ex);
                 }
-                
                 tmpKeyFileName = tmpParticlePair + ".key";
                 tmpKeyPathName = scratchDirectory 
                         + FILESEPARATOR 
                         + tmpKeyFileName;
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpKeyPathName))) {
-                    tmpBW.append(tmpKeyFileString);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing .key file in scratch.",
-                            ex);
-                }
+                MIPETUTIL.saveKeyFile(parameterDirectory, 
+                        tmpForcefield,
+                        tmpParticleName1,
+                        tmpParticleName2,
+                        tmpKeyPathName, 
+                        tmpKeyFileString);
 
                 // Optimize lowest energy conformation
                 tmpCmdList = new String[] {tinkerOptimize, 
@@ -1529,7 +1534,7 @@ public class MIPET {
         LinkedList<String> tmpOldParticles = new LinkedList<>();
         
         try (BufferedReader tmpBR = new BufferedReader(
-                    new FileReader(jobFileName), 65536)) {
+                new FileReader(jobFileName))) {
             // read jobs
             while ((tmpLine = tmpBR.readLine()) != null ) {
                 if (tmpLine.isEmpty()) {
@@ -1542,11 +1547,23 @@ public class MIPET {
                         continue; // ignore comment line
                     }
                     case '*' -> {
-                        forcefield_IE = tmpRestString;
+                        String[] tmpString = tmpRestString.split("\\s+");
+                        forcefield_IE = tmpString[0];
+                        
+                        for (int i = 0; i < tmpString.length - 1; i++) {
+                            extraForcefield_IE.add(tmpString[i + 1]);
+                        }
+                        
                         continue;
                     }
                     case '$' -> {
-                        forcefield_CN = tmpRestString;
+                        String[] tmpString = tmpRestString.split("\\s+");
+                        forcefield_CN = tmpString[0];
+                        
+                        for (int i = 0; i < tmpString.length - 1; i++) {
+                            extraForcefield_CN.add(tmpString[i + 1]);
+                        }
+                        
                         continue;
                     }
                     case '-' -> {
@@ -1729,6 +1746,7 @@ public class MIPET {
         // Same particles
         Collections.sort(newParticles);
         Collections.sort(oldParticles);
+        
         for (int i = 0; i < tmpNewParticleLength; i++) {
             tmpParticlePairs.add(
                     newParticles.get(i) + "_" + newParticles.get(i));
@@ -1761,11 +1779,14 @@ public class MIPET {
      * scanParticle method
      *  Optimize, scan and optimize the input particle
      */
-    private static void scanParticle(String aForcefield) {
+    private static void scanParticle(
+            ArrayList<JobTaskRecord> aJobTaskRecordList) {
         
+        String tmpForcefield;
+        String tmpParticle;
+        String tmpTaskCandidate;
         String tmpKeyFileString;
         String tmpKeyPathName;
-        String tmpParticleName;
         String tmpParticleXyzName;
         String tmpOptXyzDirName;
         String tmpOptXyzLogName;
@@ -1779,6 +1800,7 @@ public class MIPET {
         String tmpSourceName;
         String tmpTargetName;
         String[] tmpCmdList;
+        HashSet<String> tmpTaskName;
         Path tmpOptXyzDir;
         Path tmpOptXyzFile;
         Path tmOptArcFile;
@@ -1795,26 +1817,48 @@ public class MIPET {
         Integer[] tmpEnergyIndices;
         double[][][] tmpCoords;
         ArrayIndexComparator tmpComparator;
+        int tmpJobTaskRecordListSize;
         
-        tmpKeyFileString = "# Force Field Selection"
-                + LINESEPARATOR 
-                + "PARAMETERS\t\""
-                + parameterDirectory
-                + "/"
-                + aForcefield.toLowerCase() + ".prm\""
-                + LINESEPARATOR
-                + "DIELECTRIC\t" 
-                + dielectricConstant;
         tmpProcess = null;
+        tmpTaskName = new HashSet<>();
+        tmpJobTaskRecordListSize = aJobTaskRecordList.size();
         
-        for (int i = 0; i < newParticles.size(); i++) {
-            tmpParticleName = newParticles.get(i);
-            tmpParticleXyzName = tmpParticleName + ".xyz";
+        for (int i = 0; i < tmpJobTaskRecordListSize; i++) {
+            
+            for (int j = 0; j < 2; j++) {
+                if (j == 0) {
+                    tmpForcefield = aJobTaskRecordList.get(i)
+                            .forcefield_IE_Name();
+                } else {
+                    tmpForcefield = aJobTaskRecordList.get(i)
+                            .forcefield_CN_Name();
+                }
+                
+                for (int k = 0; k < 2; k++) {
+                    if ( k == 0) {
+                        tmpParticle = aJobTaskRecordList.get(i).particleName1();
+                    } else {
+                        tmpParticle = aJobTaskRecordList.get(i).particleName2();
+                    }
+                    tmpTaskCandidate = tmpForcefield + "_" + tmpParticle;
+                    if (!tmpTaskName.contains(tmpTaskCandidate)) {
+                        tmpTaskName.add(tmpTaskCandidate);
+                    }
+                }
+                
+            }
+            
+        }
+        
+        for (String tmpForcefield_Particle : tmpTaskName) {
+            tmpForcefield = tmpForcefield_Particle.split("_")[0];
+            tmpParticle = tmpForcefield_Particle.split("_")[1];
+            tmpParticleXyzName = tmpParticle + ".xyz";
             tmpOptXyzDirName = optXYZDirectory
                     + FILESEPARATOR 
-                    + aForcefield 
+                    + tmpForcefield 
                     + FILESEPARATOR 
-                    + tmpParticleName;
+                    + tmpParticle;
             tmpOptXyzDir = Paths.get(tmpOptXyzDirName);
             if (!Files.exists(tmpOptXyzDir)) {
                 try {
@@ -1831,13 +1875,12 @@ public class MIPET {
                     + FILESEPARATOR
                     + tmpParticleXyzName);
             if (!Files.exists(tmpOptXyzFile)) {
-                tmpOriginal = Paths.get(sourceDirectory, 
-                        aForcefield, tmpParticleXyzName);
-                tmpTarget = Paths.get(tmpOptXyzDirName,
+                tmpOriginal = Paths.get(sourceDirectory, tmpForcefield, 
                         tmpParticleXyzName);
+                tmpTarget = Paths.get(tmpOptXyzDirName, tmpParticleXyzName);
                 try {
-                    Files.copy(tmpOriginal, tmpTarget, 
-                            StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(tmpOriginal, tmpTarget, StandardCopyOption
+                            .REPLACE_EXISTING);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during writing .xyz file.", ex);
@@ -1847,16 +1890,25 @@ public class MIPET {
                         + tmpParticleXyzName);
                 tmpKeyPathName = tmpOptXyzDirName 
                         + FILESEPARATOR 
-                        + tmpParticleName 
+                        + tmpParticle 
                         + ".key";
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpKeyPathName))) {
-                    tmpBW.append(tmpKeyFileString);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing .key file.", ex);
-                }
-
+                tmpKeyFileString = "# Force Field Selection"
+                + LINESEPARATOR 
+                + "PARAMETERS\t\""
+                + parameterDirectory
+                + "/"
+                + tmpForcefield.toLowerCase() + ".prm\""
+                + LINESEPARATOR
+                + "DIELECTRIC\t" 
+                + dielectricConstant;
+                        
+                // Write .key file
+                MIPETUTIL.saveKeyFile(parameterDirectory,
+                        tmpForcefield,
+                        tmpParticle,
+                        tmpKeyPathName, 
+                        tmpKeyFileString);
+                
                 // Create optimized xyz files for the particles via Tinker optimize.
                 try {
                     tmpProcess = new ProcessBuilder(tinkerOptimize,
@@ -1874,7 +1926,7 @@ public class MIPET {
                             InputStream tmpInput = tmpProcess.getInputStream();
                             tmpOptXyzLogName = tmpOptXyzDirName
                                     + FILESEPARATOR 
-                                    + tmpParticleName
+                                    + tmpParticle
                                     + "_preoptimize.log";
                             OutputStream tmpOutput = new FileOutputStream(
                                     tmpOptXyzLogName, false);
@@ -1898,11 +1950,11 @@ public class MIPET {
                 }
                 tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
                         + FILESEPARATOR 
-                        + tmpParticleName 
+                        + tmpParticle 
                         + ".xyz_2");
                 tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
                         .getCoordinateList1());
-                tmpOriginal = Paths.get(tmpOptXyzDirName, tmpParticleName 
+                tmpOriginal = Paths.get(tmpOptXyzDirName, tmpParticle 
                         + ".xyz_2");
                 try {
                     Files.deleteIfExists(tmpOriginal);
@@ -1931,7 +1983,7 @@ public class MIPET {
                     rmsGradient};
                 tmpOutputName = tmpOptXyzDirName
                         + FILESEPARATOR
-                        + tmpParticleName
+                        + tmpParticle
                         + ".out";
                 tmpPB.redirectOutput(new File(tmpOutputName));
                 tmpPB.command(tmpCmdList);
@@ -1960,7 +2012,7 @@ public class MIPET {
                 }
                 tmpOptArcName = tmpOptXyzDirName 
                         + FILESEPARATOR 
-                        + tmpParticleName 
+                        + tmpParticle 
                         + ".arc";
                 tmOptArcFile = Paths.get(tmpOptArcName);
                 if (Files.exists(tmOptArcFile) && 
@@ -1971,7 +2023,7 @@ public class MIPET {
                         tmpTinkerXYZ.setCoordinateList1(tmpCoords[j]);
                         tmpXyzFileName = tmpOptXyzDirName 
                             + FILESEPARATOR
-                            + tmpParticleName
+                            + tmpParticle
                             + "_"
                             + j
                             + ".txyz";
@@ -2002,7 +2054,7 @@ public class MIPET {
                         Arrays.sort(tmpEnergyIndices, tmpComparator);
                         tmpOptXyzName = tmpOptXyzDirName 
                                 + FILESEPARATOR
-                                + tmpParticleName 
+                                + tmpParticle 
                                 + "_0.txyz";
                         tmpAfterScan = new TinkerXYZ(tmpOptXyzName); 
                         tmpTinkerXYZ.setCoordinateList1(tmpAfterScan
@@ -2012,12 +2064,12 @@ public class MIPET {
                         for (int j = 0; j < tmpEnergyValues.size(); j++) {
                             tmpFileTxyzName = tmpOptXyzDirName 
                                 + FILESEPARATOR
-                                + tmpParticleName
+                                + tmpParticle
                                 + "_" + j +".txyz";
                             tmpTinkerXYZ0 = new TinkerXYZ(tmpFileTxyzName);
                             tmpFileName = tmpOptXyzDirName 
                                 + FILESEPARATOR
-                                + tmpParticleName
+                                + tmpParticle
                                 + "_o" + j + ".xyz";
                             tmpTinkerXYZ0.writeToXyzFile(tmpFileName);
                         }
@@ -2025,11 +2077,11 @@ public class MIPET {
                         // Copy configuration data with lowest energy to Particle.xyz
                         tmpSourceName = tmpOptXyzDirName 
                                 + FILESEPARATOR
-                                + tmpParticleName
+                                + tmpParticle
                                 + "_0.txyz";
                         tmpTargetName = tmpOptXyzDirName 
                                 + FILESEPARATOR
-                                + tmpParticleName
+                                + tmpParticle
                                 + ".xyz";
                         tmpOriginal = Paths.get(tmpSourceName);
                         tmpTarget = Paths.get(tmpTargetName);
@@ -2054,7 +2106,7 @@ public class MIPET {
                                     .getInputStream()) {
                                 tmpOptXyzLogName = tmpOptXyzDirName
                                     + FILESEPARATOR 
-                                    + tmpParticleName
+                                    + tmpParticle
                                     + "_afteroptimize.log";
                                 OutputStream tmpOutput = new FileOutputStream(
                                         tmpOptXyzLogName, false);
@@ -2075,12 +2127,12 @@ public class MIPET {
                         }
                         tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
                                 + FILESEPARATOR 
-                                + tmpParticleName 
+                                + tmpParticle 
                                 + ".xyz_2");
                         tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
                                 .getCoordinateList1());
                         tmpOriginal = Paths.get(tmpOptXyzDirName, 
-                                tmpParticleName + ".xyz_2");
+                                tmpParticle + ".xyz_2");
                         try {
                             Files.deleteIfExists(tmpOriginal);
                         } catch (IOException ex) {
@@ -2100,6 +2152,7 @@ public class MIPET {
                 }
             }
         }
+
     }
     
     /**
@@ -2238,12 +2291,15 @@ public class MIPET {
         // Read intermolecular energy
         ArrayList<Double> tmpEnergyList;
         double[] tmpEnergySorted;
+        double tmpValue;
         String tmpLine;
-        String tmpSearch = "Intermolecular Energy";
+        String tmpSearch;
+        String tmpValueCandidate;
+        
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair;
-        double tmpValue;
+        tmpSearch = "Intermolecular Energy";
         double tmpMinEnergy = 1E10;
         int tmpDistMinIndex = -1;
         int tmpChunkMinIndex = -1;
@@ -2258,15 +2314,18 @@ public class MIPET {
                         tmpPath + ".out" + i + "_" + j), 65536)) {
                     while ((tmpLine = tmpBR.readLine()) != null) {
                         if (tmpLine.contains(tmpSearch)) {
-                            tmpValue = Double.parseDouble(tmpLine
-                                    .substring(25, 50));
-                            tmpEnergyList.add(tmpValue);
-                            tmpConfigIndex++;
-                            if (tmpValue < tmpMinEnergy) {
-                                tmpMinEnergy = tmpValue;
-                                tmpMinIndex = tmpConfigIndex;
-                                tmpChunkMinIndex = j;
-                                tmpDistMinIndex = i;
+                            tmpValueCandidate = tmpLine.substring(25, 50);
+                            if (!tmpValueCandidate.contains("D")) {
+                                tmpValue = Double
+                                       .parseDouble(tmpValueCandidate);
+                                tmpEnergyList.add(tmpValue);
+                                tmpConfigIndex++;
+                                if (tmpValue < tmpMinEnergy) {
+                                    tmpMinEnergy = tmpValue;
+                                    tmpMinIndex = tmpConfigIndex;
+                                    tmpChunkMinIndex = j;
+                                    tmpDistMinIndex = i;
+                                }
                             }
                         }
                     }

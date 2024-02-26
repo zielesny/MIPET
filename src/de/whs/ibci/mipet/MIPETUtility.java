@@ -1359,22 +1359,87 @@ public class MIPETUtility{
         return tmpReturn;
     }
     
+    public void saveKeyFile(String aForcefieldDir, 
+            String aForcefield,
+            String aParticle,
+            String aKeyFileName, 
+            String aContent) {
+        this.saveKeyFile(aForcefieldDir, 
+                aForcefield,
+                aParticle, 
+                "", 
+                aKeyFileName, 
+                aContent);
+    }
+    
+    public void saveKeyFile(String aForcefieldDir, 
+            String aForcefield,
+            String aParticle1,
+            String aParticle2,
+            String aKeyFileName, 
+            String aContent) {
+        
+        String tmpExtraPrmName;
+        String tmpKeyFileString;
+        
+        // Check if there is a extra .prm file
+        tmpKeyFileString = aContent;
+        tmpExtraPrmName = aForcefieldDir
+                + FILESEPARATOR
+                + aForcefield
+                + FILESEPARATOR
+                + aParticle1
+                + ".prm";
+        
+        try {
+            if (Files.exists(Paths.get(tmpExtraPrmName))) {
+                tmpKeyFileString += LINESEPARATOR;
+                tmpKeyFileString += Files.readString(Path
+                        .of(tmpExtraPrmName));
+                tmpExtraPrmName = aForcefieldDir
+                        + FILESEPARATOR
+                        + aForcefield
+                        + FILESEPARATOR
+                        + aParticle2
+                        + ".prm";
+                if (!aParticle2.isEmpty() && Files.exists(Paths
+                        .get(tmpExtraPrmName))) {
+                    tmpKeyFileString += LINESEPARATOR;
+                    tmpKeyFileString += Files.readString(Path
+                            .of(tmpExtraPrmName));
+                }
+            }
+        } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE,
+                    "IOException during read extra .prm file.", ex);
+        }
+        
+        // Write .key file
+        try (BufferedWriter tmpBW = new BufferedWriter(
+                new FileWriter(aKeyFileName))) {
+            tmpBW.append(tmpKeyFileString);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during writing .key file.", ex);
+        }
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     
     private void initialize() {
         // For the development
-//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-//                Locale.getDefault(), this.getClass().getClassLoader());
+        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
-        try {
-            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during initialize().", ex);
-        }
+//        try {
+//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
+//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
+//        } catch (IOException ex) {
+//            LOGGER.log(Level.SEVERE, 
+//                    "IOException during initialize().", ex);
+//        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();
