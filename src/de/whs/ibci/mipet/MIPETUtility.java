@@ -1381,37 +1381,38 @@ public class MIPETUtility{
         
         String tmpExtraPrmName;
         String tmpKeyFileString;
+        String tmpParticle;
+        int tmpRoundtripSize;
         
-        // Check if there is a extra .prm file
+        if (aParticle2.isEmpty()) {
+            tmpRoundtripSize = 1;
+        } else {
+            tmpRoundtripSize = 2;
+        }
+        tmpParticle = aParticle1;
         tmpKeyFileString = aContent;
-        tmpExtraPrmName = aForcefieldDir
-                + FILESEPARATOR
-                + aForcefield
-                + FILESEPARATOR
-                + aParticle1
-                + ".prm";
         
-        try {
-            if (Files.exists(Paths.get(tmpExtraPrmName))) {
-                tmpKeyFileString += LINESEPARATOR;
-                tmpKeyFileString += Files.readString(Path
-                        .of(tmpExtraPrmName));
-                tmpExtraPrmName = aForcefieldDir
-                        + FILESEPARATOR
-                        + aForcefield
-                        + FILESEPARATOR
-                        + aParticle2
-                        + ".prm";
-                if (!aParticle2.isEmpty() && Files.exists(Paths
-                        .get(tmpExtraPrmName))) {
+        for (int i = 0; i < tmpRoundtripSize; i++) {
+            if (i == 1) {
+                tmpParticle = aParticle2;
+            } 
+            tmpExtraPrmName = aForcefieldDir
+                    + FILESEPARATOR
+                    + aForcefield
+                    + FILESEPARATOR
+                    + tmpParticle
+                    + ".prm";
+            // Check if there is a extra .prm file
+            try {
+                if (Files.exists(Paths.get(tmpExtraPrmName))) {
                     tmpKeyFileString += LINESEPARATOR;
                     tmpKeyFileString += Files.readString(Path
                             .of(tmpExtraPrmName));
                 }
+            } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE,
+                        "IOException during read extra .prm file.", ex);
             }
-        } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                    "IOException during read extra .prm file.", ex);
         }
         
         // Write .key file
@@ -1422,6 +1423,7 @@ public class MIPETUtility{
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .key file.", ex);
         }
+        
     }
     
     // </editor-fold>

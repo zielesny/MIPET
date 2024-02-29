@@ -2605,13 +2605,12 @@ public class MIPET {
                 tmpKeyFileName = tmpCurrentDir
                         + tmpParticlePair
                         + ".key";
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                    new FileWriter(tmpKeyFileName))) {
-                    tmpBW.append(tmpKeyContent);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                    "IOException during writing .key file.", ex);
-                }
+                MIPETUTIL.saveKeyFile(parameterDirectory,
+                        forcefield_CN,
+                        tmpParticle1,
+                        tmpParticle2,
+                        tmpKeyFileName,
+                        tmpKeyContent);
 
                 // </editor-fold>
 
