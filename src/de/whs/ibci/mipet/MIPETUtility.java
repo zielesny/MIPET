@@ -1359,6 +1359,19 @@ public class MIPETUtility{
         return tmpReturn;
     }
     
+    /**
+     * Save .key file
+     * @param aForcefieldDir
+     *   Directory name of .prm files
+     * @param aForcefield
+     *   Force field name
+     * @param aParticle
+     *   Particle name
+     * @param aKeyFileName
+     *   Key file name
+     * @param aContent
+     *   Content of .key file
+     */
     public void saveKeyFile(String aForcefieldDir, 
             String aForcefield,
             String aParticle,
@@ -1372,6 +1385,21 @@ public class MIPETUtility{
                 aContent);
     }
     
+    /**
+     * Save .key file
+     * @param aForcefieldDir
+     *   Directory name of .prm files
+     * @param aForcefield
+     *   Force field name
+     * @param aParticle1
+     *   Particle name of first particle
+     * @param aParticle2
+     *   Particle name of second particle
+     * @param aKeyFileName
+     *   Key file name
+     * @param aContent
+     *   Content of .key file
+     */
     public void saveKeyFile(String aForcefieldDir, 
             String aForcefield,
             String aParticle1,
@@ -1423,7 +1451,6 @@ public class MIPETUtility{
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .key file.", ex);
         }
-        
     }
     
     // </editor-fold>

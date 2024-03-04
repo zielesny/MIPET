@@ -85,8 +85,7 @@ public class MIPET {
     /**
      * Instance object of MIPETUtility
      */
-    final private static MIPETUtility MIPETUTIL = 
-            new MIPETUtility();
+    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
     
     /**
      * Water volume ratio
@@ -1461,7 +1460,9 @@ public class MIPET {
         
         System.out.println("Calculating coordination numbers...");
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">
-        getCoordinationNumbers(tmpJobTaskRecordList);
+        if (!forcefield_CN.isEmpty()) {
+            getCoordinationNumbers(tmpJobTaskRecordList);
+        }
         
         //</editor-fold>
         
@@ -1834,18 +1835,23 @@ public class MIPET {
                             .forcefield_CN_Name();
                 }
                 
-                for (int k = 0; k < 2; k++) {
-                    if ( k == 0) {
-                        tmpParticle = aJobTaskRecordList.get(i).particleName1();
-                    } else {
-                        tmpParticle = aJobTaskRecordList.get(i).particleName2();
+                if (!tmpForcefield.isEmpty()) {
+                    
+                    for (int k = 0; k < 2; k++) {
+                        if ( k == 0) {
+                            tmpParticle = aJobTaskRecordList.get(i)
+                                    .particleName1();
+                        } else {
+                            tmpParticle = aJobTaskRecordList.get(i)
+                                    .particleName2();
+                        }
+                        tmpTaskCandidate = tmpForcefield + "_" + tmpParticle;
+                        if (!tmpTaskName.contains(tmpTaskCandidate)) {
+                            tmpTaskName.add(tmpTaskCandidate);
+                        }
                     }
-                    tmpTaskCandidate = tmpForcefield + "_" + tmpParticle;
-                    if (!tmpTaskName.contains(tmpTaskCandidate)) {
-                        tmpTaskName.add(tmpTaskCandidate);
-                    }
+                    
                 }
-                
             }
             
         }
@@ -3289,26 +3295,29 @@ public class MIPET {
                 tmpE22 = tmpEnergieMap.get(tmpParticleName2 
                         + "_" 
                         + tmpParticleName2);
-                tmpZ11 = tmpCNMap.get(tmpParticleName1
-                        + "_" 
-                        + tmpParticleName1);
-                tmpZ22 = tmpCNMap.get(tmpParticleName2 
-                        + "_" 
-                        + tmpParticleName2);
-                tmpZ12 = tmpCNMap.get(tmpParticleName1 
-                        + "_" 
-                        + tmpParticleName2);
-                tmpZ21 = tmpCNMap.get(tmpParticleName2 
-                        + "_" 
-                        + tmpParticleName1);
-                tmpChiNumerator =
-                        tmpZ12 * tmpE12 +
-                        tmpZ21 * tmpE12 -
-                        tmpZ11 * tmpE11 -
-                        tmpZ22 * tmpE22;
-                tmpAij = (double)temperature / 12 + 1.7483 * tmpChiNumerator;
-                tmpAijMap.put(tmpParticleName1 + "_" + tmpParticleName2, 
-                        tmpAij);
+                if (!forcefield_CN.isEmpty()) {
+                    tmpZ11 = tmpCNMap.get(tmpParticleName1
+                            + "_" 
+                            + tmpParticleName1);
+                    tmpZ22 = tmpCNMap.get(tmpParticleName2 
+                            + "_" 
+                            + tmpParticleName2);
+                    tmpZ12 = tmpCNMap.get(tmpParticleName1 
+                            + "_" 
+                            + tmpParticleName2);
+                    tmpZ21 = tmpCNMap.get(tmpParticleName2 
+                            + "_" 
+                            + tmpParticleName1);
+                    tmpChiNumerator =
+                            tmpZ12 * tmpE12 +
+                            tmpZ21 * tmpE12 -
+                            tmpZ11 * tmpE11 -
+                            tmpZ22 * tmpE22;
+                    tmpAij = (double)temperature / 12 + 1.7483 
+                            * tmpChiNumerator;
+                    tmpAijMap.put(tmpParticleName1 + "_" + tmpParticleName2, 
+                            tmpAij);
+                }
             
                 // Calculation for CN = 1
                 tmpChiNumerator = tmpE12 + tmpE12 - tmpE11 - tmpE22;
@@ -3433,22 +3442,25 @@ public class MIPET {
                 tmpBW.append("[/Particle interactions]");
                 tmpBW.append(LINESEPARATOR);
                 tmpBW.append(LINESEPARATOR);
-                if (i == 0) {
-                    // Coordination numbers
-                    tmpBW.append("[Coordination numbers]");
-                    tmpCNListLength = cnList.size();
+                
+                // Coordination numbers
+                if (!forcefield_CN.isEmpty()) {
+                    if (i == 0) {
+                        tmpBW.append("[Coordination numbers]");
+                        tmpCNListLength = cnList.size();
 
-                    for (int j = 0; j < tmpCNListLength; j++) {
+                        for (int j = 0; j < tmpCNListLength; j++) {
+                            tmpBW.append(LINESEPARATOR);
+                            tmpBW.append(cnList.get(j).particleName1() + "_"
+                                    + cnList.get(j).particleName2());
+                            tmpBW.append(String.format(" %.2f", 
+                                    cnList.get(j).cnValue()));
+                        }
+
                         tmpBW.append(LINESEPARATOR);
-                        tmpBW.append(cnList.get(j).particleName1() + "_"
-                                + cnList.get(j).particleName2());
-                        tmpBW.append(String.format(" %.2f", 
-                                cnList.get(j).cnValue()));
+                        tmpBW.append("[/Coordination numbers]");
+                        tmpBW.append(LINESEPARATOR);
                     }
-
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[/Coordination numbers]");
-                    tmpBW.append(LINESEPARATOR);
                 }
 
                 // Particle SMILES
