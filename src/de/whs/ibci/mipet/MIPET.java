@@ -613,14 +613,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-        String tmpFileNameSphereNode = 
-                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Distribution version
-//        String tmpFileNameSphereNode = 
-//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -2276,8 +2276,7 @@ public class MIPET {
 
             for (int j = 0; j < tmpChunkNumber; j++) {
                 tmpCmdList = new String[]{tinkerAnalyze, 
-                    tmpPath + i + "_"+ j,
-                    "E"};
+                    tmpPath + i + "_"+ j, "E"};
                 tmpTaskList.add (new MIPETAnalyze (i,
                         j,
                         scratchDirectory, 
@@ -2317,20 +2316,23 @@ public class MIPET {
             for (int j = 0; j < tmpChunkNumber; j++) {
                 tmpConfigIndex = -1;
                 try (BufferedReader tmpBR = new BufferedReader(new FileReader(
-                        tmpPath + ".out" + i + "_" + j), 65536)) {
+                        tmpPath + ".out" + i + "_" + j))) {
                     while ((tmpLine = tmpBR.readLine()) != null) {
                         if (tmpLine.contains(tmpSearch)) {
                             tmpValueCandidate = tmpLine.substring(25, 50);
                             if (!tmpValueCandidate.contains("D")) {
                                 tmpValue = Double
                                        .parseDouble(tmpValueCandidate);
-                                tmpEnergyList.add(tmpValue);
-                                tmpConfigIndex++;
-                                if (tmpValue < tmpMinEnergy) {
-                                    tmpMinEnergy = tmpValue;
-                                    tmpMinIndex = tmpConfigIndex;
-                                    tmpChunkMinIndex = j;
-                                    tmpDistMinIndex = i;
+                                if (tmpValue != Double.NaN && 
+                                        tmpValue != Double.POSITIVE_INFINITY) {
+                                    tmpEnergyList.add(tmpValue);
+                                    tmpConfigIndex++;
+                                    if (tmpValue < tmpMinEnergy) {
+                                        tmpMinEnergy = tmpValue;
+                                        tmpMinIndex = tmpConfigIndex;
+                                        tmpChunkMinIndex = j;
+                                        tmpDistMinIndex = i;
+                                    }
                                 }
                             }
                         }
@@ -3286,27 +3288,20 @@ public class MIPET {
             tmpParticleName1 = aJobTaskRecords.get(i).particleName1();
             tmpParticleName2 = aJobTaskRecords.get(i).particleName2();
             if (!aJobTaskRecords.get(i).isReverse()) {
-                tmpE12 = tmpEnergieMap.get(tmpParticleName1 
-                    + "_" 
+                tmpE12 = tmpEnergieMap.get(tmpParticleName1 + "_" 
                     + tmpParticleName2);
-                tmpE11 = tmpEnergieMap.get(tmpParticleName1 
-                        + "_" 
+                tmpE11 = tmpEnergieMap.get(tmpParticleName1 + "_" 
                         + tmpParticleName1);
-                tmpE22 = tmpEnergieMap.get(tmpParticleName2 
-                        + "_" 
+                tmpE22 = tmpEnergieMap.get(tmpParticleName2 + "_" 
                         + tmpParticleName2);
                 if (!forcefield_CN.isEmpty()) {
-                    tmpZ11 = tmpCNMap.get(tmpParticleName1
-                            + "_" 
+                    tmpZ11 = tmpCNMap.get(tmpParticleName1 + "_" 
                             + tmpParticleName1);
-                    tmpZ22 = tmpCNMap.get(tmpParticleName2 
-                            + "_" 
+                    tmpZ22 = tmpCNMap.get(tmpParticleName2 + "_" 
                             + tmpParticleName2);
-                    tmpZ12 = tmpCNMap.get(tmpParticleName1 
-                            + "_" 
+                    tmpZ12 = tmpCNMap.get(tmpParticleName1 + "_" 
                             + tmpParticleName2);
-                    tmpZ21 = tmpCNMap.get(tmpParticleName2 
-                            + "_" 
+                    tmpZ21 = tmpCNMap.get(tmpParticleName2 + "_" 
                             + tmpParticleName1);
                     tmpChiNumerator =
                             tmpZ12 * tmpE12 +
