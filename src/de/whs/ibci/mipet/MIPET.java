@@ -613,14 +613,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-//        String tmpFileNameSphereNode = 
-//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Distribution version
-        String tmpFileNameSphereNode = 
-                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -1288,6 +1288,7 @@ public class MIPET {
                 Path tmpOriginal;
                 Path tmpTarget;
                 String tmpFileName;
+                Boolean tmpHasH2O;
                 
                 tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
                 tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
@@ -1360,21 +1361,17 @@ public class MIPET {
                         + tmpParticlePair
                         + ".key"
                         + "\"";
-                try {
-                    tmpProcess = new ProcessBuilder(tinkerXYZPdb,
-                            tmpOptFileName,
-                            "-k",
-                            tmpKeyName)
-                            .start();
-                    tmpProcess.waitFor();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during process start.", ex);
-                } catch (InterruptedException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "InterruptException during process start", ex);
+                
+                if (tmpParticleName1.equals("H2O") || 
+                        tmpParticleName2.equals("H2O")){
+                    tmpHasH2O = true;
+                } else {
+                    tmpHasH2O = false;
                 }
-                tmpProcess.destroy();
+                MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
+                        tmpOptFileName, 
+                        tmpKeyName, 
+                        tmpHasH2O);
                 Path tmpOptDistDir = Paths.get(optDistDirectory 
                         + FILESEPARATOR 
                         + tmpForcefield);

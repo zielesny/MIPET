@@ -1453,22 +1453,61 @@ public class MIPETUtility{
         }
     }
     
+    public void callXYZPDB(String aTinkerXYZPdb, 
+            String aXYZFileName, String aKeyFileName, Boolean aHasH2O) {
+        Process tmpProcess;
+        String tmpXYZContent;
+        String tmpLine;
+        HashSet<Integer> tmpDeleteLine;
+        
+        try (BufferedReader tmpBR = new BufferedReader(
+                new FileReader(aXYZFileName))) {
+            while ((tmpLine = tmpBR.readLine()) != null) {
+                
+            }
+        } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "IOException during reading" + aXYZFileName , ex);
+        }
+            
+        
+        //todo: check if there is H2O -> remove Lp and M and connections
+        if (aHasH2O) {
+            
+        }
+        try {
+            tmpProcess = new ProcessBuilder(aTinkerXYZPdb,
+                    aXYZFileName,
+                    "-k",
+                    aKeyFileName)
+                    .start();
+            tmpProcess.waitFor();
+            tmpProcess.destroy();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during process xyzpdb.exe start.", ex);
+        } catch (InterruptedException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "InterruptException during process xyzpdb.exe start", ex);
+        }
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     
     private void initialize() {
         // For the development
-//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-//                Locale.getDefault(), this.getClass().getClassLoader());
+        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
-        try {
-            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during initialize().", ex);
-        }
+//        try {
+//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
+//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
+//        } catch (IOException ex) {
+//            LOGGER.log(Level.SEVERE, 
+//                    "IOException during initialize().", ex);
+//        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();
