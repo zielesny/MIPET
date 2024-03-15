@@ -6,6 +6,7 @@ package de.whs.ibci.mipet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -1453,31 +1454,144 @@ public class MIPETUtility{
         }
     }
     
+    /**
+     * Calls tinker tool xyzpdb.exe and convert a .xyz file to .pdb file
+     * @param aTinkerXYZPdb
+     *   xyzpdb.exe file name
+     * @param aXYZFileName
+     *   .xyz file name
+     * @param aKeyFileName
+     *   .key file name
+     * @param aHasH2O 
+     *   Flag if there is H2O molecule in .xyz file
+     */
     public void callXYZPDB(String aTinkerXYZPdb, 
             String aXYZFileName, String aKeyFileName, Boolean aHasH2O) {
         Process tmpProcess;
-        String tmpXYZContent;
         String tmpLine;
-        HashSet<Integer> tmpDeleteLine;
-        
+        String tmpOldNumber;
+        String tmpNewNumber;
+        String tmpAtomNumber;
+        String tmpXYZFileName;
+        String[] tmpSplited;
+        int tmpColumnNumber;
+        int tmpLineNumber;
+        File tmpOutputFile;
+        ArrayList<String[]> tmpXYZContent;
+        HashSet<String> tmpDeleteAtomNumber;
+
+        tmpXYZFileName = "";
+        tmpAtomNumber = "";
+        tmpXYZContent = new ArrayList<>();
+        tmpDeleteAtomNumber = new HashSet<>();
+                
         try (BufferedReader tmpBR = new BufferedReader(
                 new FileReader(aXYZFileName))) {
             while ((tmpLine = tmpBR.readLine()) != null) {
-                
+                tmpXYZContent.add(new String[]{tmpLine});
             }
         } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE,
                         "IOException during reading" + aXYZFileName , ex);
         }
-            
-        
-        //todo: check if there is H2O -> remove Lp and M and connections
         if (aHasH2O) {
+            int tmpContentLines = tmpXYZContent.size();
             
+            for (int i = 0; i < tmpContentLines; i++) {
+                tmpSplited = tmpXYZContent.get(i)[0].trim().split("\\s+");
+                tmpXYZContent.set(i, tmpSplited);
+                if (tmpSplited[1].equals("LP") || tmpSplited[1].equals("M")) {
+                    tmpXYZContent.set(i, null);
+                    tmpDeleteAtomNumber.add(tmpSplited[0]);
+                }
+            }
+            
+            for (int i = 1; i < tmpContentLines; i++) {
+                if (tmpXYZContent.get(i) != null) {
+                    tmpColumnNumber = tmpXYZContent.get(i).length;
+                    
+                    for (int j = 6; j < tmpColumnNumber; j++) {
+                        if (tmpDeleteAtomNumber.contains(
+                                tmpXYZContent.get(i)[j])) {
+                            tmpXYZContent.get(i)[j] = "";
+                        }
+                    }
+                    
+                }
+            }
+            
+            for (int i = 1; i < tmpContentLines; i++) {
+                if (tmpXYZContent.get(i) == null) {
+                    tmpNewNumber = String.valueOf(i);
+                    
+                    for (int j = i + 1; j < tmpContentLines; j++) {
+                        if (tmpXYZContent.get(j) != null) {
+                            tmpOldNumber = tmpXYZContent.get(j)[0];
+                            tmpXYZContent.set(i, tmpXYZContent.get(j));
+                            tmpXYZContent.get(i)[0] = tmpNewNumber;
+                            tmpXYZContent.set(j, null);
+                            
+                            for (int k = 1; k < tmpContentLines; k++) {
+                                if (tmpXYZContent.get(k) != null) {
+                                    tmpColumnNumber = tmpXYZContent.get(k)
+                                            .length;
+                                    tmpAtomNumber = tmpXYZContent.get(k)[0];
+
+                                    for (int l = 6; l < tmpColumnNumber; l++) {
+                                        if (tmpXYZContent.get(k)[l]
+                                                .equals(tmpOldNumber)) {
+                                            tmpXYZContent.get(k)[l] = 
+                                                   tmpNewNumber;
+                                        }
+                                    }
+
+                                }
+                                
+                            }
+                            
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+            tmpXYZContent.get(0)[0] = tmpAtomNumber;
+            
+            // Write .xyz file
+            tmpXYZFileName = aXYZFileName + ".bak";
+            tmpOutputFile = new File(tmpXYZFileName);
+            
+            try (BufferedWriter tmpBW = new BufferedWriter(
+                    new FileWriter(tmpOutputFile))) {
+                tmpLineNumber = tmpXYZContent.size();
+                
+                for (int i = 0; i < tmpLineNumber; i++) {
+                    tmpLine = "";
+                    if (tmpXYZContent.get(i) != null) {
+                        tmpColumnNumber = tmpXYZContent.get(i).length;
+                        
+                        for (int j = 0; j < tmpColumnNumber; j++) {
+                            tmpLine += tmpXYZContent.get(i)[j];
+                            if(j < tmpColumnNumber - 1) {
+                                if (!tmpXYZContent.get(i)[j].equals("")) {
+                                    tmpLine += "    ";
+                                }
+                            } else {
+                                tmpBW.append(tmpLine);
+                                tmpBW.append(LINESEPARATOR);
+                            }
+                        }
+                        
+                    }
+                }
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                    "IOException during writing xyz.bak.", ex);
+            }
         }
         try {
             tmpProcess = new ProcessBuilder(aTinkerXYZPdb,
-                    aXYZFileName,
+                    tmpXYZFileName,
                     "-k",
                     aKeyFileName)
                     .start();
