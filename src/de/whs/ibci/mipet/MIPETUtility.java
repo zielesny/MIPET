@@ -1373,12 +1373,12 @@ public class MIPETUtility{
      * @param aContent
      *   Content of .key file
      */
-    public void saveKeyFile(String aForcefieldDir, 
+    public void writeKeyFile(String aForcefieldDir, 
             String aForcefield,
             String aParticle,
             String aKeyFileName, 
             String aContent) {
-        this.saveKeyFile(aForcefieldDir, 
+        this.writeKeyFile(aForcefieldDir, 
                 aForcefield,
                 aParticle, 
                 "", 
@@ -1401,7 +1401,7 @@ public class MIPETUtility{
      * @param aContent
      *   Content of .key file
      */
-    public void saveKeyFile(String aForcefieldDir, 
+    public void writeKeyFile(String aForcefieldDir, 
             String aForcefield,
             String aParticle1,
             String aParticle2,
@@ -1480,21 +1480,21 @@ public class MIPETUtility{
         ArrayList<String[]> tmpXYZContent;
         HashSet<String> tmpDeleteAtomNumber;
 
-        tmpXYZFileName = "";
+        tmpXYZFileName = aXYZFileName;
         tmpAtomNumber = "";
         tmpXYZContent = new ArrayList<>();
         tmpDeleteAtomNumber = new HashSet<>();
                 
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(aXYZFileName))) {
-            while ((tmpLine = tmpBR.readLine()) != null) {
-                tmpXYZContent.add(new String[]{tmpLine});
-            }
-        } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "IOException during reading" + aXYZFileName , ex);
-        }
         if (aHasH2O) {
+            try (BufferedReader tmpBR = new BufferedReader(
+                    new FileReader(aXYZFileName))) {
+                while ((tmpLine = tmpBR.readLine()) != null) {
+                    tmpXYZContent.add(new String[]{tmpLine});
+                }
+            } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "IOException during reading" + aXYZFileName , ex);
+            }
             int tmpContentLines = tmpXYZContent.size();
             
             for (int i = 0; i < tmpContentLines; i++) {
@@ -1605,6 +1605,45 @@ public class MIPETUtility{
                     "InterruptException during process xyzpdb.exe start", ex);
         }
     }
+    
+    public void writeDistance_Energy(String aFileName, Double[] aDistances, 
+            Integer[] aDistanceIndices, double[][] aEnergySorted) {
+        int tmpEnergieNumber;
+        
+        try (BufferedWriter tmpBW = new BufferedWriter(
+                new FileWriter(aFileName))) {
+            tmpBW.append("[distances]");
+            tmpBW.append(LINESEPARATOR);
+            
+            for (int i = 0; i < aDistances.length; i++) {
+                tmpBW.append(String.valueOf(aDistances[aDistanceIndices[i]]));
+                tmpBW.append(LINESEPARATOR);
+            }
+            
+            tmpBW.append("[/distances]");
+            tmpBW.append(LINESEPARATOR);
+            tmpBW.append("[energies]");
+            tmpBW.append(LINESEPARATOR);
+            
+            for (double[] aEnergySorted1 : aEnergySorted) {
+                tmpEnergieNumber = aEnergySorted1.length;
+                
+                for (int j = 0; j < tmpEnergieNumber; j++) {
+                    tmpBW.append(String.valueOf(aEnergySorted1[j]));
+                    tmpBW.append("    ");
+                }
+                
+                tmpBW.append(LINESEPARATOR);
+            }
+            
+            tmpBW.append("[/energies]");
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during writing distanceEnergy file.", ex);
+        }
+    }
+    
+    
     
     // </editor-fold>
     
