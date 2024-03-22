@@ -3261,7 +3261,7 @@ public class MIPET {
         HashMap<String, Double> tmpCNMap = new HashMap<>(tmpCNListLength);
         tmpEnergy = 0.;
         
-        while (tmpOutputIteration < 3) {
+        while (tmpOutputIteration <= 3) {
             // Read energy data
             for (int i = 0; i < tmpEnergyListLength; i++) {
                 tmpParticleName1 = energyList.get(i).particleName1();
