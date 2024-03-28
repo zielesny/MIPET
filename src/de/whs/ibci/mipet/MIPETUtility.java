@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1090,6 +1091,103 @@ public class MIPETUtility{
         
         return tmpMin;
     }
+    
+    /**
+     * Determine the distance of two points
+     * @param aCoord1 xyz coordinates of point1
+     * @param aCoord2 xyz coordinates of point2
+     * @return distance of point1 and point2
+     */
+    public double getDistance(double[] aCoord1, double[] aCoord2) {
+        double tmpDeltaX;
+        double tmpDeltaY;
+        double tmpDeltaZ;
+        double tmpResult;
+        
+        tmpDeltaX = aCoord2[0] - aCoord1[0];
+        tmpDeltaY = aCoord2[1] - aCoord1[1];
+        tmpDeltaZ = aCoord2[2] - aCoord1[2];
+        tmpResult = Math.sqrt(tmpDeltaX * tmpDeltaX + 
+                tmpDeltaY * tmpDeltaY +
+                tmpDeltaZ * tmpDeltaZ);
+        return tmpResult;
+    }
+    
+    
+    
+    public double[] getNextDistance() {
+        String tmpFileNameSphereNode;
+        String tmpFileName;
+        String tmpLine;
+        String tmpSubString;
+        String[] tmpTokens;
+        int tmpStartIndex;
+        int tmpEndIndex;
+        int tmpAtomIndex;
+        int tmpMolNumber;
+        int[] tmpSphereNodeNumber;
+        double[][] tmpMatrix;
+        double[] tmpResult;
+        double tmpShortestDistQ;
+        double tmpDistQ;
+        double tmpDistQX;
+        double tmpDistQY;
+        double tmpDistQZ;
+        BigDecimal tmpNumber;
+        File tmpFile;
+        
+        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes";
+        tmpSphereNodeNumber = new int[] {4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 
+            144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 576, 
+            625, 676, 729, 784, 841, 900};
+        tmpResult = new double[29];
+        
+        for (int i = 0; i < 29; i++) {
+            tmpMolNumber = tmpSphereNodeNumber[i];
+            tmpFileName = tmpFileNameSphereNode + tmpMolNumber + ".txt";
+            tmpFile = new File(tmpFileName);
+            try (BufferedReader tmpBR = new BufferedReader(
+                new FileReader(tmpFile))) {
+                tmpMatrix = new double[tmpSphereNodeNumber[i]][3];
+                tmpAtomIndex = 0;
+                tmpShortestDistQ = 1000.;
+                
+                while ((tmpLine = tmpBR.readLine()) != null) {
+                    tmpStartIndex = tmpLine.indexOf("{");
+                    tmpEndIndex = tmpLine.lastIndexOf("}");
+                    tmpSubString = tmpLine
+                            .substring(tmpStartIndex + 1, tmpEndIndex);
+                    tmpTokens = tmpSubString.split(",");
+                    tmpMatrix[tmpAtomIndex][0] = Double.parseDouble(
+                            tmpTokens[0].trim());
+                    tmpMatrix[tmpAtomIndex][1] = Double.parseDouble(
+                            tmpTokens[1].trim());
+                    tmpMatrix[tmpAtomIndex][2] = Double.parseDouble(
+                            tmpTokens[2].trim());
+                    tmpAtomIndex++;
+                }
+                
+                for (int j = 1; j < tmpMolNumber; j++) {
+                    tmpDistQX = tmpMatrix[j][0] - tmpMatrix[0][0];
+                    tmpDistQY = tmpMatrix[j][1] - tmpMatrix[0][1];
+                    tmpDistQZ = tmpMatrix[j][2] - tmpMatrix[0][2];
+                    tmpDistQ = tmpDistQX * tmpDistQX
+                            + tmpDistQY * tmpDistQY
+                            + tmpDistQZ * tmpDistQZ;
+                    if (tmpDistQ < tmpShortestDistQ) {
+                        tmpShortestDistQ = tmpDistQ;
+                    }
+                }
+                
+                tmpResult[i] = Math.sqrt(tmpShortestDistQ);
+            } catch(IOException ex) {
+            }
+        }
+        
+        return tmpResult;
+    }
+    
+    
     
     /**
      * Read a part of .arc file and returns the content as StringBuilder object.

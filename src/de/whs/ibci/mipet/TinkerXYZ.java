@@ -36,17 +36,17 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Standard capacity for stringbuilder object
      */
-    final int STRINGBUILDER_CAPACITY;
+    final int STRINGBUILDER_CAPACITY = 4096;
     
     /**
      * Standard BufferdReader buffersize 
      */
-    final int READER_BUFFERSIZE;
+    final int READER_BUFFERSIZE = 65536;;
     
     /**
      * Line separator
      */
-    final private String LINESEPARATOR;
+    final private String LINESEPARATOR = System.getProperty("line.separator");
 
     //</editor-fold>
     
@@ -139,9 +139,6 @@ public class TinkerXYZ implements Cloneable {
      * @param aTxyzFileName Tinker xyz filename
      */
     public TinkerXYZ(String aTxyzFileName) {
-        this.STRINGBUILDER_CAPACITY = 4096;
-        this.READER_BUFFERSIZE = 65536;
-        this.LINESEPARATOR = System.getProperty("line.separator");
         this.initialize(aTxyzFileName, 1, 0, 0);
     }
     
@@ -152,9 +149,6 @@ public class TinkerXYZ implements Cloneable {
      * @param atomSize Atom number of particle
      */
     public TinkerXYZ(String aTxyzFileName, int atomSize) {
-        this.STRINGBUILDER_CAPACITY = 4096;
-        this.READER_BUFFERSIZE = 65536;
-        this.LINESEPARATOR = System.getProperty("line.separator");
         this.initialize(aTxyzFileName, 1, atomSize, 0);
     }
     
@@ -168,9 +162,6 @@ public class TinkerXYZ implements Cloneable {
      */
     public TinkerXYZ(String aTxyzFileName, int anIterationSize, 
             int anAtomSize1, int anAtomSize2) {
-        this.STRINGBUILDER_CAPACITY = 4096;
-        this.READER_BUFFERSIZE = 65536;
-        this.LINESEPARATOR = System.getProperty("line.separator");
         this.initialize(aTxyzFileName, anIterationSize, anAtomSize1, 
                 anAtomSize2);
     }
@@ -181,9 +172,6 @@ public class TinkerXYZ implements Cloneable {
      * @param aTinkerXYZ2 TinkerXYZ object of second fragment
      */
     public TinkerXYZ(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2) {
-        this.STRINGBUILDER_CAPACITY = 4096;
-        this.READER_BUFFERSIZE = 65536;
-        this.LINESEPARATOR = System.getProperty("line.separator");
         this.initialize2(aTinkerXYZ1, aTinkerXYZ2);
     }
     

@@ -1037,17 +1037,6 @@ public class MIPET {
                   tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
                 }
 
-                // Only for test
-                if (tmpParticlePair.equals("HAc_H2O")) {
-                    String tmpTestOutputFilename = "Z:\\Scratch\\testOutput.txt";
-                    MIPETUTIL.writeDistance_Energy(tmpTestOutputFilename, 
-                            tmpDistanceObj, 
-                            tmpDistanceIndices, 
-                            tmpEnergySorted);
-                }
-                
-                
-                
                 //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Minimize and analyze">
@@ -1162,6 +1151,51 @@ public class MIPET {
                 }
 
                 //</editor-fold>
+                
+                
+                // Only for test
+                
+//                MIPETUTIL.getNextDistance();
+                
+//                if (tmpParticlePair.equals("HAc_H2O")) {
+//                    String tmpTestOutputFilename = "Z:\\Scratch\\testOutput.txt";
+//                    String tmpFileName = "Z:\\Scratch\\HAc_H2O.xyz";
+//                    double[][] tmpXyz1;
+//                    double[][] tmpXyz2;
+//                    double tmpDist;
+//                    MIPETUTIL.writeDistance_Energy(tmpTestOutputFilename, 
+//                            tmpDistanceObj, 
+//                            tmpDistanceIndices, 
+//                            tmpEnergySorted);
+//                    
+//                    TinkerXYZ tmpTinkerXYZ0;
+//                    tmpTinkerXYZ0 = new TinkerXYZ(tmpFileName, 1, 8, 3);
+//                    tmpXyz1 = tmpTinkerXYZ0.getCoordinateList1()[0];
+//                    tmpCentre1 = tmpTinkerXYZ0.findCentreCoordinate(tmpXyz1);
+//                    tmpXyz2 = tmpTinkerXYZ0.getCoordinateList2()[0][0];
+//                    tmpCentre2 = tmpTinkerXYZ0.findCentreCoordinate(tmpXyz2);
+//                    tmpDist = MIPETUTIL.getDistance(tmpCentre1, tmpCentre2);
+//                    
+//                    tmpDistances = new double[]{3.7064};
+//                    tmpEnergyRecords = new EnergyRecord[0];
+//                    tmpEnergyRecords[0] = getInterMolecularEnergy(
+//                            tmpParticlePair,
+//                            tmpDistances, 
+//                            tmpTinkerXYZ1, 
+//                            tmpTinkerXYZ2, 
+//                            tmpXyzRotData1, 
+//                            tmpXyzRotData2,
+//                            1E10);
+//                    tmpMinWgtEnergy = tmpEnergyRecords[0].minEnergy();
+//                    tmpMinDistance = tmpEnergyRecords[0].minDistance();
+//                    tmpTinkerXYZ0 = null;
+//                    
+//                }
+                
+                
+                
+                
+                
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
                 int tmpFractionToMax;
