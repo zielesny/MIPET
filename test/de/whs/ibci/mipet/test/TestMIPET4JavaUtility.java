@@ -93,7 +93,7 @@ public class TestMIPET4JavaUtility {
     public void testMIPET4GetResourceString(){
         String tmpReturnString = 
                 mipetUtil.getResourceString(
-                        "MIPET4Java.Directory.tinker");
+                        "MIPET.Directory.tinker");
         Assert.assertEquals("tinker", tmpReturnString);
     }
     

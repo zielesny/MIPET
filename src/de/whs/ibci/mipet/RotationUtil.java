@@ -8,8 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -44,9 +42,7 @@ public class RotationUtil {
         
         List<double[]> tmpCoordinateList = new ArrayList<>();
         // Use this in the development phase
-        ClassLoader tmpClassLoader = RotationUtil.class.getClassLoader();
-        File tmpFile = new File(tmpClassLoader.getResource(aFilePath)
-                .getFile());
+        File tmpFile = new File(aFilePath);
         try (BufferedReader tmpReader = new BufferedReader(
                 new FileReader(tmpFile))) {
          
@@ -73,6 +69,7 @@ public class RotationUtil {
                 tmpStringTokens = tmpNewSubString.split(",\\s+");
                 tmpParsedTokens = new double[3];
                 tmpIndex = 0;
+                
                 for (String tmpToken : tmpStringTokens) {
                     try {
                         String tmpNewToken = tmpToken
@@ -87,6 +84,7 @@ public class RotationUtil {
                                 anException);
                     }
                 }
+                
                 tmpCoordinateList.add(tmpParsedTokens);
             }
             tmpReader.close();
@@ -153,11 +151,15 @@ public class RotationUtil {
      * @param aVector Vector to map the sphere coordinates on.
      * @return List of all rotation matrices.
      */
-    public static List<double[][]> getRotationMatrices1(List<double[]> sphereNodeCoordinates, double[] aVector) {
+    public static List<double[][]> getRotationMatrices1(
+            List<double[]> sphereNodeCoordinates, double[] aVector) {
         List<double[][]> tmpRotationMatrixList = new ArrayList<>();
+        
         for(double[] anElement : sphereNodeCoordinates) {
-            tmpRotationMatrixList.add(RotationUtil.getRotationMatrix(anElement, aVector));
+            tmpRotationMatrixList.add(RotationUtil
+                    .getRotationMatrix(anElement, aVector));
         }
+        
         return tmpRotationMatrixList;
     }
 

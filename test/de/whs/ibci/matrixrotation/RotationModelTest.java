@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -136,47 +135,70 @@ public class RotationModelTest {
      */
     private void testMatricesNxNxM(int aSphereNodeNumber, int aRotationNumber, 
             double aDelta) {
-        String tmpFileNameSphereNode = 
-                "de/whs/ibci/mipet4java/sphereNodes/SphereNodes" 
+        String tmpFileNameSphereNode;
+        String tmpFileNameRotationMatrices;
+        String tmpLine;
+        String tmpNewSubString;
+        String[] tmpRowTokens;
+        List<double[]> tmpSphereNodeList;
+        List<double[][]> tmpActualRotationMatrices;
+        List<double[][]> tmpExpectedRotationMatrices;
+        int i, j;
+        int tmpStartOfSubString;
+        int tmpEndOfSubString;
+        double[][] tmpDoubleRowTokens;
+        
+        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes" 
                 + aSphereNodeNumber + ".txt";
-        String tmpFileNameRotationMatrices = 
-                "de/whs/ibci/mipet4java/expectedRotationMatrices/expectedRotationMatrices" 
+        tmpFileNameRotationMatrices = "resources/de/whs/ibci/mipet/expectedRotationMatrices/expectedRotationMatrices" 
                 + aSphereNodeNumber + "x" 
                 + aSphereNodeNumber + "x" 
                 + aRotationNumber + ".txt";
-        List<double[]> tmpSphereNodeList = RotationUtil.readSphereNodes(tmpFileNameSphereNode);
-        List<double[][]> tmpActualRotationMatrices = RotationUtil.getRotationMatrices2(tmpSphereNodeList, new double[] {-1.0, 0.0, 0.0}, aRotationNumber);
-        List<double[][]> tmpExpectedRotationMatrices = new ArrayList<>();
-        try {
-            ClassLoader tmpClassLoader = this.getClass().getClassLoader(); //new
-            File tmpFile = new File(tmpClassLoader.getResource(tmpFileNameRotationMatrices).getFile()); //new
-            BufferedReader tmpReader = new BufferedReader(new FileReader(tmpFile));
-            String tmpLine = tmpReader.readLine();
+        tmpSphereNodeList = RotationUtil.readSphereNodes(tmpFileNameSphereNode);
+        tmpActualRotationMatrices = RotationUtil
+                .getRotationMatrices2(tmpSphereNodeList, 
+                        new double[] {-1.0, 0.0, 0.0}, aRotationNumber);
+        tmpExpectedRotationMatrices = new ArrayList<>();
+        File tmpFile = new File(tmpFileNameRotationMatrices);
+            
+        try (BufferedReader tmpReader = new BufferedReader(
+                new FileReader(tmpFile))) {
+            tmpLine = tmpReader.readLine();
+            
             while(tmpLine != null) {
-                int tmpStartOfSubString = tmpLine.indexOf("{");
-                int tmpEndOfSubString = tmpLine.lastIndexOf("}");
-                String tmpNewSubString = tmpLine.substring(tmpStartOfSubString + 2, tmpEndOfSubString - 1);
-                double[][] tmpDoubleRowTokens = new double[3][3];
-                String[] tmpRowTokens = tmpNewSubString.split("\\},\\{");
-                int i = 0;
+                tmpStartOfSubString = tmpLine.indexOf("{");
+                tmpEndOfSubString = tmpLine.lastIndexOf("}");
+                tmpNewSubString = tmpLine.substring(tmpStartOfSubString + 2, 
+                        tmpEndOfSubString - 1);
+                tmpDoubleRowTokens = new double[3][3];
+                tmpRowTokens = tmpNewSubString.split("\\},\\{");
+                i = 0;
+                
                 for (String tmpRowToken : tmpRowTokens) {
                     String[] tmpColumnTokens = tmpRowToken.split(",");
-                    double[] tmpDoubleColumnTokens = new double[tmpColumnTokens.length];
-                    int j = 0;
+                    double[] tmpDoubleColumnTokens = 
+                            new double[tmpColumnTokens.length];
+                    j = 0;
+                    
                     for (String tmpColumnToken : tmpColumnTokens) {
-                        tmpDoubleColumnTokens[j] = Double.parseDouble(tmpColumnToken);
+                        tmpDoubleColumnTokens[j] = Double
+                                .parseDouble(tmpColumnToken);
                         j++;
                     }
+                    
                     tmpDoubleRowTokens[i] = tmpDoubleColumnTokens;
                     i++;
                 }
+                
                 tmpExpectedRotationMatrices.add(tmpDoubleRowTokens);
                 tmpLine = tmpReader.readLine();
             }
+            
         } catch (Exception anException) {
             RotationModelTest.LOGGER.log(Level.SEVERE, anException.toString());
         }
-        this.checkMatrices(tmpExpectedRotationMatrices, tmpActualRotationMatrices, aDelta);
+        this.checkMatrices(tmpExpectedRotationMatrices, 
+                tmpActualRotationMatrices, aDelta);
     }
 
     /**
@@ -188,46 +210,60 @@ public class RotationModelTest {
     private void testMatricesNxN(int aSphereNodeNumber, double aDelta) {
         String tmpFileNameSphereNode;
         String tmpFileNameRotationMatrices;
+        String tmpNewSubString;
+        String[] tmpRowTokens;
+        String[] tmpColumnTokens;
         List<double[]> tmpSphereNodeList;
         List<double[][]> tmpActualRotationMatrices;
         List<double[][]> tmpExpectedRotationMatrices;
+        int i,j;
+        int tmpStartOfSubString;
+        int tmpEndOfSubString;
+        double[][] tmpDoubleRowTokens;
+        double[] tmpDoubleColumnTokens;
         
-        tmpFileNameSphereNode = "de/whs/ibci/mipet4java/sphereNodes/SphereNodes"
+        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes"
                 + aSphereNodeNumber + ".txt";
-        tmpFileNameRotationMatrices = "de/whs/ibci/mipet4java/expectedRotationMatrices/expectedRotationMatrices" 
+        tmpFileNameRotationMatrices = "resources/de/whs/ibci/mipet/expectedRotationMatrices/expectedRotationMatrices" 
                 + aSphereNodeNumber + "x" + aSphereNodeNumber + ".txt";
         tmpSphereNodeList = RotationUtil.readSphereNodes(tmpFileNameSphereNode);
         tmpActualRotationMatrices = RotationUtil
                 .getRotationMatrices1(tmpSphereNodeList, 
                         new double[] {1.0, 0.0, 0.0});
         tmpExpectedRotationMatrices = new ArrayList<>();
-        
-        try {
-            ClassLoader tmpClassLoader = this.getClass().getClassLoader(); //new
-            File tmpFile = new File(tmpClassLoader.getResource(tmpFileNameRotationMatrices).getFile()); //new
-            BufferedReader tmpReader = new BufferedReader(new FileReader(tmpFile));
+        File tmpFile = new File(tmpFileNameRotationMatrices);
+        try (BufferedReader tmpReader = new BufferedReader(
+                new FileReader(tmpFile))) {
             String tmpLine = tmpReader.readLine();
+            
             while(tmpLine != null) {
-                int tmpStartOfSubString = tmpLine.indexOf("{");
-                int tmpEndOfSubString = tmpLine.lastIndexOf("}");
-                String tmpNewSubString = tmpLine.substring(tmpStartOfSubString + 2, tmpEndOfSubString - 1);
-                double[][] tmpDoubleRowTokens = new double[3][3];
-                String[] tmpRowTokens = tmpNewSubString.split("\\},\\{");
-                int i = 0;
+                tmpStartOfSubString = tmpLine.indexOf("{");
+                tmpEndOfSubString = tmpLine.lastIndexOf("}");
+                tmpNewSubString = tmpLine.substring(tmpStartOfSubString + 2, 
+                        tmpEndOfSubString - 1);
+                tmpDoubleRowTokens = new double[3][3];
+                tmpRowTokens = tmpNewSubString.split("\\},\\{");
+                i = 0;
+                
                 for (String tmpRowToken : tmpRowTokens) {
-                    String[] tmpColumnTokens = tmpRowToken.split(",");
-                    double[] tmpDoubleColumnTokens = new double[tmpColumnTokens.length];
-                    int j = 0;
+                    tmpColumnTokens = tmpRowToken.split(",");
+                    tmpDoubleColumnTokens = 
+                            new double[tmpColumnTokens.length];
+                    j = 0;
+                    
                     for (String tmpColumnToken : tmpColumnTokens) {
                         tmpDoubleColumnTokens[j] = Double.parseDouble(tmpColumnToken);
                         j++;
                     }
+                    
                     tmpDoubleRowTokens[i] = tmpDoubleColumnTokens;
                     i++;
                 }
+                
                 tmpExpectedRotationMatrices.add(tmpDoubleRowTokens);
                 tmpLine = tmpReader.readLine();
             }
+            
         } catch (Exception anException) {
             RotationModelTest.LOGGER.log(Level.SEVERE, anException.toString());
         }
