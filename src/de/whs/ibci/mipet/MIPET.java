@@ -194,6 +194,11 @@ public class MIPET {
     private static String forcefield_CN;
     
     /**
+     * Water model name
+     */
+    private static String watermodel;
+    
+    /**
      * ConfigurationNumber of particle 1
      */
     private static int confNumber1;
@@ -736,6 +741,25 @@ public class MIPET {
                         tmpIsSameParticle,
                         true));
             }
+        }
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Determine Water model name">
+        String tmpWaterFileName;
+        String tmpFirstLine;
+        
+        tmpWaterFileName = "Molecules"
+                + FILESEPARATOR
+                + forcefield_IE
+                + FILESEPARATOR
+                + "H2O.xyz";
+        try (BufferedReader tmpBR = new BufferedReader(
+                new FileReader(tmpWaterFileName))) {
+            tmpFirstLine = tmpBR.readLine();
+            watermodel = tmpFirstLine.trim().split("\\s+")[1];
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, "IOException during reading H2O.xyz.", ex);
         }
         
         //</editor-fold>
@@ -2222,7 +2246,7 @@ public class MIPET {
             double[][][] aRotData1,
             double[][][] aRotData2,
             double aMinEnergy) {
-        
+        int tmpAtomNumber;
         int tmpDistanceNumber;
         int tmpConfigNumber;
         int tmpChunkNumber;
@@ -2232,12 +2256,13 @@ public class MIPET {
         int tmpConfigIndex;
         int tmpRotData1Index;
         int tmpRotData2Index;
-        double[][][] tmpPartRotData1;
+        double[][][] tmpRotData1;
         double[][][] tmpRotData2;
+        ArrayList<Double> tmpEnergyList;
         String tmpPath;
         String[] tmpCmdList;
         TinkerXYZ tmpTinkerXYZ;
-
+        
         tmpDistanceNumber = aDistance.length;
         tmpChunkNumber = cpuCoreNumber;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
@@ -2255,15 +2280,16 @@ public class MIPET {
             }
         }
         
-        // return values
+        // Calculate intermolecular energy using TINKER analyze
         double[][] tmpEnergyDatas = new double[tmpDistanceNumber][];
         ExecutorService executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        LinkedList<MIPETMakeArc> tmpTaskListMakeArc = new LinkedList<>();
+        LinkedList<MIPETAnalyze> tmpTaskList = new LinkedList<>();
         tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
+        tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);
@@ -2280,48 +2306,29 @@ public class MIPET {
                     tmpRotData2Index++;
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
-                        tmpPartRotData1 = Arrays.copyOfRange(aRotData1, 
+                        tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,
                                 tmpRotData1Index + 1);
-                        tmpTaskListMakeArc.add(new MIPETMakeArc(
-                                aParticlePair,
-                                tmpPath + i + "_" + tmpChunkIndex,
-                                aTinkerXYZ1,
-                                aTinkerXYZ2,
-                                tmpPartRotData1,
-                                tmpRotData2,
+                        tmpCmdList = new String[]{tinkerAnalyze, 
+                            tmpPath + i + "_"+ tmpChunkIndex, "E"};
+                        tmpTaskList.add(new MIPETAnalyze(
+                                tmpTinkerXYZ,
+                                i,
+                                tmpChunkIndex,
+                                tmpAtomNumber,
                                 tmpChunkSize,
-                                minAtomDistance));
+                                minAtomDistance,
+                                tmpRotData1,
+                                tmpRotData2,
+                                scratchDirectory,
+                                aParticlePair,
+                                tmpCmdList));
                         tmpPart1StartIndex = tmpRotData1Index + 1;
                         tmpChunkIndex++;
                     }
                     tmpConfigIndex++;
                 }
-            }
-            
-        }
-        
-        try {
-            executor.invokeAll(tmpTaskListMakeArc);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();       
-        }
-        executor.shutdown();
-        
-        // Calculate intermolecular energy using TINKER analyze
-        executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        LinkedList<MIPETAnalyze> tmpTaskList = new LinkedList<>();
-        
-        for (int i = 0; i < tmpDistanceNumber; i++) {
-
-            for (int j = 0; j < tmpChunkNumber; j++) {
-                tmpCmdList = new String[]{tinkerAnalyze, 
-                    tmpPath + i + "_"+ j, "E"};
-                tmpTaskList.add (new MIPETAnalyze (i,
-                        j,
-                        scratchDirectory, 
-                        aParticlePair, 
-                        tmpCmdList));
+                
             }
             
         }
@@ -2332,90 +2339,43 @@ public class MIPET {
             Thread.currentThread().interrupt();       
         }
         executor.shutdown();
+                
         
-        // Read intermolecular energy
-        ArrayList<Double> tmpEnergyList;
-        double[] tmpEnergySorted;
-        double tmpValue;
-        String tmpLine;
-        String tmpSearch;
-        String tmpValueCandidate;
         
-        tmpPath = scratchDirectory 
-                + FILESEPARATOR 
-                + aParticlePair;
-        tmpSearch = "Intermolecular Energy";
-        double tmpMinEnergy = 1E10;
-        int tmpDistMinIndex = -1;
-        int tmpChunkMinIndex = -1;
-        int tmpMinIndex = -1;
-        
-        for (int i = 0; i < tmpDistanceNumber; i++) {
-            tmpEnergyList = new ArrayList<>(tmpConfigNumber);
-
-            for (int j = 0; j < tmpChunkNumber; j++) {
-                tmpConfigIndex = -1;
-                try (BufferedReader tmpBR = new BufferedReader(new FileReader(
-                        tmpPath + ".out" + i + "_" + j))) {
-                    while ((tmpLine = tmpBR.readLine()) != null) {
-                        if (tmpLine.contains(tmpSearch)) {
-                            tmpValueCandidate = tmpLine.substring(25, 50);
-                            if (!tmpValueCandidate.contains("D")) {
-                                tmpValue = Double
-                                       .parseDouble(tmpValueCandidate);
-                                if (tmpValue != Double.NaN && 
-                                        tmpValue != Double.POSITIVE_INFINITY) {
-                                    tmpEnergyList.add(tmpValue);
-                                    tmpConfigIndex++;
-                                    if (tmpValue < tmpMinEnergy) {
-                                        tmpMinEnergy = tmpValue;
-                                        tmpMinIndex = tmpConfigIndex;
-                                        tmpChunkMinIndex = j;
-                                        tmpDistMinIndex = i;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during reading .out file." , ex);
-                }
-            }
-            
-            tmpEnergyList.sort(Comparator.naturalOrder());
-            tmpEnergySorted = new double[tmpEnergyList.size()];
-            
-            for (int j = 0; j < tmpEnergySorted.length; j++) {
-                tmpEnergySorted[j] = tmpEnergyList.get(j);
-            }
-                    
-            tmpEnergyDatas[i] = tmpEnergySorted.clone();
-        }
-       
-        // Export .xyz file with lowest intermolecular energy
-        if (aMinEnergy > tmpMinEnergy) {
-            int tmpStartIndex = tmpMinIndex * (tmpTinkerXYZ.getAtomNumber() 
-                    + 1);
-            int tmpEndIndex = tmpStartIndex + tmpTinkerXYZ.getAtomNumber();
-            String tmpFileName = tmpPath + ".arc" + tmpDistMinIndex + "_" 
-                    + tmpChunkMinIndex;
-            StringBuilder tmpPartArc = MIPETUTIL.readPartArcFile(tmpFileName, 
-                    tmpStartIndex, tmpEndIndex);
-            tmpFileName = tmpPath + ".0";
-            tmpTinkerXYZ.writeToXyzFile(tmpFileName, tmpPartArc);
-        }
+//        for (int i = 0; i < tmpDistanceNumber; i++) {
+//            tmpEnergyList = new ArrayList<>(tmpConfigNumber);
+//
+//            
+//            
+//            tmpEnergyList.sort(Comparator.naturalOrder());
+//            tmpEnergySorted = new double[tmpEnergyList.size()];
+//            
+//            for (int j = 0; j < tmpEnergySorted.length; j++) {
+//                tmpEnergySorted[j] = tmpEnergyList.get(j);
+//            }
+//                    
+//            tmpEnergyDatas[i] = tmpEnergySorted.clone();
+//        }
+//       
+//        // Export .xyz file with lowest intermolecular energy
+//        if (aMinEnergy > tmpMinEnergy) {
+//            int tmpStartIndex = tmpMinIndex * (tmpTinkerXYZ.getAtomNumber() 
+//                    + 1);
+//            int tmpEndIndex = tmpStartIndex + tmpTinkerXYZ.getAtomNumber();
+//            String tmpFileName = tmpPath + ".arc" + tmpDistMinIndex + "_" 
+//                    + tmpChunkMinIndex;
+//            StringBuilder tmpPartArc = MIPETUTIL.readPartArcFile(tmpFileName, 
+//                    tmpStartIndex, tmpEndIndex);
+//            tmpFileName = tmpPath + ".0";
+//            tmpTinkerXYZ.writeToXyzFile(tmpFileName, tmpPartArc);
+//        }
 
         // Clean Scratch directory
-        try (Stream<Path> tmpList = Files.list(Paths.get(scratchDirectory))) {
-            tmpList.map(Path::toFile)
-                    .filter(file -> file.toString().contains(".arc") ||
-                            file.toString().contains(".out"))
-                    .forEach(File::delete);
-        } catch(IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during deleting scratch directory.", ex);
-        }
+        
+        int tmpDistMinIndex = 0;
+        double tmpMinEnergy = 0.;
+        
+        
         return new EnergyRecord(aDistance,
                 tmpEnergyDatas, 
                 aDistance[tmpDistMinIndex], 
@@ -3407,7 +3367,7 @@ public class MIPET {
                     tmpBW.append(forcefield_CN);
                     tmpBW.append(LINESEPARATOR);
                 }
-                tmpBW.append("# Water model: TIP5P");
+                tmpBW.append("# Water model: " + watermodel);
                 tmpBW.append(LINESEPARATOR);
                 tmpBW.append("# CPU cores: ");
                 tmpBW.append(String.valueOf(cpuCoreNumber));
