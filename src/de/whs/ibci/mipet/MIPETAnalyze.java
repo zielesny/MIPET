@@ -46,7 +46,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * Tinkerxyz object
      */
     private final TinkerXYZ TINKERXYZ;
-    
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
     private final double[][][] ROTDATA2;
@@ -155,6 +154,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         String tmpValueCandidate;
         StringBuilder tmpPartArc;
         Process tmpProcess;
+        TinkerXYZ tmpTinkerXYZ;
         
         tmpConfigIndex = -1;
         tmpMinIndex = -1;
@@ -167,6 +167,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 + this.PARTICLE_PAIR + ".out" 
                 + this.DISTANCEINDEX + "_"
                 + this.CHUNKINDEX;
+        tmpTinkerXYZ = this.TINKERXYZ.clone();
         tmpSearch = "Intermolecular Energy";
         tmpPBuilder.redirectOutput(new File(tmpFileName));
         
@@ -187,7 +188,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 new FileWriter(tmpArcFileName))) {
             
             for (int i = 0; i < tmpRot1Size; i++) {
-                this.TINKERXYZ.setCoordinateList1(this.ROTDATA1[i]);
+                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i]);
                 
                 for (int j = 0; j < tmpRot2Size; j++) {
                     tmpIs2Close = MIPETUTIL.isTooClose(
@@ -195,9 +196,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                             this.ROTDATA2[j], 
                             this.MINATOMDISTANCE);
                     if (!tmpIs2Close) {
-                        this.TINKERXYZ.setHeader(this.PARTICLE_PAIR);
-                        this.TINKERXYZ.setCoordinateList2(this.ROTDATA2[j]);
-                        tmpBW.append(this.TINKERXYZ.getFileContent());
+                        tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
+                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
+                        tmpBW.append(tmpTinkerXYZ.getFileContent());
                     }
                     tmpChunkIndex++;
                     if (tmpChunkIndex >= this.CHUNKSIZE) {
