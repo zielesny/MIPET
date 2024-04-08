@@ -28,11 +28,14 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -2258,7 +2261,6 @@ public class MIPET {
         int tmpRotData2Index;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
-        ArrayList<Double> tmpEnergyList;
         String tmpPath;
         String[] tmpCmdList;
         TinkerXYZ tmpTinkerXYZ;
@@ -2333,14 +2335,43 @@ public class MIPET {
             
         }
         
-        try {
-            executor.invokeAll(tmpTaskList);
+        int tmpDistMinIndex;
+        double tmpDistMinEnergy;
+        double tmpGlbMinEnergy;
+        
+        tmpDistMinIndex = 0;
+        tmpGlbMinEnergy = 1E10;
+        List<Future<ArrayList<Double>>> tmpFutures = null;
+        ArrayList<Double> tmpEnergies = new ArrayList<Double>(1000);
+        
+        try {            
+            tmpFutures = executor.invokeAll(tmpTaskList);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();       
         }
         executor.shutdown();
+            
+        for (int i = 0; i < tmpDistanceNumber; i++) {
+            Future<ArrayList<Double>> tmpFuture = tmpFutures.get(i);
+            try {
+                tmpDistMinEnergy = tmpFuture.get()
+                        .stream()
+                        .mapToDouble(a -> a)
+                        .min()
+                        .orElseThrow(NoSuchElementException::new);
+                if (tmpDistMinEnergy < tmpGlbMinEnergy) {
+                    tmpGlbMinEnergy = tmpDistMinEnergy;
+                    tmpDistMinIndex = i;
+                    
+                }
+                System.out.println("test");
                 
-        
+                
+            } catch (InterruptedException | ExecutionException ex) {
+                ex.printStackTrace();
+            }
+        }
+                
         
 //        for (int i = 0; i < tmpDistanceNumber; i++) {
 //            tmpEnergyList = new ArrayList<>(tmpConfigNumber);
@@ -2372,8 +2403,6 @@ public class MIPET {
 
         // Clean Scratch directory
         
-        int tmpDistMinIndex = 0;
-        double tmpMinEnergy = 0.;
         
         
         return new EnergyRecord(aDistance,
