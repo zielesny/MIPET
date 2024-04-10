@@ -2285,7 +2285,7 @@ public class MIPET {
         // Calculate intermolecular energy using TINKER analyze
         double[][] tmpEnergyDatas = new double[tmpDistanceNumber][];
         ExecutorService executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        LinkedList<MIPETAnalyze> tmpTaskList = new LinkedList<>();
+        ArrayList<MIPETAnalyze> tmpTaskList = new ArrayList<>(500);
         tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
@@ -2336,13 +2336,16 @@ public class MIPET {
         }
         
         int tmpDistMinIndex;
-        double tmpDistMinEnergy;
-        double tmpGlbMinEnergy;
+        int tmpTaskNumber;
+        Double tmpDistMinEnergy;
+        double tmpPartMinEnergy;
         
+        tmpTaskNumber = tmpTaskList.size();
         tmpDistMinIndex = 0;
-        tmpGlbMinEnergy = 1E10;
+        tmpPartMinEnergy = 1E10;
         List<Future<ArrayList<Double>>> tmpFutures = null;
-        ArrayList<Double> tmpEnergies = new ArrayList<Double>(1000);
+        Future<ArrayList<Double>> tmpFuture;
+        ArrayList<Double> tmpEnergies = new ArrayList<>(tmpConfigNumber);
         
         try {            
             tmpFutures = executor.invokeAll(tmpTaskList);
@@ -2351,22 +2354,15 @@ public class MIPET {
         }
         executor.shutdown();
             
-        for (int i = 0; i < tmpDistanceNumber; i++) {
-            Future<ArrayList<Double>> tmpFuture = tmpFutures.get(i);
+        for (int i = 0; i < tmpTaskNumber; i++) {
+            tmpFuture = tmpFutures.get(i);
             try {
-                tmpDistMinEnergy = tmpFuture.get()
-                        .stream()
-                        .mapToDouble(a -> a)
-                        .min()
-                        .orElseThrow(NoSuchElementException::new);
-                if (tmpDistMinEnergy < tmpGlbMinEnergy) {
-                    tmpGlbMinEnergy = tmpDistMinEnergy;
+                tmpEnergies = tmpFuture.get();
+                tmpDistMinEnergy = tmpEnergies.get(0);
+                if (tmpDistMinEnergy < tmpPartMinEnergy) {
+                    tmpPartMinEnergy = tmpDistMinEnergy;
                     tmpDistMinIndex = i;
-                    
                 }
-                System.out.println("test");
-                
-                
             } catch (InterruptedException | ExecutionException ex) {
                 ex.printStackTrace();
             }
@@ -2375,10 +2371,7 @@ public class MIPET {
         
 //        for (int i = 0; i < tmpDistanceNumber; i++) {
 //            tmpEnergyList = new ArrayList<>(tmpConfigNumber);
-//
 //            
-//            
-//            tmpEnergyList.sort(Comparator.naturalOrder());
 //            tmpEnergySorted = new double[tmpEnergyList.size()];
 //            
 //            for (int j = 0; j < tmpEnergySorted.length; j++) {
@@ -2408,7 +2401,7 @@ public class MIPET {
         return new EnergyRecord(aDistance,
                 tmpEnergyDatas, 
                 aDistance[tmpDistMinIndex], 
-                tmpDistMinIndex, tmpMinEnergy);
+                tmpDistMinIndex, tmpPartMinEnergy);
     }
     
     /**
