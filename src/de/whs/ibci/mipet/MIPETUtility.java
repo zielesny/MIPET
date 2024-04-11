@@ -1187,7 +1187,29 @@ public class MIPETUtility{
         return tmpResult;
     }
     
-    
+    /**
+     * 
+     * @param aArrayList
+     * @return 
+     */
+    double[] toPrimitive (ArrayList<Double> aArrayList) {
+        int tmpArraySize;
+        double[] tmpEmptyArray;
+        
+        tmpArraySize = aArrayList.size();
+        tmpEmptyArray = new double[0];
+        double[] tmpResult = new double[tmpArraySize];
+        
+        if (tmpArraySize == 0) {
+            return tmpEmptyArray;
+        }
+        
+        for (int i = 0; i < tmpArraySize; i++) {
+            tmpResult[i] = aArrayList.get(i);
+        }
+        
+        return tmpResult;
+    }
     
     /**
      * Read a part of .arc file and returns the content as StringBuilder object.

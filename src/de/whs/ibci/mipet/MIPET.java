@@ -2286,12 +2286,10 @@ public class MIPET {
         double[][] tmpEnergyDatas = new double[tmpDistanceNumber][];
         ExecutorService executor = Executors.newFixedThreadPool(cpuCoreNumber);
         ArrayList<MIPETAnalyze> tmpTaskList = new ArrayList<>(500);
-        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
-        tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);
@@ -2308,6 +2306,8 @@ public class MIPET {
                     tmpRotData2Index++;
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
+                        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
+                        tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,
                                 tmpRotData1Index + 1);
@@ -2336,16 +2336,18 @@ public class MIPET {
         }
         
         int tmpDistMinIndex;
-        int tmpTaskNumber;
+        int tmpChunkMinIndex;
+        int tmpTaskIndex;
         Double tmpDistMinEnergy;
         double tmpPartMinEnergy;
         
-        tmpTaskNumber = tmpTaskList.size();
+        tmpTaskIndex = 0;
         tmpDistMinIndex = 0;
+        tmpChunkMinIndex = 0;
         tmpPartMinEnergy = 1E10;
         List<Future<ArrayList<Double>>> tmpFutures = null;
         Future<ArrayList<Double>> tmpFuture;
-        ArrayList<Double> tmpEnergies = new ArrayList<>(tmpConfigNumber);
+        ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
         
         try {            
             tmpFutures = executor.invokeAll(tmpTaskList);
@@ -2354,49 +2356,65 @@ public class MIPET {
         }
         executor.shutdown();
             
-        for (int i = 0; i < tmpTaskNumber; i++) {
-            tmpFuture = tmpFutures.get(i);
-            try {
-                tmpEnergies = tmpFuture.get();
-                tmpDistMinEnergy = tmpEnergies.get(0);
-                if (tmpDistMinEnergy < tmpPartMinEnergy) {
-                    tmpPartMinEnergy = tmpDistMinEnergy;
-                    tmpDistMinIndex = i;
+        for (int i = 0; i < tmpDistanceNumber; i++) {
+            
+            for (int j = 0; j < tmpChunkNumber; j++) {
+                tmpFuture = tmpFutures.get(tmpTaskIndex);
+                try {
+                    tmpDistEnergies.addAll(tmpFuture.get());
+                    tmpDistEnergies.sort(Comparator.naturalOrder());   
+                    tmpDistMinEnergy = tmpDistEnergies.get(0);
+                    if (tmpDistMinEnergy < tmpPartMinEnergy) {
+                        tmpPartMinEnergy = tmpDistMinEnergy;
+                        tmpDistMinIndex = i;
+                        tmpChunkMinIndex = j;
+                    }
+                    tmpTaskIndex++;
+                    if (j == tmpChunkNumber - 1) {
+                        tmpEnergyDatas[i] = MIPETUTIL
+                                .toPrimitive(tmpDistEnergies);
+                        tmpDistEnergies.clear();
+                    }
+                } catch (InterruptedException | ExecutionException ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "InterruptException during handling tmpFuture object.",
+                            ex);
                 }
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
+            }
+            
+        }
+        
+        // Export .xyz file with lowest intermolecular energy
+        String tmpSourceFileName;
+        String tmpExportFileName;
+        Path tmpSource;
+        Path tmpTarget;
+        
+        tmpSourceFileName = scratchDirectory
+                + FILESEPARATOR
+                + aParticlePair
+                + "_"
+                + tmpDistMinIndex
+                + "_"
+                + tmpChunkMinIndex
+                + ".0";
+        tmpExportFileName = scratchDirectory 
+                + FILESEPARATOR 
+                + aParticlePair
+                + ".0";
+        tmpSource = Paths.get(tmpSourceFileName);
+        tmpTarget = Paths.get(tmpExportFileName);
+        
+        if (tmpPartMinEnergy < aMinEnergy) {
+            try {
+                Files.copy(tmpSource, tmpTarget, 
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch(IOException ex) {
+                LOGGER.log(Level.SEVERE,
+                                "IOException during copying .0 file.",
+                                ex);
             }
         }
-                
-        
-//        for (int i = 0; i < tmpDistanceNumber; i++) {
-//            tmpEnergyList = new ArrayList<>(tmpConfigNumber);
-//            
-//            tmpEnergySorted = new double[tmpEnergyList.size()];
-//            
-//            for (int j = 0; j < tmpEnergySorted.length; j++) {
-//                tmpEnergySorted[j] = tmpEnergyList.get(j);
-//            }
-//                    
-//            tmpEnergyDatas[i] = tmpEnergySorted.clone();
-//        }
-//       
-//        // Export .xyz file with lowest intermolecular energy
-//        if (aMinEnergy > tmpMinEnergy) {
-//            int tmpStartIndex = tmpMinIndex * (tmpTinkerXYZ.getAtomNumber() 
-//                    + 1);
-//            int tmpEndIndex = tmpStartIndex + tmpTinkerXYZ.getAtomNumber();
-//            String tmpFileName = tmpPath + ".arc" + tmpDistMinIndex + "_" 
-//                    + tmpChunkMinIndex;
-//            StringBuilder tmpPartArc = MIPETUTIL.readPartArcFile(tmpFileName, 
-//                    tmpStartIndex, tmpEndIndex);
-//            tmpFileName = tmpPath + ".0";
-//            tmpTinkerXYZ.writeToXyzFile(tmpFileName, tmpPartArc);
-//        }
-
-        // Clean Scratch directory
-        
-        
         
         return new EnergyRecord(aDistance,
                 tmpEnergyDatas, 

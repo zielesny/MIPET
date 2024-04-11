@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -142,20 +141,18 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         int tmpRot2Size;
         int tmpChunkIndex;
         ArrayList<Double> tmpEnergyList;
-        String tmpFileName;
         String tmpArcFileName;
         String tmpOutFileName;
         String tmpMinFileName;
         String tmpValueCandidate;
-        TinkerXYZ tmpTinkerXYZ;
+        Path tmpArcPath;
 
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
-        tmpFileName = this.SCRATCH_DIR
+        tmpOutFileName = this.SCRATCH_DIR
                 + this.FILESEPARATOR
                 + this.PARTICLE_PAIR + ".out" 
                 + this.DISTANCEINDEX + "_"
                 + this.CHUNKINDEX;
-        tmpTinkerXYZ = this.TINKERXYZ.clone();
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
@@ -169,12 +166,12 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 + this.DISTANCEINDEX
                 + "_"
                 + this.CHUNKINDEX;
-        Path tmpPath = Paths.get(tmpArcFileName);
-        try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
+        tmpArcPath = Paths.get(tmpArcFileName);
+        try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpArcPath, 
                 StandardCharsets.UTF_8)) {
             
             for (int i = 0; i < tmpRot1Size; i++) {
-                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i]);
+                this.TINKERXYZ.setCoordinateList1(this.ROTDATA1[i]);
                 
                 for (int j = 0; j < tmpRot2Size; j++) {
                     tmpIs2Close = MIPETUTIL.isTooClose(
@@ -182,9 +179,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                             this.ROTDATA2[j], 
                             this.MINATOMDISTANCE);
                     if (!tmpIs2Close) {
-                        tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
-                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
-                        tmpBW.append(tmpTinkerXYZ.getFileContent());
+                        this.TINKERXYZ.setHeader(this.PARTICLE_PAIR);
+                        this.TINKERXYZ.setCoordinateList2(this.ROTDATA2[j]);
+                        tmpBW.append(this.TINKERXYZ.getFileContent());
                     }
                     tmpChunkIndex++;
                     if (tmpChunkIndex >= this.CHUNKSIZE) {
@@ -209,10 +206,11 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         double tmpValue;
         String tmpSearch;
         String tmpLine;
+        Path tmpOutPath;
         
         tmpPBuilder = new ProcessBuilder();
         tmpPBuilder.command(this.COMMAND_LIST);
-        tmpPBuilder.redirectOutput(new File(tmpFileName));
+        tmpPBuilder.redirectOutput(new File(tmpOutFileName));
         tmpSearch = "Intermolecular Energy";
         tmpMinEnergy = 1E10;
         tmpMinIndex = -1;
@@ -228,8 +226,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         }
         
         // Read .arc files and find intermolecular energy
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpFileName))) {
+        tmpOutPath = Paths.get(tmpOutFileName);
+        try (BufferedReader tmpBR = Files.newBufferedReader(tmpOutPath)) {
             while ((tmpLine = tmpBR.readLine()) != null) {
                 if (tmpLine.contains(tmpSearch)) {
                     tmpValueCandidate = tmpLine.substring(25, 50);
