@@ -28,14 +28,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -174,7 +171,7 @@ public class MIPET {
     /**
      * Use fibonaccisphere algorithm
      */
-    private static boolean isFibonacciSphereAlgorithm ;
+    private static boolean isFibonacciSphereAlgorithm;
     
     /**
      * Temperature
@@ -621,14 +618,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-        String tmpFileNameSphereNode = 
-                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Distribution version
-//        String tmpFileNameSphereNode = 
-//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -713,7 +710,9 @@ public class MIPET {
             } else {
                 tmpHasCNJob = true;
                 try {
-                    Files.createDirectories(Paths.get(tmpCNResultDirName));
+                    if (!forcefield_CN.isEmpty()) {
+                        Files.createDirectories(Paths.get(tmpCNResultDirName));
+                    }
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during creating CN result directory.", ex);
@@ -1155,10 +1154,9 @@ public class MIPET {
                             "InterruptException during reading output0_opt.txt",
                             ex);
                 }
-                
                 tmpProcess.destroy();
 
-                // Read the intermolecular energy
+                // Read the intermolecular energies from .arc files
                 String tmpSearch = "Intermolecular Energy :";
                 double tmpOptMinEnergy = 0.0;
                 try (BufferedReader tmpBR = new BufferedReader(
@@ -1218,10 +1216,6 @@ public class MIPET {
 //                    tmpTinkerXYZ0 = null;
 //                    
 //                }
-                
-                
-                
-                
                 
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
@@ -1404,13 +1398,17 @@ public class MIPET {
                             "IOException during writing output0_optimized.out "
                             + "in scratch.", ex);
                 }
-                tmpFileName = tmpIEResultDirName + FILESEPARATOR + "output.0";
+                
+                // Generate ouput.0 file
+                String tmpOutput0FileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output.0";
                 String tmpOptFileName;
                 int tmpAtomNumber1 = tmpTinkerXYZ1.getAtomSize1();
                 int tmpAtomNumber2 = tmpTinkerXYZ2.getAtomSize1();
                 tmpElementList1 = tmpTinkerXYZ1.getElementList1();
                 tmpElementList2 = tmpTinkerXYZ2.getElementList1();
-                TinkerXYZ tmpTinkerXyz = new TinkerXYZ(tmpFileName, 1, 
+                TinkerXYZ tmpTinkerXyz = new TinkerXYZ(tmpOutput0FileName, 1, 
                         tmpAtomNumber1, tmpAtomNumber2);
                 tmpFileName = tmpIEResultDirName + FILESEPARATOR + "output.xyz";
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
@@ -1425,22 +1423,29 @@ public class MIPET {
                         + FILESEPARATOR 
                         + "output_optimized.xyz";
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
-                String tmpKeyName = "\"" 
-                        + scratchDirectory
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + ".key"
-                        + "\"";
                 
+                // Generate .pdb file of output.0
                 if (tmpParticleName1.equals("H2O") || 
                         tmpParticleName2.equals("H2O")){
                     tmpHasH2O = true;
                 } else {
                     tmpHasH2O = false;
                 }
+                String tmpKeyFileContent = "\"" 
+                        + scratchDirectory
+                        + FILESEPARATOR 
+                        + tmpParticlePair
+                        + ".key"
+                        + "\"";
+                MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
+                        tmpOutput0FileName, 
+                        tmpKeyFileContent, 
+                        tmpHasH2O);
+                
+                // Generate .pdb file of output_optimized.0
                 MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
                         tmpOptFileName, 
-                        tmpKeyName, 
+                        tmpKeyFileContent, 
                         tmpHasH2O);
                 Path tmpOptDistDir = Paths.get(optDistDirectory 
                         + FILESEPARATOR 
@@ -2563,6 +2568,7 @@ public class MIPET {
                     tmpVdWSolutVolumes[tmpJobIndex] = MIPETUTIL.getVdwVolume(
                             smiles.get(tmpParticle1));
                 }
+                
                 // Calculate water volume ratio - ratio of Vparticle and Vvdw 
                 //   of water 1.7297
                 tmpBoxLengths[tmpJobIndex] =  Math.pow(WATERVOLUMERATIO 

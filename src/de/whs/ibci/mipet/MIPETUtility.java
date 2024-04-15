@@ -1113,8 +1113,11 @@ public class MIPETUtility{
         return tmpResult;
     }
     
-    
-    
+    /**
+     * Determine the distances to shortest neighbor
+     *   This is only for test purpose
+     * @return Distances to shortest neighbor
+     */
     public double[] getNextDistance() {
         String tmpFileNameSphereNode;
         String tmpFileName;
@@ -1587,19 +1590,22 @@ public class MIPETUtility{
      */
     public void callXYZPDB(String aTinkerXYZPdb, 
             String aXYZFileName, String aKeyFileName, Boolean aHasH2O) {
-        Process tmpProcess;
+        int tmpColumnNumber;
+        int tmpLineNumber;
+        int tmpContentLines;
+        int tmpNullLines;
         String tmpLine;
         String tmpOldNumber;
         String tmpNewNumber;
         String tmpAtomNumber;
         String tmpXYZFileName;
         String[] tmpSplited;
-        int tmpColumnNumber;
-        int tmpLineNumber;
+        Process tmpProcess;
         File tmpOutputFile;
         ArrayList<String[]> tmpXYZContent;
         HashSet<String> tmpDeleteAtomNumber;
 
+        tmpNullLines = 0;
         tmpXYZFileName = aXYZFileName;
         tmpAtomNumber = "";
         tmpXYZContent = new ArrayList<>();
@@ -1615,7 +1621,7 @@ public class MIPETUtility{
                     LOGGER.log(Level.SEVERE,
                             "IOException during reading" + aXYZFileName , ex);
             }
-            int tmpContentLines = tmpXYZContent.size();
+            tmpContentLines = tmpXYZContent.size();
             
             for (int i = 0; i < tmpContentLines; i++) {
                 tmpSplited = tmpXYZContent.get(i)[0].trim().split("\\s+");
@@ -1660,8 +1666,8 @@ public class MIPETUtility{
                                     for (int l = 6; l < tmpColumnNumber; l++) {
                                         if (tmpXYZContent.get(k)[l]
                                                 .equals(tmpOldNumber)) {
-                                            tmpXYZContent.get(k)[l] = 
-                                                   tmpNewNumber;
+                                            tmpXYZContent.get(k)[l] =
+                                                    tmpNewNumber;
                                         }
                                     }
 
@@ -1672,10 +1678,17 @@ public class MIPETUtility{
                             break;
                         }
                     }
-                    
+                } 
+            }
+            
+            for (int i = 1; i < tmpContentLines; i++) {
+                if (tmpXYZContent.get(i) == null) {
+                    tmpNullLines++;
                 }
             }
-            tmpXYZContent.get(0)[0] = tmpAtomNumber;
+            
+            tmpXYZContent.get(0)[0] = String.valueOf(
+                    tmpContentLines - tmpNullLines - 1);
             
             // Write .xyz file
             tmpXYZFileName = aXYZFileName + ".bak";
@@ -1726,6 +1739,13 @@ public class MIPETUtility{
         }
     }
     
+    /**
+     * 
+     * @param aFileName
+     * @param aDistances
+     * @param aDistanceIndices
+     * @param aEnergySorted 
+     */
     public void writeDistance_Energy(String aFileName, Double[] aDistances, 
             Integer[] aDistanceIndices, double[][] aEnergySorted) {
         int tmpEnergieNumber;
@@ -1771,16 +1791,16 @@ public class MIPETUtility{
     
     private void initialize() {
         // For the development
-        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-                Locale.getDefault(), this.getClass().getClassLoader());
+//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+//                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
-//        try {
-//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-//        } catch (IOException ex) {
-//            LOGGER.log(Level.SEVERE, 
-//                    "IOException during initialize().", ex);
-//        }
+        try {
+            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
+                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during initialize().", ex);
+        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();
