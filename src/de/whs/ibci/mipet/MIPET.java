@@ -172,6 +172,11 @@ public class MIPET {
      * Use fibonaccisphere algorithm
      */
     private static boolean isFibonacciSphereAlgorithm;
+
+    /**
+     * Use optimize sampled E(min) configuration
+     */
+    private static boolean isOptEmin;
     
     /**
      * Temperature
@@ -447,6 +452,11 @@ public class MIPET {
     private static String tinkerOptimize;
     
     /**
+     * Path and program name of Tinker's optrigid.exe
+     */
+    private static String tinkerOptrigid;
+    
+    /**
      * Path and program name of Tinker's xyzpdb.exe
      */
     private static String tinkerXYZPdb;
@@ -618,14 +628,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-//        String tmpFileNameSphereNode = 
-//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Distribution version
-        String tmpFileNameSphereNode = 
-                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -1065,7 +1075,7 @@ public class MIPET {
 
                 //</editor-fold>
 
-                //<editor-fold defaultstate="collapsed" desc="Minimize and analyze">
+                //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
 
                 // Delete old .key file and make new one
                 tmpKeyFile = Paths.get(scratchDirectory 
@@ -1078,6 +1088,10 @@ public class MIPET {
                             "IOException during deleting .key file in scratch.",
                             ex);
                 }
+                
+                // Determining opt. Emin
+                double tmpOptMinEnergy;
+                
                 tmpKeyFileName = tmpParticlePair + ".key";
                 tmpKeyPathName = scratchDirectory 
                         + FILESEPARATOR 
@@ -1088,91 +1102,94 @@ public class MIPET {
                         tmpParticleName2,
                         tmpKeyPathName, 
                         tmpKeyFileString);
-
-                // Optimize lowest energy conformation
-                tmpCmdList = new String[] {tinkerOptimize, 
-                        scratchDirectory 
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + ".0",        
-                        String.valueOf(optimizeRmsGradient)};
-                tmpPB = new ProcessBuilder();
-                tmpPB.command(tmpCmdList);
-                tmpProcess = null;
-                try {
-                    tmpProcess = tmpPB.start();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during process starting.",
-                            ex);
-                }
-                
-                // This is necessary because .waitFor() will hang otherwise
-                if (tmpProcess != null) {
-                    try (BufferedReader tmpBR = new BufferedReader(
-                            new InputStreamReader(tmpProcess.getInputStream()))) {
-                        while (tmpBR.readLine() != null ) {
-                        }
+                tmpOptMinEnergy = 0.0;
+                if (isOptEmin) {
+                    // Optimize lowest energy conformation
+                    tmpCmdList = new String[] {tinkerOptimize, 
+                            scratchDirectory 
+                            + FILESEPARATOR 
+                            + tmpParticlePair
+                            + ".0",        
+                            String.valueOf(optimizeRmsGradient)};
+                    tmpPB = new ProcessBuilder();
+                    tmpPB.command(tmpCmdList);
+                    tmpProcess = null;
+                    try {
+                        tmpProcess = tmpPB.start();
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
-                                "IOException during writing .0 file in scratch.",
+                                "IOException during process starting.",
                                 ex);
                     }
+
+                    // This is necessary because .waitFor() will hang otherwise
+                    if (tmpProcess != null) {
+                        try (BufferedReader tmpBR = new BufferedReader(
+                                new InputStreamReader(tmpProcess
+                                        .getInputStream()))) {
+                            while (tmpBR.readLine() != null ) {
+                            }
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "IOException during writing .0 file in scratch.",
+                                    ex);
+                        }
+                        try {
+                            tmpProcess.waitFor();
+                        } catch (InterruptedException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "InterruptException during processing optimize.exe",
+                                    ex);
+                        }
+                        tmpProcess.destroy();
+                    }
+
+                    // Use tinker's analyze.exe to determine intermolecular energy
+                    tmpOutputName = scratchDirectory
+                            + FILESEPARATOR
+                            + "output0_opt.txt";
+                    File tmpOptFile = new File(tmpOutputName);
+                    tmpCmdList = new String[] {tinkerAnalyze, 
+                        scratchDirectory
+                        + FILESEPARATOR 
+                        + tmpParticlePair
+                        + ".xyz",
+                        "E"};
+                    tmpPB = new ProcessBuilder();
+                    tmpPB.command(tmpCmdList);
+                    tmpPB.redirectOutput(tmpOptFile);
                     try {
+                        tmpProcess = tmpPB.start();
                         tmpProcess.waitFor();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during process start.",
+                                ex);
                     } catch (InterruptedException ex) {
                         LOGGER.log(Level.SEVERE, 
-                                "InterruptException during processing optimize.exe",
+                                "InterruptException during reading output0_opt.txt",
                                 ex);
                     }
                     tmpProcess.destroy();
-                }
 
-                // Use tinker's analyze.exe to determine intermolecular energy
-                tmpOutputName = scratchDirectory
-                        + FILESEPARATOR
-                        + "output0_opt.txt";
-                File tmpOptFile = new File(tmpOutputName);
-                tmpCmdList = new String[] {tinkerAnalyze, 
-                    scratchDirectory
-                    + FILESEPARATOR 
-                    + tmpParticlePair
-                    + ".xyz",
-                    "E"};
-                tmpPB = new ProcessBuilder();
-                tmpPB.command(tmpCmdList);
-                tmpPB.redirectOutput(tmpOptFile);
-                try {
-                    tmpProcess = tmpPB.start();
-                    tmpProcess.waitFor();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during process start.",
-                            ex);
-                } catch (InterruptedException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "InterruptException during reading output0_opt.txt",
-                            ex);
-                }
-                tmpProcess.destroy();
-
-                // Read the intermolecular energies from .arc files
-                String tmpSearch = "Intermolecular Energy :";
-                double tmpOptMinEnergy = 0.0;
-                try (BufferedReader tmpBR = new BufferedReader(
-                        new FileReader(tmpOptFile), 65536)) {
-                    while ((tmpLine = tmpBR.readLine()) != null ) {
-                        if (tmpLine.contains(tmpSearch)) {
-                            tmpOptMinEnergy = Double.parseDouble(tmpLine
-                                    .substring(25, 50));
-                            break;
+                    // Read the intermolecular energies from .arc files
+                    String tmpSearch = "Intermolecular Energy :";
+                    
+                    try (BufferedReader tmpBR = new BufferedReader(
+                            new FileReader(tmpOptFile), 65536)) {
+                        while ((tmpLine = tmpBR.readLine()) != null ) {
+                            if (tmpLine.contains(tmpSearch)) {
+                                tmpOptMinEnergy = Double.parseDouble(tmpLine
+                                        .substring(25, 50));
+                                break;
+                            }
                         }
+                        tmpBR.close();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during reading output0_opt.txt.",
+                                ex);
                     }
-                    tmpBR.close();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during reading output0_opt.txt.",
-                            ex);
                 }
 
                 //</editor-fold>
@@ -1216,10 +1233,12 @@ public class MIPET {
 //                    tmpTinkerXYZ0 = null;
 //                    
 //                }
+
                 
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
                 int tmpFractionToMax;
+                double tmpMinEnergy;
                 double[] tmpWeights;
                 double[] tmpEnergyDataFraction;
 
@@ -1232,8 +1251,19 @@ public class MIPET {
                 // "Boltzmann average" calculation only
 
                 if (boltzmannFraction == 0.0) {
-                    tmpMinWgtEnergy = tmpOptMinEnergy;
+                    if (isOptEmin) {
+                        tmpMinWgtEnergy = tmpOptMinEnergy;
+                        tmpMinEnergy = tmpOptMinEnergy;;
+                    } else {
+                        tmpMinWgtEnergy = tmpEnergyRecords[2].minEnergy();
+                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
+                    }
                 } else {
+                    if (isOptEmin) {
+                        tmpMinEnergy = tmpOptMinEnergy;
+                    } else {
+                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
+                    }
 
                     for (int i = 0; i < tmpDistSize; i++) {
                         tmpFractionToMax = (int)(tmpEnergySorted[i].length
@@ -1244,14 +1274,15 @@ public class MIPET {
                         for (int j = 0; j < tmpFractionToMax; j++) {
                             tmpEnergyDataFraction[j] = tmpEnergySorted[i][j];
                             tmpWeights[j] = Math.exp(-(tmpEnergySorted[i][j] 
-                                    - tmpOptMinEnergy) / (temperature * GASCONST));
+                                    - tmpMinEnergy) 
+                                    / (temperature * GASCONST));
                         }
 
                         tmpDistMinEnergyDatas[i][2] = MIPETUTIL
                                 .productSum(tmpWeights, tmpEnergyDataFraction) 
                                 / MIPETUTIL.sum(tmpWeights);
                     }
-
+                    
                     // Find minimum
                     tmpMinWgtEnergy= 100.0;
 
@@ -1263,12 +1294,11 @@ public class MIPET {
                     }
 
                 }
-                
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
                         tmpMinWgtEnergy,
-                        tmpOptMinEnergy));
+                        tmpMinEnergy));
 
                 //</editor-fold>
                 
@@ -1667,13 +1697,10 @@ public class MIPET {
     private static void setParameters() {
         String tmpTinkerDirectory;
         String tmpIsFibonacciSphereAlgorithm;
+        String tmpIsOptEmin;
         
-        if (MIPETUTIL.getResourceString("MIPET.Tinker9").toLowerCase().
-                equals("true")) {
-            isTinker9 = true;
-        } else {
-            isTinker9 = false;
-        }
+        isTinker9 = MIPETUTIL.getResourceString("MIPET.Tinker9").toLowerCase()
+                .equals("true");
         jobFileName = MIPETUTIL.getResourceString("MIPET.File.jobfile");
         cpuCoreNumber = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETCPUCoreNumber"));
@@ -1681,6 +1708,8 @@ public class MIPET {
                 "MIPETJavaUseFibonacciSphereAlgorithm");
         isFibonacciSphereAlgorithm = tmpIsFibonacciSphereAlgorithm
                 .equals("true");
+        tmpIsOptEmin = MIPETUTIL.getResourceString("MIPETOptEmin");
+        isOptEmin = tmpIsOptEmin.equals("true");
         temperature = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETTemperature"));
         boltzmannFraction = Double.parseDouble(MIPETUTIL.getResourceString(
@@ -1714,6 +1743,7 @@ public class MIPET {
             tinkerMinimize = tmpTinkerDirectory + "/minimize.exe";
             tinkerDynamic = tmpTinkerDirectory + "/dynamic.exe";
             tinkerOptimize = tmpTinkerDirectory + "/optimize.exe";
+            tinkerOptrigid = tmpTinkerDirectory + "/optrigid.exe";
             tinkerXYZPdb = tmpTinkerDirectory + "/xyzpdb.exe";
         } else if (OS.equals("Linux")) {
             if (isTinker9) {
@@ -1726,6 +1756,7 @@ public class MIPET {
             tinkerXYZEdit = tmpTinkerDirectory + "/xyzedit";
             tinkerMinimize = tmpTinkerDirectory + "/minimize";
             tinkerOptimize = tmpTinkerDirectory + "/optimize";
+            tinkerOptrigid = tmpTinkerDirectory + "/optrigid";
             tinkerXYZPdb = tmpTinkerDirectory + "/xyzpdb";
         }
         scratchDirectory = MIPETUTIL.getResourceString(
