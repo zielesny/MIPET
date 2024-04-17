@@ -1626,7 +1626,8 @@ public class MIPETUtility{
             for (int i = 0; i < tmpContentLines; i++) {
                 tmpSplited = tmpXYZContent.get(i)[0].trim().split("\\s+");
                 tmpXYZContent.set(i, tmpSplited);
-                if (tmpSplited[1].equals("LP") || tmpSplited[1].equals("M")) {
+                if (tmpSplited[1].toUpperCase().equals("LP") || 
+                        tmpSplited[1].equals("M")) {
                     tmpXYZContent.set(i, null);
                     tmpDeleteAtomNumber.add(tmpSplited[0]);
                 }

@@ -7,19 +7,22 @@ package de.whs.ibci.mipet;
 /**
  * Record for storage weighted intermolecular differential pair interaction 
  *   energies
+ * @author Mirco Daniel
  * @param particleName1
  *   Name of particle 1
  * @param particleName2
  *   Name of particle 2
- * @param minWgtEnergy
+ * @param wgtMinEnergy
  *   Lowest weighted differential pair interaction energy
- * @param minGlbEnergy
+ * @param minEnergy
  *   Lowest differential pair interaction energy
- * @author Mirco Daniel
+ * @param optMinEnergy
+ *   Optimized lowest differential pair interaction energy
  */
 public record ResultEnergyRecord(
         String particleName1,    
         String particleName2,
-        double minWgtEnergy,
-        double minGlbEnergy) {
+        double wgtMinEnergy,
+        double minEnergy,
+        double optMinEnergy) {
 }

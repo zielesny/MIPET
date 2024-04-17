@@ -179,6 +179,11 @@ public class MIPET {
     private static boolean isOptEmin;
     
     /**
+     * Use tinker's optrigid program
+     */
+    private static boolean isOptRigid;
+    
+    /**
      * Temperature
      */
     private static int temperature;
@@ -916,7 +921,7 @@ public class MIPET {
                 double[][] tmpEnergyDatas;
                 double[][] tmpDistMinEnergyDatas;
                 double tmpMinDistance;
-                double tmpMinWgtEnergy;
+                double tmpWgtMinEnergy;
                 double tmpDistanceCandidate;
                 String tmpKeyContent;
 
@@ -964,7 +969,7 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         1E10);
-                tmpMinWgtEnergy = tmpEnergyRecords[0].minEnergy();
+                tmpWgtMinEnergy = tmpEnergyRecords[0].minEnergy();
                 tmpMinDistance = tmpEnergyRecords[0].minDistance();
 
                 // Precise scan
@@ -992,9 +997,9 @@ public class MIPET {
                         tmpTinkerXYZ2, 
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
-                        tmpMinWgtEnergy);
-                if (tmpEnergyRecords[1].minEnergy() < tmpMinWgtEnergy) {
-                    tmpMinWgtEnergy = tmpEnergyRecords[1].minEnergy();
+                        tmpWgtMinEnergy);
+                if (tmpEnergyRecords[1].minEnergy() < tmpWgtMinEnergy) {
+                    tmpWgtMinEnergy = tmpEnergyRecords[1].minEnergy();
                     tmpMinDistance = tmpEnergyRecords[1].minDistance();
                 }
 
@@ -1023,8 +1028,8 @@ public class MIPET {
                         tmpTinkerXYZ2, 
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
-                        tmpMinWgtEnergy);
-                if (tmpEnergyRecords[2].minEnergy() < tmpMinWgtEnergy) {
+                        tmpWgtMinEnergy);
+                if (tmpEnergyRecords[2].minEnergy() < tmpWgtMinEnergy) {
                     tmpMinDistance = tmpEnergyRecords[2].minDistance();
                 }
                 tmpEnergyDatas = ArrayUtils
@@ -1104,13 +1109,21 @@ public class MIPET {
                         tmpKeyFileString);
                 tmpOptMinEnergy = 0.0;
                 if (isOptEmin) {
-                    // Optimize lowest energy conformation
-                    tmpCmdList = new String[] {tinkerOptimize, 
+                    if (isOptRigid) {
+                            tmpCmdList = new String[] {tinkerOptrigid, 
                             scratchDirectory 
                             + FILESEPARATOR 
                             + tmpParticlePair
                             + ".0",        
                             String.valueOf(optimizeRmsGradient)};
+                    } else {
+                        tmpCmdList = new String[] {tinkerOptimize, 
+                            scratchDirectory 
+                            + FILESEPARATOR 
+                            + tmpParticlePair
+                            + ".0",        
+                            String.valueOf(optimizeRmsGradient)};
+                    }
                     tmpPB = new ProcessBuilder();
                     tmpPB.command(tmpCmdList);
                     tmpProcess = null;
@@ -1234,8 +1247,6 @@ public class MIPET {
 //                    
 //                }
 
-                
-
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
                 int tmpFractionToMax;
                 double tmpMinEnergy;
@@ -1252,12 +1263,11 @@ public class MIPET {
 
                 if (boltzmannFraction == 0.0) {
                     if (isOptEmin) {
-                        tmpMinWgtEnergy = tmpOptMinEnergy;
-                        tmpMinEnergy = tmpOptMinEnergy;;
+                        tmpWgtMinEnergy = tmpOptMinEnergy;
                     } else {
-                        tmpMinWgtEnergy = tmpEnergyRecords[2].minEnergy();
-                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
+                        tmpWgtMinEnergy = tmpEnergyRecords[2].minEnergy();
                     }
+                    tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
                 } else {
                     if (isOptEmin) {
                         tmpMinEnergy = tmpOptMinEnergy;
@@ -1283,12 +1293,12 @@ public class MIPET {
                                 / MIPETUTIL.sum(tmpWeights);
                     }
                     
-                    // Find minimum
-                    tmpMinWgtEnergy= 100.0;
+                    // Find weight minimum energy
+                    tmpWgtMinEnergy= 100.0;
 
                     for (int i = 0; i < tmpDistSize; i++) {
-                        if(tmpDistMinEnergyDatas[i][2] < tmpMinWgtEnergy) {
-                            tmpMinWgtEnergy = tmpDistMinEnergyDatas[i][2];
+                        if(tmpDistMinEnergyDatas[i][2] < tmpWgtMinEnergy) {
+                            tmpWgtMinEnergy = tmpDistMinEnergyDatas[i][2];
                             tmpMinDistance = tmpDistMinEnergyDatas[i][0];
                         }
                     }
@@ -1297,8 +1307,9 @@ public class MIPET {
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
-                        tmpMinWgtEnergy,
-                        tmpMinEnergy));
+                        tmpWgtMinEnergy,
+                        tmpMinEnergy,
+                        tmpOptMinEnergy));
 
                 //</editor-fold>
                 
@@ -1345,7 +1356,7 @@ public class MIPET {
                     BWParticleLog.append(LINESEPARATOR);
                     BWParticleLog.append("New particle pair: ");
                     BWParticleLog.append("Minimum IntermolecularEnergy [kcal/mole] = "); 
-                    BWParticleLog.append(String.format("%.4f", tmpMinWgtEnergy));
+                    BWParticleLog.append(String.format("%.4f", tmpWgtMinEnergy));
                     BWParticleLog.append(LINESEPARATOR);
                     BWParticleLog.append("Fraction of energy values used for the Boltzmann distribution: ");
                     BWParticleLog.append(Double.toString(boltzmannFraction));
@@ -1353,22 +1364,12 @@ public class MIPET {
                     BWParticleLog.append(LINESEPARATOR);
                     BWParticleLog.append(Integer.toString(temperature));
                     BWParticleLog.append("    ");
-                    BWParticleLog.append(String.format("%.4f", tmpMinWgtEnergy));
+                    BWParticleLog.append(String.format("%.4f", tmpWgtMinEnergy));
                     BWParticleLog.append("    ");
                     BWParticleLog.append(LINESEPARATOR);
                     BWParticleLog.flush();
                     BWParticleDat.append("equilibriumDistances [" + ANGSTROM + "] = "); 
                     BWParticleDat.append(String.format("%.2f", tmpMinDistance));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
-                    BWParticleDat.append(Double.toString(boltzmannFraction));
-                    BWParticleDat.append("    ");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("    ");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Temperature [K]: ");
-                    BWParticleDat.append(Integer.toString(temperature));
-                    BWParticleDat.append("    ");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.flush();
                 } catch (IOException ex) {
@@ -1455,12 +1456,8 @@ public class MIPET {
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
                 
                 // Generate .pdb file of output.0
-                if (tmpParticleName1.equals("H2O") || 
-                        tmpParticleName2.equals("H2O")){
-                    tmpHasH2O = true;
-                } else {
-                    tmpHasH2O = false;
-                }
+                tmpHasH2O = tmpParticleName1.equals("H2O") || 
+                        tmpParticleName2.equals("H2O");
                 String tmpKeyFileContent = "\"" 
                         + scratchDirectory
                         + FILESEPARATOR 
@@ -1513,8 +1510,26 @@ public class MIPET {
                             + tmpEnergyCalcTime);        
                     BWParticleLog.append(LINESEPARATOR); 
                     BWParticleLog.close();
+                    BWParticleDat.append("SphereNodeNumber: "
+                            + Integer.toString(sphereNodeNumber)
+                            + LINESEPARATOR);
+                    BWParticleDat.append("CircularRotationNumber: "
+                            + Integer.toString(rotationNumber)
+                            + LINESEPARATOR);
+                    BWParticleDat.append("Tinker's 'optimize' used: "
+                            + isOptEmin);
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("Tinker's 'optrigid' used: "
+                            + isOptRigid);        
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
+                    BWParticleDat.append(Double.toString(boltzmannFraction));
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("Temperature [K]: ");
+                    BWParticleDat.append(Integer.toString(temperature));
+                    BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Weighted MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(String.format("%.4f", tmpMinWgtEnergy));
+                    BWParticleDat.append(String.format("%.4f", tmpWgtMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
@@ -1525,12 +1540,6 @@ public class MIPET {
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
                             + tmpEnergyCalcTime
-                            + LINESEPARATOR);
-                    BWParticleDat.append("SphereNodeNumber: "
-                            + Integer.toString(sphereNodeNumber)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("CircularRotationNumber: "
-                            + Integer.toString(rotationNumber)
                             + LINESEPARATOR);
                     BWParticleDat.close();
                 } catch (IOException ex) {
@@ -1698,6 +1707,7 @@ public class MIPET {
         String tmpTinkerDirectory;
         String tmpIsFibonacciSphereAlgorithm;
         String tmpIsOptEmin;
+        String tmpIsOptRigid;
         
         isTinker9 = MIPETUTIL.getResourceString("MIPET.Tinker9").toLowerCase()
                 .equals("true");
@@ -1710,6 +1720,8 @@ public class MIPET {
                 .equals("true");
         tmpIsOptEmin = MIPETUTIL.getResourceString("MIPETOptEmin");
         isOptEmin = tmpIsOptEmin.equals("true");
+        tmpIsOptRigid = MIPETUTIL.getResourceString("MIPETOptRigid");
+        isOptRigid = tmpIsOptRigid.equals("true");
         temperature = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETTemperature"));
         boltzmannFraction = Double.parseDouble(MIPETUTIL.getResourceString(
@@ -2455,7 +2467,8 @@ public class MIPET {
         return new EnergyRecord(aDistance,
                 tmpEnergyDatas, 
                 aDistance[tmpDistMinIndex], 
-                tmpDistMinIndex, tmpPartMinEnergy);
+                tmpDistMinIndex, 
+                tmpPartMinEnergy);
     }
     
     /**
@@ -3255,8 +3268,15 @@ public class MIPET {
             String aTitleAbbreviation) {
         
         int tmpJobLength;
-        int tmpOutputIteration; // 0: minWgtEnergy; 1: CN = 1; 
-                                // 2: minGblEnergy; 3: CN = 1
+        int tmpOutputIteration; 
+            // 0: boltzmannFraction=1.0, isOptEmin=true
+            // 1: boltzmannFraction=1.0, isOptEmin=true, CN=1
+            // 2: boltzmannFraction=1.0, isOptEmin=true, isOptRigid CN=1, 
+            // 3: boltzmannFraction=1.0, isOptEmin=false, CN=1
+            // 4: boltzmannFraction=0.0, isOptEmin=true
+            // 5: boltzmannFraction=0.0, isOptEmin=true, CN=1
+            // 6: boltzmannFraction=0.0, isOptEmin=true, isOptRigid CN=1, 
+            // 7: boltzmannFraction=0.0, isOptEmin=false, CN=1
         String tmpParticle;
         String tmpResultsDirectory;
         
@@ -3339,9 +3359,9 @@ public class MIPET {
                 tmpParticleName2 = energyList.get(i).particleName2();
                 tmpParticlePair = tmpParticleName1 + "_" + tmpParticleName2;
                 if (tmpOutputIteration <= 1) {
-                    tmpEnergy = energyList.get(i).minWgtEnergy();
+                    tmpEnergy = energyList.get(i).wgtMinEnergy();
                 } else if (tmpOutputIteration <= 3) {
-                    tmpEnergy = energyList.get(i).minGlbEnergy();
+                    tmpEnergy = energyList.get(i).minEnergy();
                 }
                 tmpEnergieMap.put(tmpParticlePair, tmpEnergy);
             }
