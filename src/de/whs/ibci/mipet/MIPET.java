@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1096,6 +1097,9 @@ public class MIPET {
                 
                 // Determining opt. Emin
                 double tmpOptMinEnergy;
+                double tmpRgdMinEnergy;
+                String tmpSourceName;
+                String tmpTargetName;
                 
                 tmpKeyFileName = tmpParticlePair + ".key";
                 tmpKeyPathName = scratchDirectory 
@@ -1107,21 +1111,24 @@ public class MIPET {
                         tmpParticleName2,
                         tmpKeyPathName, 
                         tmpKeyFileString);
+                File tmpOptFile;
                 tmpOptMinEnergy = 0.0;
-                if (isOptEmin) {
-                    if (isOptRigid) {
-                            tmpCmdList = new String[] {tinkerOptrigid, 
+                tmpRgdMinEnergy = 0.0;
+                
+                for (int i = 0; i < 2; i++) {
+                    if (i == 0) {
+                        tmpCmdList = new String[] {tinkerOptimize, 
                             scratchDirectory 
                             + FILESEPARATOR 
                             + tmpParticlePair
                             + ".0",        
                             String.valueOf(optimizeRmsGradient)};
                     } else {
-                        tmpCmdList = new String[] {tinkerOptimize, 
+                        tmpCmdList = new String[] {tinkerOptrigid, 
                             scratchDirectory 
                             + FILESEPARATOR 
                             + tmpParticlePair
-                            + ".0",        
+                            + ".0",
                             String.valueOf(optimizeRmsGradient)};
                     }
                     tmpPB = new ProcessBuilder();
@@ -1134,14 +1141,13 @@ public class MIPET {
                                 "IOException during process starting.",
                                 ex);
                     }
-
+                    
                     // This is necessary because .waitFor() will hang otherwise
                     if (tmpProcess != null) {
                         try (BufferedReader tmpBR = new BufferedReader(
                                 new InputStreamReader(tmpProcess
                                         .getInputStream()))) {
-                            while (tmpBR.readLine() != null ) {
-                            }
+                            while (tmpBR.readLine() != null ) {}
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, 
                                     "IOException during writing .0 file in scratch.",
@@ -1156,12 +1162,18 @@ public class MIPET {
                         }
                         tmpProcess.destroy();
                     }
-
+                    
                     // Use tinker's analyze.exe to determine intermolecular energy
-                    tmpOutputName = scratchDirectory
+                    if (i == 0)  {
+                        tmpOutputName = scratchDirectory
                             + FILESEPARATOR
                             + "output0_opt.txt";
-                    File tmpOptFile = new File(tmpOutputName);
+                    } else {
+                        tmpOutputName = scratchDirectory
+                            + FILESEPARATOR
+                            + "output0_rgd.txt";
+                    }
+                    tmpOptFile = new File(tmpOutputName);
                     tmpCmdList = new String[] {tinkerAnalyze, 
                         scratchDirectory
                         + FILESEPARATOR 
@@ -1184,20 +1196,49 @@ public class MIPET {
                                 ex);
                     }
                     tmpProcess.destroy();
-
-                    // Read the intermolecular energies from .arc files
-                    String tmpSearch = "Intermolecular Energy :";
+                    tmpSourceName = scratchDirectory
+                        + FILESEPARATOR 
+                        + tmpParticlePair
+                        + ".xyz";
+                    if (i == 0) {
+                        tmpTargetName = scratchDirectory
+                                + FILESEPARATOR 
+                                + tmpParticlePair
+                                + "_opt"
+                                + ".xyz";
+                    } else {
+                        tmpTargetName = scratchDirectory
+                                + FILESEPARATOR 
+                                + tmpParticlePair
+                                + "_rgd"
+                                + ".xyz";
+                    }
+                    try {
+                        Files.move(Paths.get(tmpSourceName), 
+                            Paths.get(tmpTargetName), 
+                            StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                            "IOException renaming .xyz file.", ex);
+                    }
                     
-                    try (BufferedReader tmpBR = new BufferedReader(
-                            new FileReader(tmpOptFile), 65536)) {
+                    // Read the intermolecular energies from .txt files
+                    String tmpSearch = "Intermolecular Energy :";
+                    Path tmpPath = Paths.get(tmpOutputName);
+                    try (BufferedReader tmpBR = Files.newBufferedReader(
+                            tmpPath, StandardCharsets.UTF_8)) {
                         while ((tmpLine = tmpBR.readLine()) != null ) {
                             if (tmpLine.contains(tmpSearch)) {
-                                tmpOptMinEnergy = Double.parseDouble(tmpLine
+                                if (i == 0) {
+                                    tmpOptMinEnergy = Double.parseDouble(tmpLine
                                         .substring(25, 50));
+                                } else {
+                                    tmpRgdMinEnergy = Double.parseDouble(tmpLine
+                                        .substring(25, 50));
+                                }
                                 break;
                             }
                         }
-                        tmpBR.close();
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during reading output0_opt.txt.",
@@ -1209,7 +1250,6 @@ public class MIPET {
                 
                 
                 // Only for test
-                
 //                MIPETUTIL.getNextDistance();
                 
 //                if (tmpParticlePair.equals("HAc_H2O")) {
@@ -1247,12 +1287,26 @@ public class MIPET {
 //                    
 //                }
 
-                //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
-                int tmpFractionToMax;
-                double tmpMinEnergy;
-                double[] tmpWeights;
-                double[] tmpEnergyDataFraction;
+                
+               
 
+                
+//                if (boltzmannFraction == 0.0) {
+//                    if (isOptEmin) {
+//                        tmpWgtMinEnergy = tmpOptMinEnergy;
+//                    } else {
+//                        tmpWgtMinEnergy = tmpEnergyRecords[2].minEnergy();
+//                    }
+//                    tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
+//                } else {
+//                    if (isOptEmin) {
+//                        tmpMinEnergy = tmpOptMinEnergy;
+//                    } else {
+//                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
+//                    }
+//                }
+
+                //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
                 // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
                 // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
                 // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
@@ -1260,56 +1314,49 @@ public class MIPET {
                 // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
                 // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
                 // "Boltzmann average" calculation only
+                int tmpFractionToMax;
+                double tmpMinEnergy;
+                double[] tmpWeights;
+                double[] tmpEnergyDataFraction;
+                
+                tmpMinEnergy = 0.;
+                tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
 
-                if (boltzmannFraction == 0.0) {
-                    if (isOptEmin) {
-                        tmpWgtMinEnergy = tmpOptMinEnergy;
-                    } else {
-                        tmpWgtMinEnergy = tmpEnergyRecords[2].minEnergy();
-                    }
-                    tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
-                } else {
-                    if (isOptEmin) {
-                        tmpMinEnergy = tmpOptMinEnergy;
-                    } else {
-                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
-                    }
+                for (int i = 0; i < tmpDistSize; i++) {
+                    tmpFractionToMax = (int)(tmpEnergySorted[i].length
+                            * boltzmannFraction);
+                    tmpEnergyDataFraction = new double[tmpFractionToMax];
+                    tmpWeights = new double[tmpFractionToMax];
 
-                    for (int i = 0; i < tmpDistSize; i++) {
-                        tmpFractionToMax = (int)(tmpEnergySorted[i].length
-                                * boltzmannFraction);
-                        tmpEnergyDataFraction = new double[tmpFractionToMax];
-                        tmpWeights = new double[tmpFractionToMax];
-
-                        for (int j = 0; j < tmpFractionToMax; j++) {
-                            tmpEnergyDataFraction[j] = tmpEnergySorted[i][j];
-                            tmpWeights[j] = Math.exp(-(tmpEnergySorted[i][j] 
-                                    - tmpMinEnergy) 
-                                    / (temperature * GASCONST));
-                        }
-
-                        tmpDistMinEnergyDatas[i][2] = MIPETUTIL
-                                .productSum(tmpWeights, tmpEnergyDataFraction) 
-                                / MIPETUTIL.sum(tmpWeights);
-                    }
-                    
-                    // Find weight minimum energy
-                    tmpWgtMinEnergy= 100.0;
-
-                    for (int i = 0; i < tmpDistSize; i++) {
-                        if(tmpDistMinEnergyDatas[i][2] < tmpWgtMinEnergy) {
-                            tmpWgtMinEnergy = tmpDistMinEnergyDatas[i][2];
-                            tmpMinDistance = tmpDistMinEnergyDatas[i][0];
-                        }
+                    for (int j = 0; j < tmpFractionToMax; j++) {
+                        tmpEnergyDataFraction[j] = tmpEnergySorted[i][j];
+                        tmpWeights[j] = Math.exp(-(tmpEnergySorted[i][j] 
+                                - tmpMinEnergy) 
+                                / (temperature * GASCONST));
                     }
 
+                    tmpDistMinEnergyDatas[i][2] = MIPETUTIL
+                            .productSum(tmpWeights, tmpEnergyDataFraction) 
+                            / MIPETUTIL.sum(tmpWeights);
                 }
+
+                // Find weight minimum energy
+                tmpWgtMinEnergy= 100.0;
+
+                for (int i = 0; i < tmpDistSize; i++) {
+                    if(tmpDistMinEnergyDatas[i][2] < tmpWgtMinEnergy) {
+                        tmpWgtMinEnergy = tmpDistMinEnergyDatas[i][2];
+                        tmpMinDistance = tmpDistMinEnergyDatas[i][0];
+                    }
+                }
+                
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
                         tmpWgtMinEnergy,
                         tmpMinEnergy,
-                        tmpOptMinEnergy));
+                        tmpOptMinEnergy,
+                        tmpRgdMinEnergy));
 
                 //</editor-fold>
                 
@@ -1385,6 +1432,7 @@ public class MIPET {
                 String tmpFileName;
                 Boolean tmpHasH2O;
                 
+                // Write ouput.0 file
                 tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
                 tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
                 try {
@@ -1399,16 +1447,19 @@ public class MIPET {
                 String tmpTargetDir = tmpIEResultDirName 
                         + FILESEPARATOR 
                         + "output0.out";        
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpTargetDir))) {
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
                     tmpBW.append(tmpOutput0);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during writing output0.out in scratch."
                             , ex);
                 }
-                tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".xyz");
-                tmpTarget = Paths.get(tmpIEResultDirName,"output_optimized.0");
+                
+                // Write output_opt.out
+                tmpOriginal = Paths.get(scratchDirectory, 
+                        tmpParticlePair + "_opt.xyz");
+                tmpTarget = Paths.get(tmpIEResultDirName,"output_opt.0");
                 try {
                     Files.copy(tmpOriginal, tmpTarget,
                         StandardCopyOption.REPLACE_EXISTING);
@@ -1420,17 +1471,42 @@ public class MIPET {
                         + tmpOptMinEnergy + " kcal/mol";
                 tmpTargetDir = tmpIEResultDirName 
                         + FILESEPARATOR 
-                        + "output0_optimized.out";        
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpTargetDir))) {
+                        + "output0_opt.out";        
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
                     tmpBW.append(tmpOutput0);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
-                            "IOException during writing output0_optimized.out "
+                            "IOException during writing output0_opt.out "
                             + "in scratch.", ex);
                 }
                 
-                // Generate ouput.0 file
+                // Write output_rgd.out
+                tmpOriginal = Paths.get(scratchDirectory, 
+                        tmpParticlePair + "_rgd.xyz");
+                tmpTarget = Paths.get(tmpIEResultDirName,"output_rgd.0");
+                try {
+                    Files.copy(tmpOriginal, tmpTarget,
+                        StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, 
+                            "IOException during copying output.0", ex);
+                }
+                tmpOutput0 = "Intermolecular Energy: " 
+                        + tmpRgdMinEnergy + " kcal/mol";
+                tmpTargetDir = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output0_rgd.out";        
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
+                    tmpBW.append(tmpOutput0);
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, 
+                            "IOException during writing output0_rgd.out "
+                            + "in scratch.", ex);
+                }
+                
+                // Generate output.xyz
                 String tmpOutput0FileName = tmpIEResultDirName 
                         + FILESEPARATOR 
                         + "output.0";
@@ -1441,18 +1517,35 @@ public class MIPET {
                 tmpElementList2 = tmpTinkerXYZ2.getElementList1();
                 TinkerXYZ tmpTinkerXyz = new TinkerXYZ(tmpOutput0FileName, 1, 
                         tmpAtomNumber1, tmpAtomNumber2);
-                tmpFileName = tmpIEResultDirName + FILESEPARATOR + "output.xyz";
+                tmpFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output.xyz";
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
+                
+                // Generate output_opt.xyz
                 tmpOptFileName = tmpIEResultDirName 
                         + FILESEPARATOR 
-                        + "output_optimized.0";
+                        + "output_opt.0";
                 tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, tmpAtomNumber1, 
                         tmpAtomNumber2);
                 tmpTinkerXyz.setElementList1(tmpElementList1);
                 tmpTinkerXyz.setElementList2(tmpElementList2);
                 tmpFileName = tmpIEResultDirName 
                         + FILESEPARATOR 
-                        + "output_optimized.xyz";
+                        + "output_opt.xyz";
+                tmpTinkerXyz.writeToXyzFile(tmpFileName);
+                
+                // Generate output_rgd.xyz
+                tmpOptFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_rgd.0";
+                tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, tmpAtomNumber1, 
+                        tmpAtomNumber2);
+                tmpTinkerXyz.setElementList1(tmpElementList1);
+                tmpTinkerXyz.setElementList2(tmpElementList2);
+                tmpFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_rgd.xyz";
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
                 
                 // Generate .pdb file of output.0
@@ -1516,27 +1609,31 @@ public class MIPET {
                     BWParticleDat.append("CircularRotationNumber: "
                             + Integer.toString(rotationNumber)
                             + LINESEPARATOR);
-                    BWParticleDat.append("Tinker's 'optimize' used: "
-                            + isOptEmin);
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Tinker's 'optrigid' used: "
-                            + isOptRigid);        
+                    BWParticleDat.append("Temperature [K]: ");
+                    BWParticleDat.append(Integer.toString(temperature));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
                     BWParticleDat.append(Double.toString(boltzmannFraction));
                     BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Temperature [K]: ");
-                    BWParticleDat.append(Integer.toString(temperature));
-                    BWParticleDat.append(LINESEPARATOR);
+                    if (isOptEmin) {
+                        BWParticleDat.append("Optimize sampled E(min) configuration: "
+                                + isOptEmin);
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Tinker's 'optrigid' used: "
+                                + isOptRigid);        
+                        BWParticleDat.append(LINESEPARATOR);
+                    }
                     BWParticleDat.append("Weighted MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(String.format("%.4f", tmpWgtMinEnergy));
+                    BWParticleDat.append(String.format("%.4f", 
+                            tmpWgtMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpEnergyRecords[2].minEnergy()));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(String.format("%.4f", tmpOptMinEnergy));
+                    BWParticleDat.append(String.format("%.4f", 
+                            tmpOptMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
                             + tmpEnergyCalcTime
@@ -3268,15 +3365,19 @@ public class MIPET {
             String aTitleAbbreviation) {
         
         int tmpJobLength;
-        int tmpOutputIteration; 
-            // 0: boltzmannFraction=1.0, isOptEmin=true
-            // 1: boltzmannFraction=1.0, isOptEmin=true, CN=1
-            // 2: boltzmannFraction=1.0, isOptEmin=true, isOptRigid CN=1, 
-            // 3: boltzmannFraction=1.0, isOptEmin=false, CN=1
-            // 4: boltzmannFraction=0.0, isOptEmin=true
-            // 5: boltzmannFraction=0.0, isOptEmin=true, CN=1
-            // 6: boltzmannFraction=0.0, isOptEmin=true, isOptRigid CN=1, 
-            // 7: boltzmannFraction=0.0, isOptEmin=false, CN=1
+        int tmpOutputIteration;
+        // 0: CN = 1, Wgt = true, Opt = true, Rgd = true
+        // 1: CN = 1, Wgt = true, Opt = true, Rgd = false
+        // 2: CN = 1, Wgt = true, Opt = false
+        // 3: CN = 1, Wgt = false, Opt = true, Rgd = true
+        // 4: CN = 1, Wgt = false, Opt = true, Rgd = false
+        // 5: CN = 1, Wgt = false, Opt = false
+        // 6: CN != 1, Wgt = true, Opt = true, Rgd = true
+        // 7: CN != 1, Wgt = true, Opt = true, Rgd = false
+        // 8: CN != 1, Wgt = true, Opt = false
+        // 9: CN != 1, Wgt = false, Opt = true, Rgd = true
+        // 10: CN != 1, Wgt = false, Opt = true, Rgd = false
+        // 11: CN != 1, Wgt = false, Opt = false
         String tmpParticle;
         String tmpResultsDirectory;
         
@@ -3484,6 +3585,21 @@ public class MIPET {
                 tmpBW.append("# Fraction for Boltzmann averaging: ");
                 tmpBW.append(String.valueOf(boltzmannFraction));
                 tmpBW.append(LINESEPARATOR);
+                switch (tmpOutputIteration) {
+                    case 1, 2:
+                        tmpBW.append("# Optimize sampled E(min) configuration: "
+                                + isOptEmin);
+                        tmpBW.append(LINESEPARATOR);
+                        tmpBW.append("# Tinker's 'optrigid' used: "
+                                + isOptRigid);        
+                        tmpBW.append(LINESEPARATOR);
+                    break;
+                    case 3, 4:
+                        tmpBW.append("# Optimize sampled E(min) configuration: false"
+                                );
+                        tmpBW.append(LINESEPARATOR);
+                    break;
+                }
                 if (tmpOutputIteration == 1 || tmpOutputIteration == 3) {
                     tmpBW.append("# CN = 1 for all particle pairs");
                     tmpBW.append(LINESEPARATOR);

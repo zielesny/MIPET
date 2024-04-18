@@ -18,11 +18,14 @@ package de.whs.ibci.mipet;
  *   Lowest differential pair interaction energy
  * @param optMinEnergy
  *   Optimized lowest differential pair interaction energy
+ * @param rgdMinEnergy
+ *   Optimized (Optrigid used) lowest differential pair interaction energy
  */
 public record ResultEnergyRecord(
         String particleName1,    
         String particleName2,
         double wgtMinEnergy,
         double minEnergy,
-        double optMinEnergy) {
+        double optMinEnergy,
+        double rgdMinEnergy) {
 }
