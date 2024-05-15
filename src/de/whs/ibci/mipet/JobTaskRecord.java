@@ -1,10 +1,23 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Record.java to edit this template
+/**
+ * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
+ * Copyright (C) 2024  Achim Zielesny (achim.zielesny@googlemail.com)
+ * 
+ * Source code is available at <https://github.com/zielesny/MIPET>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.whs.ibci.mipet;
-
-import java.util.HashSet;
 
 /**
  * Record for storage job tasks
