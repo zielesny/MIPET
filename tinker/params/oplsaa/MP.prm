@@ -1,0 +1,116 @@
+# -----------------------------------------------------------------
+# 2024-02-23
+# Definition of new/additional OPLS-AA parameters for protonated dimethyl phosphate (DMP)
+# according to 
+#
+# Krzysztof Murzyn, Maciej Bratek, and Marta Pasenkiewicz-Gierula
+# Refined OPLS All-Atom Force Field Parameters for n-Pentadecane, Methyl Acetate, and Dimethyl Phosphate
+# J. Phys. Chem. B 2013, 117, 16388−16396
+# https://doi.org/10.1021/jp408162d
+# -----------------------------------------------------------------
+
+
+      #############################
+      ##                         ##
+      ##  Atom Type Definitions  ##
+      ##                         ##
+      #############################
+
+# The original OPLS-AA force field definition in Tinker
+# atom        388   20    OS    "Me Phosphate CH3-O"         8    15.999    1
+# has an incorrect connectivity of 1: The correct connectivity of oxygen 388 is 2
+atom        388   20    OS    "Me Phosphate CH3-O"         8    15.999    2
+atom        907    5    OH    "Phosphoric Acid -OH"          8    15.999    2
+atom        908    7    HO    "Phosphoric Acid -POOH"        1     1.008    1
+
+
+      ################################
+      ##                            ##
+      ##  Van der Waals Parameters  ##
+      ##                            ##
+      ################################
+
+# OH    "Phosphoric Acid -OH"
+vdw         907               3.1000     0.1400
+
+# P     "Me Phosphate P"
+vdw         386               3.7400     0.1400
+
+# O2    "Me Phosphate O=P-O"
+vdw         387               3.1500     0.1700
+
+# OS    "Me Phosphate CH3-O"
+vdw         388               2.9000     0.1200
+
+      
+      ##################################
+      ##                              ##
+      ##  Bond Stretching Parameters  ##
+      ##                              ##
+      ##################################
+
+#OS-P: "Me Phosphate CH3-O" to "Me Phosphate P"
+bond         20   64          262.50     1.6100
+
+#OH-P: "Phosphoric Acid -OH" to "Me Phosphate P"
+bond          5   64          262.50     1.6100
+
+
+      ################################
+      ##                            ##
+      ##  Angle Bending Parameters  ##
+      ##                            ##
+      ################################
+
+#OH-P-OS: "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate CH3-O"
+angle         5   64   20      70.00     102.60
+
+#OH-P-O2: "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate O=P-O"
+angle         5   64   52      70.00     108.23
+
+
+      ############################
+      ##                        ##
+      ##  Torsional Parameters  ##
+      ##                        ##
+      ############################
+
+# O2-P-OH-HO: "DiMe Phosphate O=P-O", "Me Phosphate P", "Phosphoric Acid -OH", "Phosphoric Acid -POOH"
+torsion      52   64    5    7      0.000 0.0 1    0.000 180.0 2    0.000 0.0 3  
+
+# HO-OH-P-OS: "Phosphoric Acid -POOH", "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate CH3-O"
+torsion       7    5   64   20      0.000 0.0 1    0.000 180.0 2    0.000 0.0 3
+
+# CT-OS-P-O2: "Me Phosphate CH3-O", "Me Phosphate CH3-O",  "Me Phosphate O=PO2", "Me Phosphate CH3-O"
+torsion      13   20   64   52      0.000 0.0 1    0.000 180.0 2    0.562 0.0 3
+
+# OH-P-OS-CT "Phosphoric Acid -OH", "Me Phosphate P","Me Phosphate CH3-O", "Me Phosphate CH3-O"
+torsion       5   64   20   13      4.800 0.0 1    -2.40 180.0 2    0.500 0.0 3 
+
+# HC-CT-OS-P: "Phosphoric Acid -OH", "Me Phosphate CH3-O", "Me Phosphate CH3-O", "Me Phosphate O=PO2"
+torsion      46   13   20   64      0.000 0.0 1     0.000 180.0 2   0.357 0.0 3
+
+
+      ########################################
+      ##                                    ##
+      ##  Atomic Partial Charge Parameters  ##
+      ##                                    ##
+      ########################################      
+
+# OH    "Phosphoric Acid -OH"
+charge      907              -0.6400
+
+# HO    "Phosphoric Acid -POOH"
+charge      908               0.4200
+
+# P     "DiMe Phosphate P"
+charge      386               1.2700
+
+# O2    "DiMe Phosphate O=P-O"
+charge      387              -0.7900
+
+# OS    "DiMe Phosphate CH3-O"
+charge      388              -0.4700
+
+# CT    "DiMe Phosphate CH3-O"
+charge      389               0.4300

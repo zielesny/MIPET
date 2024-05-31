@@ -31,7 +31,6 @@ hs_err_pid*
 lib/
 nbproject/
 build.xml
-tinker/
 tinker/0version.txt
 tinker/critical.exe
 tinker/params/amoebapluscf.prm
