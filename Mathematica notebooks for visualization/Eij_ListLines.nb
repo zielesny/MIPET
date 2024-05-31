@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     18114,        445]
-NotebookOptionsPosition[     17651,        430]
-NotebookOutlinePosition[     18063,        446]
-CellTagsIndexPosition[     18020,        443]
+NotebookDataLength[     19404,        476]
+NotebookOptionsPosition[     18847,        460]
+NotebookOutlinePosition[     19255,        476]
+CellTagsIndexPosition[     19212,        473]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -22,10 +22,9 @@ Cell[TextData[{
  "This script generates a plot for each dimer, plotting the minimum sampled \
 energy configuration (in red) and the averaged interaction energy at a \
 specific distance against the corresponding distance (refer to the example \
-below).\nTo execute this script, copy and paste it to the \[OpenCurlyQuote]\
-\[CloseCurlyQuote]Result\[CloseCurlyQuote]\[CloseCurlyQuote] folder and run \
-it. The plots will be saved in a directory named \
-\[OpenCurlyDoubleQuote]Eij_plots\[CloseCurlyDoubleQuote].\n\n",
+below).\nTo execute this script, copy and paste it to one folder deeper from \
+the folders of the data to be evaluated and run the script under the module. \
+The plots will be saved in the subfolders in .png and .svg format.\n\n",
  Cell[BoxData[
   GraphicsBox[{{}, {{{}, {}, 
       {RGBColor[0.790588, 0.201176, 0.], PointSize[
@@ -239,15 +238,16 @@ ruD7GHMlfvfojlHmKr4/wFydxTXMu5lrs9jLYpnFdXD+q9X/+C/+KzKa
       Scaled[0.05]}},
    Ticks->{Automatic, Automatic}]], "Output",
   CellChangeTimes->{
-   3.894101811864515*^9, 3.894424854887367*^9, {3.9000536537379313`*^9, 
+   3.894101811864515*^9, 3.894424854887367*^9, {3.900053653737932*^9, 
     3.900053676734696*^9}},ExpressionUUID->
   "57f9370c-f7cf-458f-b5a7-19a5bbc2d7ee"]
 }], "Text",
- CellChangeTimes->{{3.9085210095215054`*^9, 3.9085210297728214`*^9}, {
-  3.9085210840176015`*^9, 3.9085212081654663`*^9}, {3.9108525946560736`*^9, 
-  3.9108526625711527`*^9}, {3.910852694313801*^9, 3.9108527000865555`*^9}, {
-  3.9108527501766667`*^9, 
-  3.9108527537750235`*^9}},ExpressionUUID->"8af4dbae-054e-4c05-80b0-\
+ CellChangeTimes->{{3.908521009521506*^9, 3.9085210297728214`*^9}, {
+  3.9085210840176015`*^9, 3.908521208165468*^9}, {3.910852594656073*^9, 
+  3.9108526625711527`*^9}, {3.910852694313801*^9, 3.910852700086555*^9}, {
+  3.9108527501766667`*^9, 3.910852753775023*^9}, {3.9261333678454494`*^9, 
+  3.9261334162506485`*^9}, {3.926133501787117*^9, 
+  3.926133544399563*^9}},ExpressionUUID->"8af4dbae-054e-4c05-80b0-\
 f5eca4189989"],
 
 Cell[BoxData[{
@@ -420,19 +420,49 @@ Cell[BoxData[{
       RowBox[{"Length", "[", "results", "]"}]}], "}"}]}], 
    "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.900050834852292*^9, 3.900050898951457*^9}, {
-   3.900050998805928*^9, 3.9000510948268633`*^9}, {3.9000522363308864`*^9, 
-   3.900052237173359*^9}, {3.900052276705725*^9, 3.9000522923842688`*^9}, {
+   3.900050998805928*^9, 3.9000510948268633`*^9}, {3.900052236330886*^9, 
+   3.900052237173359*^9}, {3.900052276705725*^9, 3.900052292384268*^9}, {
    3.900053007251809*^9, 3.900053013192605*^9}, {3.9000535169780464`*^9, 
    3.900053556995121*^9}, {3.900053660634661*^9, 3.900053661611744*^9}, 
-   3.9085212381755476`*^9, {3.908521273629154*^9, 3.908521281840391*^9}, 
-   3.9108529716209555`*^9},ExpressionUUID->"a2cff652-e760-4081-b87b-\
-8e96e9b088cb"]
+   3.908521238175548*^9, {3.908521273629154*^9, 3.908521281840391*^9}, 
+   3.910852971620955*^9},
+ CellLabel->"In[1]:=",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"pathNames", " ", "=", " ", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"FileNames", "[", 
+      RowBox[{"\"\<*\>\"", ",", "\"\<\>\"", ",", "Infinity"}], "]"}], ",", 
+     "DirectoryQ"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Do", "[", 
+  RowBox[{
+   RowBox[{"ExportPlots", "[", 
+    RowBox[{
+     RowBox[{"pathNames", "[", 
+      RowBox[{"[", "i", "]"}], "]"}], ",", 
+     RowBox[{"pathNames", "[", 
+      RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"i", ",", 
+     RowBox[{"Length", "[", "pathNames", "]"}]}], "}"}]}], 
+  "]"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.926129426163925*^9, 3.9261295145719833`*^9}, {
+  3.9261295577929096`*^9, 3.9261295684578743`*^9}, {3.926129606609804*^9, 
+  3.9261296691343975`*^9}, {3.9261304220472755`*^9, 3.9261304258910923`*^9}, {
+  3.9261304566706505`*^9, 3.926130526204487*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"bc648ddb-d823-eb48-9f6b-f682673e2b01"]
 },
-WindowSize->{958.5, 1005.75},
-WindowMargins->{{5.25, Automatic}, {Automatic, 55.5}},
-FrontEndVersion->"13.2 for Microsoft Windows (64-bit) (November 18, 2022)",
+WindowSize->{958.5, 1001},
+WindowMargins->{{Automatic, 474}, {Automatic, 89.5}},
+FrontEndVersion->"14.0 for Microsoft Windows (64-bit) (December 12, 2023)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"8eefefb4-a094-42b2-907c-a7d205356260"
+ExpressionUUID->"8b51e830-a81b-3848-9b41-c3009e287c7e"
 ]
 (* End of Notebook Content *)
 
@@ -445,8 +475,9 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 9931, 230, 340, "Text",ExpressionUUID->"8af4dbae-054e-4c05-80b0-f5eca4189989"],
-Cell[10492, 252, 7155, 176, 977, "Input",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"]
+Cell[558, 20, 9979, 230, 363, "Text",ExpressionUUID->"8af4dbae-054e-4c05-80b0-f5eca4189989"],
+Cell[10540, 252, 7168, 176, 1433, "Input",ExpressionUUID->"a2cff652-e760-4081-b87b-8e96e9b088cb"],
+Cell[17711, 430, 1132, 28, 135, "Input",ExpressionUUID->"bc648ddb-d823-eb48-9f6b-f682673e2b01"]
 }
 ]
 *)
