@@ -69,12 +69,12 @@ public class MIPET {
     /**
      * Angstrom character
      */
-    private static final char ANGSTROM = '\u212B';
+    private static final char ANGSTROM = 'A';
     
     /**
      * Superscript 3 character
      */
-    private static final char SUPERSCRIPTTHREE = '\u00B3';
+    private static final String SUPERSCRIPTTHREE = "^3";
     
     /**
      * Logger of this class

@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1612,7 +1613,6 @@ public class MIPETUtility{
         String tmpLine;
         String tmpOldNumber;
         String tmpNewNumber;
-        String tmpAtomNumber;
         String tmpXYZFileName;
         String[] tmpSplited;
         Process tmpProcess;
@@ -1622,7 +1622,6 @@ public class MIPETUtility{
 
         tmpNullLines = 0;
         tmpXYZFileName = aXYZFileName;
-        tmpAtomNumber = "";
         tmpXYZContent = new ArrayList<>();
         tmpDeleteAtomNumber = new HashSet<>();
                 
@@ -1677,7 +1676,6 @@ public class MIPETUtility{
                                 if (tmpXYZContent.get(k) != null) {
                                     tmpColumnNumber = tmpXYZContent.get(k)
                                             .length;
-                                    tmpAtomNumber = tmpXYZContent.get(k)[0];
 
                                     for (int l = 6; l < tmpColumnNumber; l++) {
                                         if (tmpXYZContent.get(k)[l]
@@ -1706,7 +1704,9 @@ public class MIPETUtility{
             tmpXYZContent.get(0)[0] = String.valueOf(
                     tmpContentLines - tmpNullLines - 1);
             
-            // Write .xyz file
+            // Write .bak file
+            // .bak file (xyz format) is same file without LP
+            // .pdb format has issue with LP
             tmpXYZFileName = aXYZFileName + ".bak";
             tmpOutputFile = new File(tmpXYZFileName);
             
@@ -1752,6 +1752,28 @@ public class MIPETUtility{
         } catch (InterruptedException ex) {
             LOGGER.log(Level.SEVERE, 
                     "InterruptException during process xyzpdb.exe start", ex);
+        }
+        
+        // Rename .pdb file
+        try {
+            String tmpOldXYZFileName = aXYZFileName + ".pdb";
+            String tmpNewXYZFileName = aXYZFileName
+                    .substring(0, aXYZFileName.length() - 3) + ".pdb";
+            Files.move(Paths.get(tmpOldXYZFileName), 
+                Paths.get(tmpNewXYZFileName), 
+                StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                        "IOException during rename .0.pdb to .pdb", ex);
+        }
+        
+        // Delete .bak file
+        try {
+            Files.deleteIfExists(Paths.get(tmpXYZFileName));
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE,
+                    "IOException during deleting .bak file.",
+                    ex);
         }
     }
     
