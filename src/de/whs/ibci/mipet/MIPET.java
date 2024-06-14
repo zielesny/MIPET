@@ -1678,25 +1678,54 @@ public class MIPET {
                     BWParticleDat.append(String.format("%.4f", 
                             tmpWgt_Opt_MinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         Weighted (Emin = optMin) MinimumIntermolecularEnergy: 
+                                         Weighted differential pair interaction energy with
+                                         Emin = lowest differential pair interaction energy after optimization with tinker's optimize.""");
+                    BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Weighted (Emin = rgdMin) MinimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpWgt_Rgd_MinEnergy));
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         Weighted (Emin = rgdMin) MinimumIntermolecularEnergy: 
+                                         Weighted differential pair interaction energy with
+                                         Emin = lowest differential pair interaction energy after optimization with tinker's optrigid.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Weighted (Emin = glbMin) MinimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpWgt_Opt0_MinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         Weighted (Emin = glbMin) MinimumIntermolecularEnergy: 
+                                         Weighted differential pair interaction energy with
+                                          Emin = lowest differential pair interaction energy.""");
+                    BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpGlbMinEnergy));
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         GlobalMinimumIntermolecularEnergy:
+                                         Lowest differential pair interaction energy of all dimer configurations.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpOptMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         Optimized minimumIntermolecularEnergy: 
+                                         Differential pair interaction energy from the dimer configuration
+                                         with lowest differential pair interaction energy after optimize.""");
+                    BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(String.format("%.4f", 
                             tmpRgdMinEnergy));
+                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("""
+                                         Rigid-optimized minimumIntermolecularEnergy: 
+                                         Differential pair interaction energy from the dimer configuration
+                                         with lowest differential pair interaction energy after optrigid.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
                             + tmpEnergyCalcTime
@@ -1728,6 +1757,79 @@ public class MIPET {
                 tmpIsExitCondition = true;
             }
         }
+        
+        //<editor-fold defaultstate="collapsed" desc="Write Readme.txt">
+        String tmpReadme =
+                """
+                *** Notice for files in subfolders ***
+                *************************************
+                Tinker's tools use tinker's .xyz coordinate file. This file format
+                is different than the original .xyz file format. It has additional
+                information like atom numbers, atom type number, information about 
+                connection to other atoms. Unfortunately Tinker's tools use same 
+                extension .xyz.
+
+                1particle_2particle.dat:
+                Summary information like equilibrium distance, sphere node number,
+                circle node number, temperature, weighted and unweighted minimum
+                differential pair interaction energy.
+
+                1particle_2particle_dist_vs_energy.dat
+                Distance vs minimum differential pair interaction energy datas.
+
+                1particle_2particle_dist_vs_energy.svg
+                Diagram plot of distance vs minimum differential pair interaction 
+                energy datas.
+
+                1particle_2particle_log.txt
+                Some informations for developer.
+
+                1particle_2particle.out
+                Tinker's .xyz coordinate file of the dimer configuration with lowest
+                differential pair interaction energy.
+
+                1particle_2particle.pdb
+                Coordinate file of the dimer configuration with lowest differential 
+                pair interaction energy as .pdb file.
+
+                1particle_2particle.xyz
+                (Original) .xyz coordinate file of the dimer configuration with 
+                lowest differential pair interaction energy.
+
+                1particle_2particle_opt.0
+                1particle_2particle_opt.pdb
+                1particle_2particle_opt.xyz
+                Coordinate files from the dimer configuration with lowest 
+                differential pair interaction energy after optimize.
+
+                1particle_2particle_rgd.0
+                1particle_2particle_rgd.pdb
+                1particle_2particle_rgd.xyz
+                Coordinate files from the dimer configuration with lowest 
+                differential pair interaction energy after optrigid.
+
+                output0.out
+                output0_opt.out
+                output0_rgd.out
+                Output files from tinker's analyze with differential pair interaction 
+                energy data. 
+                """;
+        String ReadmeFileName = resultDirectory 
+                + FILESEPARATOR
+                + "IE"
+                + FILESEPARATOR
+                + forcefield_IE
+                + FILESEPARATOR
+                + "Readme.txt";
+        try (BufferedWriter tmpBW = new BufferedWriter(
+                new FileWriter(ReadmeFileName))) {
+            tmpBW.append(tmpReadme);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during writing Readme.txt.", ex);
+        }
+                
+        //</editor-fold>
         
         System.out.println("Calculating coordination numbers...");
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">

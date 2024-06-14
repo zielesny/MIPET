@@ -1754,26 +1754,28 @@ public class MIPETUtility{
                     "InterruptException during process xyzpdb.exe start", ex);
         }
         
-        // Rename .pdb file
-        try {
-            String tmpOldXYZFileName = aXYZFileName + ".pdb";
-            String tmpNewXYZFileName = aXYZFileName
-                    .substring(0, aXYZFileName.length() - 3) + ".pdb";
-            Files.move(Paths.get(tmpOldXYZFileName), 
-                Paths.get(tmpNewXYZFileName), 
-                StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                        "IOException during rename .0.pdb to .pdb", ex);
-        }
-        
-        // Delete .bak file
-        try {
-            Files.deleteIfExists(Paths.get(tmpXYZFileName));
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE,
-                    "IOException during deleting .bak file.",
-                    ex);
+        if (aHasH2O) {
+            // Rename .pdb file
+            try {
+                String tmpOldXYZFileName = aXYZFileName + ".pdb";
+                String tmpNewXYZFileName = aXYZFileName
+                        .substring(0, aXYZFileName.length() - 2) + ".pdb";
+                Files.move(Paths.get(tmpOldXYZFileName), 
+                    Paths.get(tmpNewXYZFileName), 
+                    StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                            "IOException during rename .0.pdb to .pdb", ex);
+            }
+
+            // Delete .bak file
+            try {
+                Files.deleteIfExists(Paths.get(tmpXYZFileName));
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "IOException during deleting .bak file.",
+                        ex);
+            }
         }
     }
     

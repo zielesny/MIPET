@@ -20,6 +20,8 @@ Azolid          N1CCCC1
 AcNH2           CC(=O)N
 MeAcNH          CC(=O)NC
 MeSH            CS
+Me2S						CSC
+Me2S2						CSSC
 MP              COP(=O)(O)O
 DMP             COP(=O)(O)OC
 Ph              c1ccccc1
