@@ -132,7 +132,7 @@ public class MIPET {
     /**
      * String for version number of exported parameter set file
      */
-    private static final String VERSION_NUMBER = "1.0.0";
+    private static final String VERSION_NUMBER = "1.0.0.0";
     
     /**
      * Weighted intermolecular differential pair interaction energies
