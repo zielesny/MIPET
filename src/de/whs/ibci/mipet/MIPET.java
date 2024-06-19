@@ -1432,6 +1432,25 @@ public class MIPET {
                 }
                 
                 //</editor-fold>
+                
+                //<editor-fold defaultstate="collapsed" desc="Make dist vs. energy diagram">
+                String tmpEnergyDataPathName = tmpJobTaskRecordList
+                        .get(tmpCurrentIndex).result_IE_PathName()
+                        + FILESEPARATOR
+                        + tmpParticlePair + "_dist_vs_energy.dat";
+                String tmpEnergyGraphicsPrefix = tmpJobTaskRecordList
+                        .get(tmpCurrentIndex).particleName1()
+                        + "_"
+                        + tmpJobTaskRecordList
+                                .get(tmpCurrentIndex).particleName2()
+                        + "_";
+                ChartUtil tmpChartUtil = new ChartUtil();
+                boolean tmpIsOperationSuccessful = 
+                        tmpChartUtil.createEnergyGraphics(
+                                tmpEnergyDataPathName, 
+                                tmpEnergyGraphicsPrefix);
+                
+                //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Write log file">
                 try {
