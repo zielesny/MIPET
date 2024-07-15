@@ -3567,7 +3567,6 @@ public class MIPET {
         
         tmpOutputIteration = 0;
         tmpJobLength = aJobTaskRecords.size();
-        MIPETUtility tmpUtility = new MIPETUtility();
         ArrayList<String> tmpParticleNames = new ArrayList<>(tmpJobLength);
         tmpResultsDirectory = resultDirectory 
                 + FILESEPARATOR
@@ -3606,14 +3605,14 @@ public class MIPET {
             tmpParticleDescriptions.add(String.valueOf(DEFAULT_CHARGE)); // charge
             try {
                 tmpParticleDescriptions.add(String.format("%.4f", 
-                        tmpUtility.getAtomicMass(smiles.get(
-                                tmpParticleName)))); // mass [g/mol]
+                        MIPETUTIL.getAtomicMass(smiles.get(
+                                tmpParticleName), true))); // mass [g/mol]
             } catch (Exception ex) {
                 tmpParticleDescriptions.add("-1");
                 LOGGER.log(Level.SEVERE, ex.toString());
             } 
             tmpParticleDescriptions.add(String.format("%.4f", 
-                    tmpUtility.getVdwVolume(smiles.get(tmpParticleName)) 
+                    MIPETUTIL.getVdwVolume(smiles.get(tmpParticleName)) 
                             * WATERVOLUMERATIO)); // volume [A³]
             tmpParticleDescriptions.add(String.valueOf(GRAPHICS_RADIUS)); // graphics-radius
             tmpParticleDescriptions.add(DEFAULT_COLOR); // color

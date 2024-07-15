@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import org.openscience.cdk.silent.Atom;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -161,23 +162,30 @@ public class MIPETUtility{
     
     /**
      * Get method for calculation of atomic mass by using CDK 
-     * @param smilesString
+     * @param aSmilesString
      *   input fragment as SMILES
+     * @param anIsSmiles
+     *   Flag if aSmilesString is a SMILES or not (element)
      * @return
      *   Atomic mass of the fragment
      */
-    public double getAtomicMass(String smilesString) {
+    public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
         double atomicMass = 0;
         try {
-            IAtomContainer particle = smilesParser.parseSmiles(smilesString);
-            AtomContainerManipulator
-                    .percieveAtomTypesAndConfigureAtoms(particle);
-            atomicMass  = AtomContainerManipulator.getMass(particle);
+            if (anIsSmiles) {
+                IAtomContainer particle;
+                particle = smilesParser.parseSmiles(aSmilesString);
+                AtomContainerManipulator
+                        .percieveAtomTypesAndConfigureAtoms(particle);
+                atomicMass  = AtomContainerManipulator.getMass(particle);
+            } else {
+                Atom tmpAtom = new Atom(aSmilesString);
+                atomicMass = tmpAtom.getExactMass();
+            }
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE, 
                     "CDKException was thrown in getAtomicMass.", ex);
         }
-        
         return atomicMass;
     }
     

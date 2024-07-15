@@ -138,7 +138,6 @@ public class TestTinkerXYZ {
     @Test
     public void TestFindCentreCoordinate() {
         TinkerXYZ tmpMethane = null;
-        
         tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         double[] tmpCentre;
         tmpCentre= tmpMethane.findCentreCoordinate(tmpMethane.
@@ -160,5 +159,14 @@ public class TestTinkerXYZ {
         Assert.assertEquals(0.0, tmpMoved[0][0], 0.001);
         Assert.assertEquals(0.0, tmpMoved[0][1], 0.001);
         Assert.assertEquals(0.0, tmpMoved[0][2], 0.001);
+    }
+    
+    @Test
+    public void TestGetAtomicMassList1() {
+        TinkerXYZ tmpMethane = null;
+        tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        double[] tmpMass = new double[5];
+        tmpMass[0] = tmpMethane.getAtomicMassList1()[0];
+        
     }
 }

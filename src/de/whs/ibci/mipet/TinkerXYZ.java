@@ -44,6 +44,11 @@ public class TinkerXYZ implements Cloneable {
     //<editor-fold defaultstate="collapsed" desc="Final class variables">
 
     /**
+     * Instance object of MIPETUtility
+     */
+    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
+    
+    /**
      * Logger of this class
      */
     private static final Logger LOGGER = Logger
@@ -106,6 +111,11 @@ public class TinkerXYZ implements Cloneable {
      * Element names of second particle
      */
     private String[] elementList2;
+    
+    /**
+     * Atomic masses of first particle
+     */
+    private double[] atomicMassList1;
     
     /**
      * Atom Coordinates of first particle
@@ -306,6 +316,25 @@ public class TinkerXYZ implements Cloneable {
         }
     }
     
+    /** 
+     * Returns atomic masses of the first particle
+     * 
+     * @return Atomic masses of first particle
+     */
+    public double[] getAtomicMassList1() {
+        if (this.elementList1 != null) {
+            this.atomicMassList1 = new double[this.atomSize1];
+            for (int i = 0; i < this.atomSize1; i++) {
+                this.atomicMassList1[i] = MIPETUTIL.getAtomicMass(
+                        this.elementList1[i], false);
+            }
+            return this.atomicMassList1;
+        } else {
+            throw new NullPointerException("Return value of getElementList1"
+                    + "is null.");
+        }
+    }
+    
     /**
      * Returns the atom coordinates of first particle
      * 
@@ -334,6 +363,20 @@ public class TinkerXYZ implements Cloneable {
                     + "is null.");
         }
     }
+    
+    /** 
+     * Returns the coordinate of centre of mass
+     * 
+     * @return coordinate of center of mass
+     * index 0: x
+     * index 1: y
+     * index 2: z
+     */
+    public double[] getCentreOfMass() {
+        
+        return null;    
+    }
+    
     
     /**
      * Returns parameters of first particle (6. column of .txyz-file)
