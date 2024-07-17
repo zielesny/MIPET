@@ -172,16 +172,15 @@ public class MIPETUtility{
     public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
         double atomicMass = 0;
         try {
+            IAtomContainer particle;
             if (anIsSmiles) {
-                IAtomContainer particle;
                 particle = smilesParser.parseSmiles(aSmilesString);
-                AtomContainerManipulator
-                        .percieveAtomTypesAndConfigureAtoms(particle);
-                atomicMass  = AtomContainerManipulator.getMass(particle);
             } else {
-                Atom tmpAtom = new Atom(aSmilesString);
-                atomicMass = tmpAtom.getExactMass();
+                particle = smilesParser.parseSmiles("[" + aSmilesString + "]");
             }
+            AtomContainerManipulator
+                    .percieveAtomTypesAndConfigureAtoms(particle);
+            atomicMass  = AtomContainerManipulator.getMass(particle);
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE, 
                     "CDKException was thrown in getAtomicMass.", ex);
@@ -1839,16 +1838,16 @@ public class MIPETUtility{
     
     private void initialize() {
         // For the development
-//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-//                Locale.getDefault(), this.getClass().getClassLoader());
+        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
-        try {
-            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during initialize().", ex);
-        }
+//        try {
+//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
+//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
+//        } catch (IOException ex) {
+//            LOGGER.log(Level.SEVERE, 
+//                    "IOException during initialize().", ex);
+//        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();

@@ -137,9 +137,9 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestFindCentreCoordinate() {
-        TinkerXYZ tmpMethane = null;
-        tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         double[] tmpCentre;
+        
+        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         tmpCentre= tmpMethane.findCentreCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         Assert.assertEquals(-0.8588, tmpCentre[0], 0.000001);
@@ -149,9 +149,9 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestMoveCoordinates() {
-        TinkerXYZ tmpMethane = null;
-        tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         double[] tmpCentre;
+        
+        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         tmpCentre = tmpMethane.findCentreCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         double[][] tmpMoved;
@@ -163,10 +163,17 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestGetAtomicMassList1() {
-        TinkerXYZ tmpMethane = null;
-        tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
         double[] tmpMass = new double[5];
         tmpMass[0] = tmpMethane.getAtomicMassList1()[0];
-        
+        tmpMass[1] = tmpMethane.getAtomicMassList1()[1];
+        tmpMass[2] = tmpMethane.getAtomicMassList1()[2];
+        tmpMass[3] = tmpMethane.getAtomicMassList1()[3];
+        tmpMass[4] = tmpMethane.getAtomicMassList1()[4];
+        Assert.assertEquals(12.0107358, tmpMass[0], 0.000001);
+        Assert.assertEquals(1.0079407, tmpMass[1], 0.000001);
+        Assert.assertEquals(1.0079407, tmpMass[2], 0.000001);
+        Assert.assertEquals(1.0079407, tmpMass[3], 0.000001);
+        Assert.assertEquals(1.0079407, tmpMass[4], 0.000001);
     }
 }

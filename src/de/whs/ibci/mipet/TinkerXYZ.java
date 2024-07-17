@@ -118,6 +118,11 @@ public class TinkerXYZ implements Cloneable {
     private double[] atomicMassList1;
     
     /**
+     * Atomic masses of second particle
+     */
+    private double[] atomicMassList2;
+    
+    /**
      * Atom Coordinates of first particle
      * [i, j, k] i: sim.iteration j: atomid k: xyz
      */
@@ -335,6 +340,25 @@ public class TinkerXYZ implements Cloneable {
         }
     }
     
+    /** 
+     * Returns atomic masses of the second particle
+     * 
+     * @return Atomic masses of second particle
+     */
+    public double[] getAtomicMassList2() {
+        if (this.elementList2 != null) {
+            this.atomicMassList2 = new double[this.atomSize2];
+            for (int i = 0; i < this.atomSize2; i++) {
+                this.atomicMassList2[i] = MIPETUTIL.getAtomicMass(
+                        this.elementList2[i], false);
+            }
+            return this.atomicMassList2;
+        } else {
+            throw new NullPointerException("Return value of getElementList2"
+                    + "is null.");
+        }
+    }
+    
     /**
      * Returns the atom coordinates of first particle
      * 
@@ -365,14 +389,62 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /** 
-     * Returns the coordinate of centre of mass
+     * Returns the coordinate of centre of mass from first particle of each 
+     *  simulation
      * 
-     * @return coordinate of center of mass
-     * index 0: x
-     * index 1: y
-     * index 2: z
+     * @return coordinate of center of mass from first particle[i][j]
+     * i: atom index
+     * j = 0: x
+     * j = 1: y
+     * j = 2: z
      */
-    public double[] getCentreOfMass() {
+    public double[][] getCentreOfMass1() {
+        int tmpIterationSize;
+        double tmpSumMass;
+        double tmpCentreX;
+        double tmpCentreY;
+        double tmpCentreZ;
+        double[][] tmpCentreOfMass;
+
+        tmpIterationSize = this.coordinateList1.length;
+        tmpSumMass = 0.0;
+        tmpCentreX = 0.0;
+        tmpCentreY = 0.0;
+        tmpCentreZ = 0.0;
+        tmpCentreOfMass = new double[tmpIterationSize][3];
+        
+        for (int i = 0; i < this.atomSize1 ; i++) {
+            tmpSumMass += this.atomicMassList1[i];
+        }
+        
+        for (int i = 0; i < tmpIterationSize; i++) {
+            for (int j = 0; j < this.atomSize1; j++) {
+                for (int k = 0; k < 3; k++) {
+                    tmpCentreX += this.coordinateList1[i][j][0] * 
+                            this.atomicMassList1[j];
+                    tmpCentreY += this.coordinateList1[i][j][1] * 
+                            this.atomicMassList1[j];
+                    tmpCentreZ += this.coordinateList1[i][j][2] * 
+                            this.atomicMassList1[j];
+                }
+            }
+            tmpCentreOfMass[i][0] = tmpCentreX / tmpSumMass;
+            tmpCentreOfMass[i][1] = tmpCentreY / tmpSumMass;
+            tmpCentreOfMass[i][2] = tmpCentreZ / tmpSumMass;
+        }
+        return tmpCentreOfMass;    
+    }
+    
+    /** 
+     * Returns the coordinate of centre of mass from second particle
+     * 
+     * @return coordinate of center of mass from second particle
+     * [i][j] i: index of particle2
+     * j = 0: x
+     * j = 0: y
+     * j = 0: z
+     */
+    public double[][][] getCentreOfMass2() {
         
         return null;    
     }
