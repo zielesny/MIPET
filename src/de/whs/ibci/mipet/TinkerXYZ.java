@@ -30,6 +30,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,6 +69,11 @@ public class TinkerXYZ implements Cloneable {
      * Line separator
      */
     final private String LINESEPARATOR = System.getProperty("line.separator");
+    
+    /**
+     * Atomic mass of elements
+     */
+    final private HashMap<String, Double> atomicMassMap = new HashMap<>();
 
     //</editor-fold>
     
@@ -93,7 +100,7 @@ public class TinkerXYZ implements Cloneable {
     private int atomSize2;
     
     /**
-     * second particle number
+     * Second particle number
      */
     private int particleSize2;
     
@@ -327,16 +334,24 @@ public class TinkerXYZ implements Cloneable {
      * @return Atomic masses of first particle
      */
     public double[] getAtomicMassList1() {
+        HashSet<String> tmpIgnoreElements = new HashSet<>();
+        
+        tmpIgnoreElements.add("M");
+        tmpIgnoreElements.add("Lp");
+        
         if (this.elementList1 != null) {
             this.atomicMassList1 = new double[this.atomSize1];
+            
             for (int i = 0; i < this.atomSize1; i++) {
-                this.atomicMassList1[i] = MIPETUTIL.getAtomicMass(
-                        this.elementList1[i], false);
+                if (!tmpIgnoreElements.contains(this.elementList1[i])) {
+                    this.atomicMassList1[i] = this.atomicMassMap
+                            .get(this.elementList1[i]);
+                }
             }
+            
             return this.atomicMassList1;
         } else {
-            throw new NullPointerException("Return value of getElementList1"
-                    + "is null.");
+            throw new NullPointerException("Return value of getElementList1 is null.");
         }
     }
     
@@ -346,16 +361,24 @@ public class TinkerXYZ implements Cloneable {
      * @return Atomic masses of second particle
      */
     public double[] getAtomicMassList2() {
+        HashSet<String> tmpIgnoreElements = new HashSet<>();
+        
+        tmpIgnoreElements.add("M");
+        tmpIgnoreElements.add("Lp");
+        
         if (this.elementList2 != null) {
             this.atomicMassList2 = new double[this.atomSize2];
+            
             for (int i = 0; i < this.atomSize2; i++) {
-                this.atomicMassList2[i] = MIPETUTIL.getAtomicMass(
-                        this.elementList2[i], false);
+                if (!tmpIgnoreElements.contains(this.elementList2[i])) {
+                    this.atomicMassList2[i] = this.atomicMassMap
+                            .get(this.elementList2[i]);                    
+                }
             }
+            
             return this.atomicMassList2;
         } else {
-            throw new NullPointerException("Return value of getElementList2"
-                    + "is null.");
+            throw new NullPointerException("Return value of getElementList2 is null.");
         }
     }
     
@@ -418,20 +441,21 @@ public class TinkerXYZ implements Cloneable {
         }
         
         for (int i = 0; i < tmpIterationSize; i++) {
+            
             for (int j = 0; j < this.atomSize1; j++) {
-                for (int k = 0; k < 3; k++) {
-                    tmpCentreX += this.coordinateList1[i][j][0] * 
-                            this.atomicMassList1[j];
-                    tmpCentreY += this.coordinateList1[i][j][1] * 
-                            this.atomicMassList1[j];
-                    tmpCentreZ += this.coordinateList1[i][j][2] * 
-                            this.atomicMassList1[j];
-                }
+                tmpCentreX += this.coordinateList1[i][j][0] * 
+                        this.atomicMassList1[j];
+                tmpCentreY += this.coordinateList1[i][j][1] * 
+                        this.atomicMassList1[j];
+                tmpCentreZ += this.coordinateList1[i][j][2] * 
+                        this.atomicMassList1[j];
             }
+            
             tmpCentreOfMass[i][0] = tmpCentreX / tmpSumMass;
             tmpCentreOfMass[i][1] = tmpCentreY / tmpSumMass;
             tmpCentreOfMass[i][2] = tmpCentreZ / tmpSumMass;
         }
+        
         return tmpCentreOfMass;    
     }
     
@@ -439,16 +463,106 @@ public class TinkerXYZ implements Cloneable {
      * Returns the coordinate of centre of mass from second particle
      * 
      * @return coordinate of center of mass from second particle
-     * [i][j] i: index of particle2
-     * j = 0: x
-     * j = 0: y
-     * j = 0: z
+     * [i][j][k] i: index of simulation; j: index of partikel2
+     * k = 0: x
+     * k = 0: y
+     * k = 0: z
      */
     public double[][][] getCentreOfMass2() {
         
-        return null;    
+        int tmpIterationSize;
+        double tmpSumMass;
+        double tmpCentreX;
+        double tmpCentreY;
+        double tmpCentreZ;
+        double[][][] tmpCentreOfMass;
+
+        tmpIterationSize = this.coordinateList1.length;
+        tmpSumMass = 0.0;
+        
+        tmpCentreOfMass = new double[tmpIterationSize][this.particleSize2][3];
+        
+        for (int i = 0; i < this.atomSize2 ; i++) {
+            tmpSumMass += this.atomicMassList2[i];
+        }
+        
+        for (int i = 0; i < tmpIterationSize; i++) {
+
+            for (int j = 0; j < this.particleSize2; j++) {
+                tmpCentreX = 0.0;
+                tmpCentreY = 0.0;
+                tmpCentreZ = 0.0;
+
+                for (int k = 0; k < this.atomSize2; k++) {
+                    tmpCentreX += this.coordinateList2[i][j][k][0] * 
+                            this.atomicMassList2[k];
+                    tmpCentreY += this.coordinateList2[i][j][k][1] * 
+                            this.atomicMassList2[k];
+                    tmpCentreZ += this.coordinateList2[i][j][k][2] * 
+                            this.atomicMassList2[k];
+                }
+                
+                tmpCentreOfMass[i][j][0] = tmpCentreX / tmpSumMass;
+                tmpCentreOfMass[i][j][1] = tmpCentreY / tmpSumMass;
+                tmpCentreOfMass[i][j][2] = tmpCentreZ / tmpSumMass;
+            }
+            
+        }
+        
+        return tmpCentreOfMass;    
     }
     
+    /** 
+     * Returns the distances of centre of mass from first particle to 
+     *  centre of mass from second particle(s)
+     * 
+     * @return distances between particle1 to particle2 
+     * [i][j][k] i: index of simulation; j: index of partikel2
+     * k = 0: x
+     * k = 0: y
+     * k = 0: z
+     */
+    public double[][] getDistances(double aBoxLength) {
+        final double ONEHALF = 0.5;
+        int tmpIterationSize;
+        double[][] tmpCentre1;
+        double[][][] tmpCentre2;
+        double tmpDeltaX;
+        double tmpDeltaY;
+        double tmpDeltaZ;
+        
+        tmpIterationSize = this.coordinateList1.length;
+        double[][] tmpDistance = new double[tmpIterationSize][this.particleSize2];
+        tmpCentre1 = this.getCentreOfMass1();
+        tmpCentre2 = this.getCentreOfMass2();
+        
+        for (int i = 0; i < tmpIterationSize; i++) {
+            
+            for (int j = 0; j < this.particleSize2; j++) {
+                tmpDeltaX = tmpCentre1[i][0] - tmpCentre2[i][j][0];
+                tmpDeltaY = tmpCentre1[i][1] - tmpCentre2[i][j][1];
+                tmpDeltaZ = tmpCentre1[i][2] - tmpCentre2[i][j][2];
+                if(tmpDeltaX > aBoxLength * ONEHALF)
+                    tmpDeltaX -= aBoxLength;
+                if(tmpDeltaX <= -aBoxLength * ONEHALF)
+                    tmpDeltaX += aBoxLength;
+                if(tmpDeltaY > aBoxLength * ONEHALF)
+                    tmpDeltaY -= aBoxLength;
+                if(tmpDeltaY <= -aBoxLength * ONEHALF)
+                    tmpDeltaY += aBoxLength;
+                if(tmpDeltaZ > aBoxLength * ONEHALF)
+                    tmpDeltaZ -= aBoxLength;
+                if(tmpDeltaZ <= -aBoxLength * ONEHALF)		
+                    tmpDeltaZ += aBoxLength;
+                tmpDistance[i][j] = Math.sqrt(tmpDeltaX * tmpDeltaX +
+                        tmpDeltaY * tmpDeltaY +
+                        tmpDeltaZ * tmpDeltaZ);
+            }
+            
+        }
+        
+        return tmpDistance;
+    }
     
     /**
      * Returns parameters of first particle (6. column of .txyz-file)
@@ -906,6 +1020,31 @@ public class TinkerXYZ implements Cloneable {
             throw new IllegalArgumentException("File not found in TinkerXYZ.");
         } catch (IOException ex) {
             throw new IllegalArgumentException("IOException in TinkerXYZ.");            
+        }
+        
+        // Set atomic mass map
+        double tmpAtomicMass;
+        
+        for (int i = 0; i < this.atomSize1; i++) {
+            if (!this.atomicMassMap.containsKey(this.elementList1[i])) {
+                tmpAtomicMass = MIPETUTIL.getAtomicMass(
+                        this.elementList1[i], false);
+                this.atomicMassMap.put(this.elementList1[i], tmpAtomicMass);
+            }
+        }
+        
+        for (int i = 0; i < this.atomSize2; i++) {
+            if (!this.atomicMassMap.containsKey(this.elementList2[i])) {
+                tmpAtomicMass = MIPETUTIL.getAtomicMass(
+                        this.elementList2[i], false);
+                this.atomicMassMap.put(this.elementList2[i], tmpAtomicMass);
+            }
+        }
+        
+        // Set atomic mass list
+        this.atomicMassList1 = this.getAtomicMassList1();
+        if (this.atomSize2 > 0) {
+            this.atomicMassList2 = this.getAtomicMassList2();
         }
     }
    

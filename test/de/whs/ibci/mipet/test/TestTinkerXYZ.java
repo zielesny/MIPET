@@ -176,4 +176,38 @@ public class TestTinkerXYZ {
         Assert.assertEquals(1.0079407, tmpMass[3], 0.000001);
         Assert.assertEquals(1.0079407, tmpMass[4], 0.000001);
     }
+    
+    @Test
+    public void TestGetCentreOfMass1() {
+        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        double[][] tmpCentreCoordinate;
+        tmpCentreCoordinate = tmpMethane.getCentreOfMass1();
+        Assert.assertEquals(-0.8589372, tmpCentreCoordinate[0][0], 0.000001);
+        Assert.assertEquals(0.58906283, tmpCentreCoordinate[0][1], 0.000001);
+        Assert.assertEquals(0.000000, tmpCentreCoordinate[0][2], 0.000001);
+    }
+    
+    @Test
+    public void TestGetCentreOfMass2() {
+        TinkerXYZ tmpH2O_Et = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
+        double[][][] tmpCentreCoords;
+        tmpCentreCoords = tmpH2O_Et.getCentreOfMass2();
+        Assert.assertEquals(-1.32664569, tmpCentreCoords[0][0][0], 0.000001);
+        Assert.assertEquals(-4.419935481, tmpCentreCoords[0][0][1], 0.000001);
+        Assert.assertEquals(2.9358169, tmpCentreCoords[0][0][2], 0.000001);
+        Assert.assertEquals(0.309953149, tmpCentreCoords[0][8][0], 0.000001);
+        Assert.assertEquals(0.313282164, tmpCentreCoords[0][8][1], 0.000001);
+        Assert.assertEquals(3.860684465, tmpCentreCoords[0][8][2], 0.000001);
+    }
+    
+    @Test
+    public void TestgetDistances() {
+        TinkerXYZ tmpH2O_Et = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
+        double[][] tmpDistances;
+        double tmpBoxLength;
+        
+        tmpBoxLength = 9.070700;
+        tmpDistances = tmpH2O_Et.getDistances(tmpBoxLength);
+        
+    }
 }

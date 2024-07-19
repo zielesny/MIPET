@@ -74,19 +74,19 @@ public class TestMIPET4JavaUtility {
         String smilesString = "";
         double atomicMass;
         
-        atomicMass = mipetUtil.getAtomicMass(smilesString);
+        atomicMass = mipetUtil.getAtomicMass(smilesString, true);
         Assert.assertEquals(0.0, atomicMass, 0.01);
         
         smilesString = "C";        
-        atomicMass = mipetUtil.getAtomicMass(smilesString);
+        atomicMass = mipetUtil.getAtomicMass(smilesString, true);
         Assert.assertEquals(16.04, atomicMass, 0.01);
         
         smilesString = "c1ccccc1";
-        atomicMass = mipetUtil.getAtomicMass(smilesString);
+        atomicMass = mipetUtil.getAtomicMass(smilesString, true);
         Assert.assertEquals(78.11, atomicMass, 0.01);
         
         smilesString = "CC(=O)O";
-        atomicMass = mipetUtil.getAtomicMass(smilesString);
+        atomicMass = mipetUtil.getAtomicMass(smilesString, true);
         Assert.assertEquals(60.05, atomicMass, 0.01);
     }
     
