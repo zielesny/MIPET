@@ -19,8 +19,15 @@
  */
 package de.whs.ibci.mipet.test;
 
+import de.whs.ibci.mipet.MIPETUtility;
 import de.whs.ibci.mipet.TinkerXYZ;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.logging.Level;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,6 +36,24 @@ import org.junit.Test;
  * @author Mirco Daniel
  */
 public class TestTinkerXYZ {
+    // <editor-fold defaultstate="collapsed" desc="Final private class variables">
+    /**
+     * Instance object of MIPETUtility
+     */
+    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
+    
+    /**
+     * Water volume ratio
+     */
+    final private static double WATERVOLUMERATIO = 30.0036 / 
+            MIPETUTIL.getVdwVolume("O");
+
+    // </editor-fold>
+    
+    /**
+     * SPIECE and SMILES lookup table
+     */
+    private static HashMap<String, String> smiles;
     
     @Test
     @SuppressWarnings("empty-statement")
@@ -216,5 +241,84 @@ public class TestTinkerXYZ {
         tmpDistances = tmpH2O_Et.getDistances(tmpBoxLength);
         Assert.assertEquals(5.443870652, tmpDistances[0][0], 0.000001);
         Assert.assertEquals(3.838142478, tmpDistances[0][8], 0.000001);
+    }
+    
+    @Test
+    // This is only for experimental purpose
+    public void TestRDF() {
+        String tmpParticle1;
+        String tmpParticle2;
+        String tmpParticlePair;
+        String tmpKeyFixContent;
+        String tmpCurrentDirName;
+        Path tmpTargetDir;
+        Path tmpSource;
+        Path tmpTarget;
+        int solventMoleculeNumber;
+        double tmpVdWSolventVolume;
+        double tmpBoxLength;
+        
+        tmpParticle1 = "H2O";
+        tmpParticle2 = "H2O";
+        solventMoleculeNumber = 5000;
+        tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
+        tmpTargetDir = Paths.get("Z:\\Scratch\\"); 
+        
+        if (!Files.exists(tmpTargetDir)) {
+            try {
+                Files.createDirectories(tmpTargetDir);
+            } catch (IOException ex) {
+            }
+        }
+        tmpSource = Paths.get("E:/MIPET/Calculation/OptXYZ/"
+                + tmpParticle1
+                + ".xyz");
+        tmpTarget = Paths.get(tmpTargetDir
+                + tmpParticle1
+                + ".xyz");
+        try {
+            Files.copy(tmpSource, tmpTarget, 
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+        }
+        smiles = MIPETUTIL
+                .getSmilesData("Molecules/SMILES/" + "Smiles.dat");
+        tmpVdWSolventVolume = MIPETUTIL.getVdwVolume(smiles.get(tmpParticle2));
+        
+        // Calculate water volume ratio - ratio of Vparticle and Vvdw 
+        //   of water 1.7297
+        tmpBoxLength =  Math.pow(WATERVOLUMERATIO 
+                * solventMoleculeNumber 
+                * tmpVdWSolventVolume, 1.0/3.0);
+        tmpKeyFixContent = 
+            """
+            EWALD
+            OPENMP-THREADS 1
+            THERMOSTAT ANDERSEN
+            STEEPEST-DESCENT
+            RANDOMSEED 123456
+            NEIGHBOR-LIST
+            """;
+        
+        // Generate simulation box
+        tmpCurrentDirName = "Z:\\Scratch\\";
+        tmpResultPath = Paths.get(aJobTaskRecordList.get(i)
+                .result_CN_PathName());
+        tmpSource = Paths.get(tmpCurrentDir 
+                + tmpParticlePair 
+                + ".xyz_2");
+        tmpSourceFile2 = Paths.get(tmpCurrentDir
+                + tmpParticlePair 
+                + ".xyz_2");
+        tmpTarget = Paths.get(tmpCurrentDir
+                + tmpParticlePair 
+                + ".xyz");
+        
+        
+        
+        
+        // Warmup
+        
+        // 
     }
 }

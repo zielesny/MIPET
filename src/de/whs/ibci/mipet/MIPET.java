@@ -160,16 +160,6 @@ public class MIPET {
     private static String jobFileName;
     
     /**
-     * Extra force field name for intermolecular energy calculation
-     */
-    final private static HashSet<String> extraForcefield_IE = new HashSet<>();
-    
-    /**
-     * Extra force field name for coordination number calculation
-     */
-    final private static HashSet<String> extraForcefield_CN = new HashSet<>();
-    
-    /**
      * New particles for calculation
      */
     private static LinkedList<String> newParticles;
@@ -1942,21 +1932,11 @@ public class MIPET {
                     case '*' -> {
                         String[] tmpString = tmpRestString.split("\\s+");
                         forcefield_IE = tmpString[0];
-                        
-                        for (int i = 0; i < tmpString.length - 1; i++) {
-                            extraForcefield_IE.add(tmpString[i + 1]);
-                        }
-                        
                         continue;
                     }
                     case '$' -> {
                         String[] tmpString = tmpRestString.split("\\s+");
                         forcefield_CN = tmpString[0];
-                        
-                        for (int i = 0; i < tmpString.length - 1; i++) {
-                            extraForcefield_CN.add(tmpString[i + 1]);
-                        }
-                        
                         continue;
                     }
                     case '-' -> {
@@ -2910,16 +2890,13 @@ public class MIPET {
         // MIPET also works parallely. Tests showed best performance is 
         //   achievable when OPENMP-THREADS is set to 1.
         tmpKeyFixContent = 
-            "EWALD"
-            + LINESEPARATOR
-            + "OPENMP-THREADS 1"
-            + LINESEPARATOR
-            + "THERMOSTAT ANDERSEN"
-            + LINESEPARATOR
-            + "STEEPEST-DESCENT"
-            + LINESEPARATOR
-            + "RANDOMSEED 123456"
-            + LINESEPARATOR;
+            """
+            EWALD
+            OPENMP-THREADS 1
+            THERMOSTAT ANDERSEN
+            STEEPEST-DESCENT
+            RANDOMSEED 123456
+            """;
         if (solventMoleculeNumber >= 400) {
             tmpKeyFixContent += "NEIGHBOR-LIST" + LINESEPARATOR;
         }
@@ -3814,6 +3791,18 @@ public class MIPET {
                     // Particle description
                     tmpBW.append("[Particle Description]");
                     tmpBW.append(LINESEPARATOR);
+                    tmpBW.append("""
+                                 # Columns:
+                                 # 1. Particle (abbreviation)
+                                 # 2. Molecule name of particle
+                                 # 3. Mass[DPD]
+                                 # 4. Charge
+                                 # 5. Mass[g/mol]
+                                 # 6. Volume[A^3]
+                                 # 7. Graphics-Radius 
+                                 # 8. Standard-Color
+                                 """);
+                    tmpBW.append(LINESEPARATOR);
 
                     for(String tmpHeader : tmpParticleDescriptionString){
                         tmpBW.append(tmpHeader + "\t");
@@ -3838,7 +3827,7 @@ public class MIPET {
                      // Particle interactions
                     tmpBW.append("[Particle interactions]");
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Repulsion parameters a(ij) for the temperature (in K)");
+                    tmpBW.append("# Repulsion parameters a(ij) for particle pairs for different temperatures (in K)");
                     tmpBW.append(LINESEPARATOR);
                     tmpBW.append("Pair");
                     tmpBW.append(" " + String.valueOf((int)temperature));
@@ -3885,11 +3874,11 @@ public class MIPET {
                             tmpBW.append(LINESEPARATOR);}
                     }
 
-                    // Particle SMILES
+                    // SMILES
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[Particle SMILES]");
+                    tmpBW.append("[SMILES]");
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Particle\tSMILES");
+                    tmpBW.append("# Particle and corresponding SMILES of fragment molecule");
                     tmpKeySet = smiles.keySet();
 
                     for(String tmpKey : tmpKeySet){
@@ -3902,7 +3891,7 @@ public class MIPET {
                     }
 
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[/Particle SMILES]");
+                    tmpBW.append("[/SMILES]");
                 } catch (IOException anException) {
                     LOGGER.log(Level.SEVERE, anException.toString());
                 }
