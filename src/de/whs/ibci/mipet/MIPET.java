@@ -639,14 +639,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-//        String tmpFileNameSphereNode = 
-//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Distribution version
-        String tmpFileNameSphereNode = 
-                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
@@ -1261,64 +1261,6 @@ public class MIPET {
                 
                 //</editor-fold>
                 
-                
-                // Only for test
-//                MIPETUTIL.getNextDistance();
-                
-//                if (tmpParticlePair.equals("HAc_H2O")) {
-//                    String tmpTestOutputFilename = "Z:\\Scratch\\testOutput.txt";
-//                    String tmpFileName = "Z:\\Scratch\\HAc_H2O.xyz";
-//                    double[][] tmpXyz1;
-//                    double[][] tmpXyz2;
-//                    double tmpDist;
-//                    MIPETUTIL.writeDistance_Energy(tmpTestOutputFilename, 
-//                            tmpDistanceObj, 
-//                            tmpDistanceIndices, 
-//                            tmpEnergySorted);
-//                    
-//                    TinkerXYZ tmpTinkerXYZ0;
-//                    tmpTinkerXYZ0 = new TinkerXYZ(tmpFileName, 1, 8, 3);
-//                    tmpXyz1 = tmpTinkerXYZ0.getCoordinateList1()[0];
-//                    tmpCentre1 = tmpTinkerXYZ0.findCentreCoordinate(tmpXyz1);
-//                    tmpXyz2 = tmpTinkerXYZ0.getCoordinateList2()[0][0];
-//                    tmpCentre2 = tmpTinkerXYZ0.findCentreCoordinate(tmpXyz2);
-//                    tmpDist = MIPETUTIL.getDistance(tmpCentre1, tmpCentre2);
-//                    
-//                    tmpDistances = new double[]{3.7064};
-//                    tmpEnergyRecords = new EnergyRecord[0];
-//                    tmpEnergyRecords[0] = getInterMolecularEnergy(
-//                            tmpParticlePair,
-//                            tmpDistances, 
-//                            tmpTinkerXYZ1, 
-//                            tmpTinkerXYZ2, 
-//                            tmpXyzRotData1, 
-//                            tmpXyzRotData2,
-//                            1E10);
-//                    tmpMinWgtEnergy = tmpEnergyRecords[0].minEnergy();
-//                    tmpMinDistance = tmpEnergyRecords[0].minDistance();
-//                    tmpTinkerXYZ0 = null;
-//                    
-//                }
-
-                
-               
-
-                
-//                if (boltzmannFraction == 0.0) {
-//                    if (isOptEmin) {
-//                        tmpWgtMinEnergy = tmpOptMinEnergy;
-//                    } else {
-//                        tmpWgtMinEnergy = tmpEnergyRecords[2].minEnergy();
-//                    }
-//                    tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
-//                } else {
-//                    if (isOptEmin) {
-//                        tmpMinEnergy = tmpOptMinEnergy;
-//                    } else {
-//                        tmpMinEnergy = tmpEnergyRecords[2].minEnergy();
-//                    }
-//                }
-
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
                 // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
                 // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
@@ -2155,6 +2097,8 @@ public class MIPET {
     /**
      * scanParticle method
      *  Optimize, scan and optimize the input particle
+     * @param aJobTaskRecordList
+     *  Job task records
      */
     private static void scanParticle(
             ArrayList<JobTaskRecord> aJobTaskRecordList) {

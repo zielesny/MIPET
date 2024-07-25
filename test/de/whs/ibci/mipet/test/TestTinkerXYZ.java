@@ -19,15 +19,22 @@
  */
 package de.whs.ibci.mipet.test;
 
+import de.whs.ibci.mipet.JobTaskRecord;
 import de.whs.ibci.mipet.MIPETUtility;
 import de.whs.ibci.mipet.TinkerXYZ;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -249,37 +256,44 @@ public class TestTinkerXYZ {
         String tmpParticle1;
         String tmpParticle2;
         String tmpParticlePair;
-        String tmpKeyFixContent;
-        String tmpCurrentDirName;
+        String tmpDatFileName;
         Path tmpTargetDir;
-        Path tmpSource;
-        Path tmpTarget;
-        int solventMoleculeNumber;
+        int tmpSolventNumber;
+        int tmpIntervalSize;
+        int tmpIntervalIndex;
+        int tmpDistancesSize;
+        int tmpDistanceIndex;
+        int[] tmpDensity;
         double tmpVdWSolventVolume;
         double tmpBoxLength;
+        double tmpBulkDensity;
+        double tmpIntervalWidth;
+        double tmpBoundary;
+        double tmpCubic1;
+        double tmpCubic2;
+        double tmpShellVolume;
+        TinkerXYZ tmpMeOH = new TinkerXYZ("Z:/Scratch/MeOH_MeOH.xyz", 1, 6, 6);
+        double[][] tmpDistances;
+        double[] tmpRDFs;
         
-        tmpParticle1 = "H2O";
-        tmpParticle2 = "H2O";
-        solventMoleculeNumber = 5000;
+        
+        Locale.setDefault(Locale.ENGLISH);
+        tmpParticle1 = "MeOH";
+        tmpParticle2 = "MeOH";
+        tmpSolventNumber = 5000;
+        tmpIntervalIndex = 0;
+        tmpDistanceIndex = 0;
+        tmpBoundary = 0.0;
         tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-        tmpTargetDir = Paths.get("Z:\\Scratch\\"); 
+        tmpTargetDir = Paths.get("Z:\\Scratch\\");
+        tmpDatFileName = "Z:/Scratch/distances.dat";
+        tmpIntervalWidth = 1.0;
         
         if (!Files.exists(tmpTargetDir)) {
             try {
                 Files.createDirectories(tmpTargetDir);
             } catch (IOException ex) {
             }
-        }
-        tmpSource = Paths.get("E:/MIPET/Calculation/OptXYZ/"
-                + tmpParticle1
-                + ".xyz");
-        tmpTarget = Paths.get(tmpTargetDir
-                + tmpParticle1
-                + ".xyz");
-        try {
-            Files.copy(tmpSource, tmpTarget, 
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
         }
         smiles = MIPETUTIL
                 .getSmilesData("Molecules/SMILES/" + "Smiles.dat");
@@ -288,33 +302,49 @@ public class TestTinkerXYZ {
         // Calculate water volume ratio - ratio of Vparticle and Vvdw 
         //   of water 1.7297
         tmpBoxLength =  Math.pow(WATERVOLUMERATIO 
-                * solventMoleculeNumber 
+                * tmpSolventNumber 
                 * tmpVdWSolventVolume, 1.0/3.0);
-        tmpKeyFixContent = 
-            """
-            EWALD
-            OPENMP-THREADS 1
-            THERMOSTAT ANDERSEN
-            STEEPEST-DESCENT
-            RANDOMSEED 123456
-            NEIGHBOR-LIST
-            """;
         
-        // Generate simulation box
-        tmpCurrentDirName = "Z:\\Scratch\\";
-        tmpResultPath = Paths.get(aJobTaskRecordList.get(i)
-                .result_CN_PathName());
-        tmpSource = Paths.get(tmpCurrentDir 
-                + tmpParticlePair 
-                + ".xyz_2");
-        tmpSourceFile2 = Paths.get(tmpCurrentDir
-                + tmpParticlePair 
-                + ".xyz_2");
-        tmpTarget = Paths.get(tmpCurrentDir
-                + tmpParticlePair 
-                + ".xyz");
+        // Bulk particle density
+        tmpBulkDensity = (double)tmpSolventNumber / 
+                (tmpBoxLength * tmpBoxLength * tmpBoxLength);
         
+        // Determine distances before warmup
+        tmpDistances = tmpMeOH.getDistances(tmpBoxLength);
+        tmpDistancesSize = tmpDistances[0].length - 1;
+        Arrays.sort(tmpDistances[0]);
+        tmpIntervalSize = (int)Math.ceil(tmpDistances[0][tmpDistancesSize]);
+        tmpDensity = new int[tmpIntervalSize];
+        tmpRDFs = new double[tmpIntervalSize];
+        tmpBoundary = tmpIntervalWidth;
         
+        while (tmpIntervalIndex < tmpIntervalSize && 
+                tmpDistanceIndex < tmpDistancesSize) {
+            if (tmpDistances[0][tmpDistanceIndex] < tmpBoundary) {
+                tmpDensity[tmpIntervalIndex]++;
+                tmpDistanceIndex++;
+            } else {
+                tmpBoundary += tmpIntervalWidth;
+                tmpIntervalIndex++;
+            }
+        }
+        
+        for (int i = 0; i < tmpIntervalSize; i++) {
+            tmpCubic1 = Math.pow(i * tmpIntervalWidth, 3);
+            tmpCubic2 = Math.pow((i + 1) * tmpIntervalWidth, 3);
+            tmpShellVolume = Math.PI * 4 / 3 * (tmpCubic2 - tmpCubic1);
+            tmpRDFs[i] = tmpDensity[i] / tmpShellVolume / tmpBulkDensity;
+        }
+        
+        try (BufferedWriter tmpBW = new BufferedWriter(
+                new FileWriter(tmpDatFileName, true))) {
+            for (double tmpRDF: tmpRDFs) {
+                tmpBW.append(String.format("%.2f", tmpRDF));
+                tmpBW.append("\n");
+            }
+            
+        } catch (IOException ex) {
+        }
         
         
         // Warmup
