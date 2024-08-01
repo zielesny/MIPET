@@ -4,16 +4,59 @@
 # Please be aware You can't use MM3 force field parameters for the coordination number calculation.
 # -------------------------
 * OPLSAA
-$ OPLSAA
+$
 
+#--------------------------
+# Test particles
+#--------------------------
+#H2O
+#Me
+#MeOH
+#Et
+#Me2O
 
 # -------------------------
 # Particles
 # -------------------------
-H2O
-Me
-#MeOH
+AcCO
+#AcNH2
+#Azolid
+#Bu
+#CisButene
+#DiMeNH
+#DMP
+#DMP2
 #Et
+#Ethene
+#Ethyne
+#EtNH2
 #EtOH
-#Me2O
+#Et2O
+#Furan
+#Guanidine1
+#Guanidine2
 #HAc
+#HCHO
+#H2O
+#Imidazole
+#Me
+#MeAc
+#MeAcNH
+#MeNH2
+#MeOH
+#MeSH
+#Me2O
+#Me2S
+#Me2S2
+#MP
+#MP2
+#Ph
+#PhNH2
+#PhOH
+#Pr
+#Prlmine1
+#Prlmine2
+#PrOH
+#Pyridine
+#Pyrrole
+#TriMeN
