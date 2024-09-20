@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -160,6 +161,11 @@ public class MIPET {
     private static String jobFileName;
     
     /**
+     * Particlenames
+     */
+    private static LinkedList<String> particleNames;
+    
+    /**
      * New particles for calculation
      */
     private static LinkedList<String> newParticles;
@@ -168,6 +174,26 @@ public class MIPET {
      * Old particles already calculated
      */
     private static LinkedList<String> oldParticles;
+    
+    /**
+     * .xyz content
+     */
+    private static String[] xyzContent;
+    
+    /**
+     * .xyz alternate content
+     */
+    private static String[]xyzAlternate;
+    
+    /**
+     * .prm content
+     */
+    private static String[] prmContent;
+    
+    /**
+     * .prm alternate content
+     */
+    private static String[] prmAlternate;
     
     /**
      * CPUcore number
@@ -677,6 +703,11 @@ public class MIPET {
         
         //<editor-fold defaultstate="collapsed" desc="Prepair input">
         tmpParticlePairs = getParticlePairs();
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
+        readXyz_Prm();
         
         //</editor-fold>
         
@@ -1855,8 +1886,9 @@ public class MIPET {
         String tmpRestString;
         Character tmpFirstChar;
         
-        LinkedList<String> tmpNewParticles = new LinkedList<>();
-        LinkedList<String> tmpOldParticles = new LinkedList<>();
+        particleNames = new LinkedList<>();
+        newParticles = new LinkedList<>();
+        oldParticles = new LinkedList<>();
         
         try (BufferedReader tmpBR = new BufferedReader(
                 new FileReader(jobFileName))) {
@@ -1882,18 +1914,29 @@ public class MIPET {
                         continue;
                     }
                     case '-' -> {
-                        tmpOldParticles.add(tmpRestString);
+                        if (!oldParticles.contains(tmpRestString)) {
+                            oldParticles.add(tmpRestString);
+                        }
+                        if (!particleNames.contains(tmpRestString)) {
+                            particleNames.add(tmpRestString);
+                        }
                         continue;
                     }
-                    default -> tmpNewParticles.add(tmpLine.trim());
+                    default -> {
+                        tmpLine = tmpLine.trim();
+                        if (!newParticles.contains(tmpLine)) {
+                            newParticles.add(tmpLine);
+                        }
+                        if (!particleNames.contains(tmpLine)) {
+                            particleNames.add(tmpLine);
+                        }
+                    }
                 }
             }
-            newParticles = tmpNewParticles;
-            if (tmpNewParticles.isEmpty()) {
+            if (newParticles.isEmpty()) {
                 LOGGER.log(Level.SEVERE, 
                     "No new particles in the job file listed.");
             }
-            oldParticles = tmpOldParticles;
             tmpBR.close();
         } catch (FileNotFoundException ex) {
             throw new IllegalArgumentException("No jobfile found.");
@@ -2092,6 +2135,35 @@ public class MIPET {
         }    
         
         return tmpParticlePairs;
+    }
+    
+    /** 
+     * Method readXyz_Prm
+     * Read .xyz and .prm files in variables and convert atomtype number
+     */
+    private static void readXyz_Prm() {
+        int tmpParticlesLength = particleNames.size();
+        String tmpParticleName;
+        xyzContent = new String[tmpParticlesLength];
+        
+        for (int i = 0; i < tmpParticlesLength; i++) {
+
+            tmpParticleName = sourceDirectory
+                    + FILESEPARATOR
+                    + forcefield_IE
+                    + FILESEPARATOR
+                    + particleNames.get(i)
+                    + ".xyz";
+            try {
+                if (Files.exists(Paths.get(tmpParticleName))) {
+                    xyzContent[i] = Files.readString(Paths
+                            .get(tmpParticleName));
+                } 
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during reading .xyz file.", ex);
+            }
+        }
     }
     
     /**
