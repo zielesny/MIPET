@@ -178,22 +178,22 @@ public class MIPET {
     /**
      * .xyz content
      */
-    private static String[] xyzContent;
+    private static String[] xyzContent1;
     
     /**
      * .xyz alternate content
      */
-    private static String[]xyzAlternate;
+    private static String[]xyzContent2;
     
     /**
      * .prm content
      */
-    private static String[] prmContent;
+    private static String[] prmContent1;
     
     /**
      * .prm alternate content
      */
-    private static String[] prmAlternate;
+    private static String[] prmContent2;
     
     /**
      * CPUcore number
@@ -302,6 +302,11 @@ public class MIPET {
      * Dielectric constant
      */
     private static double dielectricConstant;
+    
+    /**
+     * Directory of tinker files
+     */
+    private static String tinkerDirectory;
     
     /**
      * Directory of .prm files
@@ -1950,7 +1955,6 @@ public class MIPET {
      * SetParameters method
      */
     private static void setParameters() {
-        String tmpTinkerDirectory;
         String tmpIsFibonacciSphereAlgorithm;
         String tmpIsOptEmin;
         String tmpIsOptRigid;
@@ -1992,30 +1996,30 @@ public class MIPET {
                 "MIPETDielectricConstant"));
         parameterDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.paramDirectory");
-        tmpTinkerDirectory = MIPETUTIL.getResourceString(
+        tinkerDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.tinker");
         if (OS.matches("Windows [0-9]*")) {
-            tinkerAnalyze = tmpTinkerDirectory + "/analyze.exe";
-            tinkerScan = tmpTinkerDirectory + "/scan.exe";
-            tinkerXYZEdit = tmpTinkerDirectory + "/xyzedit.exe";
-            tinkerMinimize = tmpTinkerDirectory + "/minimize.exe";
-            tinkerDynamic = tmpTinkerDirectory + "/dynamic.exe";
-            tinkerOptimize = tmpTinkerDirectory + "/optimize.exe";
-            tinkerOptrigid = tmpTinkerDirectory + "/optrigid.exe";
-            tinkerXYZPdb = tmpTinkerDirectory + "/xyzpdb.exe";
+            tinkerAnalyze = tinkerDirectory + "/analyze.exe";
+            tinkerScan = tinkerDirectory + "/scan.exe";
+            tinkerXYZEdit = tinkerDirectory + "/xyzedit.exe";
+            tinkerMinimize = tinkerDirectory + "/minimize.exe";
+            tinkerDynamic = tinkerDirectory + "/dynamic.exe";
+            tinkerOptimize = tinkerDirectory + "/optimize.exe";
+            tinkerOptrigid = tinkerDirectory + "/optrigid.exe";
+            tinkerXYZPdb = tinkerDirectory + "/xyzpdb.exe";
         } else if (OS.equals("Linux")) {
             if (isTinker9) {
-                tinkerDynamic = tmpTinkerDirectory + "/tinker9";
+                tinkerDynamic = tinkerDirectory + "/tinker9";
             } else {
-                tinkerDynamic = tmpTinkerDirectory + "/dynamic";
+                tinkerDynamic = tinkerDirectory + "/dynamic";
             }
-            tinkerAnalyze = tmpTinkerDirectory + "/analyze";
-            tinkerScan = tmpTinkerDirectory + "/scan";
-            tinkerXYZEdit = tmpTinkerDirectory + "/xyzedit";
-            tinkerMinimize = tmpTinkerDirectory + "/minimize";
-            tinkerOptimize = tmpTinkerDirectory + "/optimize";
-            tinkerOptrigid = tmpTinkerDirectory + "/optrigid";
-            tinkerXYZPdb = tmpTinkerDirectory + "/xyzpdb";
+            tinkerAnalyze = tinkerDirectory + "/analyze";
+            tinkerScan = tinkerDirectory + "/scan";
+            tinkerXYZEdit = tinkerDirectory + "/xyzedit";
+            tinkerMinimize = tinkerDirectory + "/minimize";
+            tinkerOptimize = tinkerDirectory + "/optimize";
+            tinkerOptrigid = tinkerDirectory + "/optrigid";
+            tinkerXYZPdb = tinkerDirectory + "/xyzpdb";
         }
         scratchDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.scratch");
@@ -2143,27 +2147,113 @@ public class MIPET {
      */
     private static void readXyz_Prm() {
         int tmpParticlesLength = particleNames.size();
-        String tmpParticleName;
-        xyzContent = new String[tmpParticlesLength];
+        String tmpXyzName1;
+        String tmpPrmName1;
+        String tmpOldAtomType;
+        String tmpNewAtomType;
+        String[] tmpLines;
+        String[] tmpTokens;
+        StringBuilder tmpXyz2;
+        StringBuilder tmpPrm2;
+        xyzContent1 = new String[tmpParticlesLength];
+        xyzContent2 = new String[tmpParticlesLength];
+        prmContent1 = new String[tmpParticlesLength];
+        prmContent2 = new String[tmpParticlesLength];
+        tmpXyz2 = new StringBuilder(2000);
+        tmpPrm2 = new StringBuilder(2000);
         
         for (int i = 0; i < tmpParticlesLength; i++) {
-
-            tmpParticleName = sourceDirectory
+            // Read .xyz and .prm files
+            tmpXyzName1 = sourceDirectory
                     + FILESEPARATOR
                     + forcefield_IE
                     + FILESEPARATOR
                     + particleNames.get(i)
                     + ".xyz";
+            if (forcefield_IE.equals("OPLSAA")) {
+                tmpPrmName1 = parameterDirectory
+                    + FILESEPARATOR
+                    + forcefield_IE
+                    + FILESEPARATOR
+                    + particleNames.get(i)
+                    + ".prm";
+                try {
+                    if (Files.exists(Paths.get(tmpPrmName1))) {
+                        prmContent1[i] = Files.readString(Paths
+                                .get(tmpPrmName1));
+                    }
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, 
+                            "IOException during reading .prm file.", ex);
+                }
+            }
             try {
-                if (Files.exists(Paths.get(tmpParticleName))) {
-                    xyzContent[i] = Files.readString(Paths
-                            .get(tmpParticleName));
+                if (Files.exists(Paths.get(tmpXyzName1))) {
+                    xyzContent1[i] = Files.readString(Paths
+                            .get(tmpXyzName1));
                 } 
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during reading .xyz file.", ex);
             }
+            
+            // Change atomtype number of 2. particle to avoid redundancy
+            tmpXyz2.setLength(0);
+            if (forcefield_IE.equals("OPLSAA")) {
+                tmpLines = xyzContent1[i].split(LINESEPARATOR);
+                tmpXyz2.append(tmpLines[0]);
+                
+                for (int j = 1; j < tmpLines.length; j++) {
+                    tmpTokens = tmpLines[j].trim().split("\\s+");
+                    tmpOldAtomType = " " + tmpTokens[5] + " ";
+                    tmpNewAtomType = " " + String.valueOf(Integer
+                            .parseInt(tmpTokens[5]) + 100) + " ";
+                    tmpLines[j] = tmpLines[j].replace(tmpOldAtomType, 
+                            tmpNewAtomType);
+                    tmpXyz2.append(LINESEPARATOR);
+                    tmpXyz2.append(tmpLines[j]);
+                }
+                
+                xyzContent2[i] = tmpXyz2.toString();
+                tmpLines = prmContent1[i].split("\\n");
+                tmpPrm2.setLength(0);
+                
+                for (int j = 0; j < tmpLines.length; j++) {
+                    tmpTokens = tmpLines[j].trim().split("\\s+");
+                    
+                    switch (tmpTokens[0]) {
+                        case "atom":
+                            
+                            break;
+                        case "vdw":
+                            break;
+                        case "bond":
+                            break;
+                        case "angle":
+                            break;
+                        case "imptors":
+                            break;
+                        case "torsion":
+                            break;
+                        case "charge":
+                            break;
+                        default:
+                            tmpPrm2.append(tmpLines[j]);
+                            tmpPrm2.append(LINESEPARATOR);
+                            break;
+                    }
+
+                }
+                
+                
+            }
+            
         }
+            
+        
+        
+        
+        
     }
     
     /**
