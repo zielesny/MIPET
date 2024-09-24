@@ -1830,7 +1830,29 @@ public class MIPETUtility{
         }
     }
     
-    
+    /**
+     * Take a String and change an atomtype number to another one
+     * @param anOld
+     * @param anNew
+     * @param aLine
+     * @return String with changed atomtype number
+     */
+    public String changeAtomType(String anOld, String anNew, 
+            String aLine) {
+        String tmpOldAtomType;
+        String tmpNewAtomType;
+        String tmpResult;
+        
+        if (Integer.parseInt(anNew) < 800) {
+            return aLine;
+        }
+        tmpOldAtomType = " " + anOld + " ";
+        tmpNewAtomType = " " + String.valueOf(Integer
+                .parseInt(anNew) + 100) + " ";
+        
+        tmpResult = aLine.replace(tmpOldAtomType, tmpNewAtomType);
+        return tmpResult; 
+    }
     
     // </editor-fold>
     

@@ -2160,7 +2160,7 @@ public class MIPET {
         prmContent1 = new String[tmpParticlesLength];
         prmContent2 = new String[tmpParticlesLength];
         tmpXyz2 = new StringBuilder(2000);
-        tmpPrm2 = new StringBuilder(2000);
+        tmpPrm2 = new StringBuilder(100000);
         
         for (int i = 0; i < tmpParticlesLength; i++) {
             // Read .xyz and .prm files
@@ -2220,32 +2220,42 @@ public class MIPET {
                 
                 for (int j = 0; j < tmpLines.length; j++) {
                     tmpTokens = tmpLines[j].trim().split("\\s+");
-                    
                     switch (tmpTokens[0]) {
-                        case "atom":
-                            
-                            break;
-                        case "vdw":
-                            break;
-                        case "bond":
-                            break;
-                        case "angle":
-                            break;
-                        case "imptors":
-                            break;
-                        case "torsion":
-                            break;
-                        case "charge":
-                            break;
-                        default:
-                            tmpPrm2.append(tmpLines[j]);
-                            tmpPrm2.append(LINESEPARATOR);
-                            break;
+                        case "atom", "vdw", "charge"-> {
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
+                                    tmpTokens[1], tmpLines[j]);
+                        }
+                        case "bond" -> {
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
+                                    tmpTokens[1], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
+                                    tmpTokens[2], tmpLines[j]);
+                        }
+                        case "angle" -> {
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
+                                    tmpTokens[1], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
+                                    tmpTokens[2], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[3], 
+                                    tmpTokens[3], tmpLines[j]);
+                        }
+                        case "imptors", "torsion" -> {
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
+                                    tmpTokens[1], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
+                                    tmpTokens[2], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[3], 
+                                    tmpTokens[3], tmpLines[j]);
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[4], 
+                                    tmpTokens[4], tmpLines[j]);
+                        }
                     }
-
+                    tmpPrm2.append(tmpLines[j]);
+                    tmpPrm2.append(LINESEPARATOR);
                 }
                 
-                
+                prmContent2[i] = tmpPrm2.toString();
+                System.console();
             }
             
         }
