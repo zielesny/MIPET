@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1559,7 +1560,7 @@ public class MIPETUtility{
         String tmpParticle;
         int tmpRoundtripSize;
         
-        if (aParticle2.isEmpty()) {
+        if (aParticle2.isEmpty() || aParticle1.equals(aParticle2)) {
             tmpRoundtripSize = 1;
         } else {
             tmpRoundtripSize = 2;
@@ -1588,15 +1589,13 @@ public class MIPETUtility{
                     LOGGER.log(Level.SEVERE,
                         "IOException during read extra .prm file.", ex);
             }
-        }
-        
-        // Write .key file
-        try (BufferedWriter tmpBW = new BufferedWriter(
-                new FileWriter(aKeyFileName))) {
-            tmpBW.append(tmpKeyFileString);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during writing .key file.", ex);
+            // Write .key file
+            try (PrintWriter tmpOut = new PrintWriter(aKeyFileName)) {
+                tmpOut.print(tmpKeyFileString);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during writing .key file.", ex);
+            }
         }
     }
     
