@@ -1578,6 +1578,7 @@ public class MIPETUtility{
                     + FILESEPARATOR
                     + tmpParticle
                     + ".prm";
+            
             // Check if there is a extra .prm file
             try {
                 if (Files.exists(Paths.get(tmpExtraPrmName))) {
@@ -1589,6 +1590,7 @@ public class MIPETUtility{
                     LOGGER.log(Level.SEVERE,
                         "IOException during read extra .prm file.", ex);
             }
+            
             // Write .key file
             try (PrintWriter tmpOut = new PrintWriter(aKeyFileName)) {
                 tmpOut.print(tmpKeyFileString);

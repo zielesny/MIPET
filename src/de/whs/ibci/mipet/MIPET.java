@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -837,7 +836,7 @@ public class MIPET {
         Path tmpOptXyzFile;
         if (isConformationalAnalysis) {
             System.out.println("Conformational Analysis...");
-            scanParticle(tmpJobTaskRecordList);
+            scanParticle();
         } else {
             System.out.println("Conformational Analysis skipped.");
             tmpForcefield = tmpJobTaskRecordList.get(0).forcefield_IE_Name();
@@ -2338,8 +2337,7 @@ public class MIPET {
      * @param aJobTaskRecordList
      *  Job task records
      */
-    private static void scanParticle(
-            ArrayList<JobTaskRecord> aJobTaskRecordList) {
+    private static void scanParticle() {
         
         String tmpForcefield;
         String tmpParticle;
