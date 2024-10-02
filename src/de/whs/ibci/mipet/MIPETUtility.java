@@ -1509,95 +1509,19 @@ public class MIPETUtility{
     
     /**
      * Save .key file
-     * @param aForcefieldDir
-     *   Directory name of .prm files
-     * @param aForcefield
-     *   Force field name
-     * @param aParticle
-     *   Particle name
      * @param aKeyFileName
      *   Key file name
      * @param aContent
      *   Content of .key file
      */
-    public void writeKeyFile(String aForcefieldDir, 
-            String aForcefield,
-            String aParticle,
-            String aKeyFileName, 
-            String aContent) {
-        this.writeKeyFile(aForcefieldDir, 
-                aForcefield,
-                aParticle, 
-                "", 
-                aKeyFileName, 
-                aContent);
-    }
-    
-    /**
-     * Save .key file
-     * @param aForcefieldDir
-     *   Directory name of .prm files
-     * @param aForcefield
-     *   Force field name
-     * @param aParticle1
-     *   Particle name of first particle
-     * @param aParticle2
-     *   Particle name of second particle
-     * @param aKeyFileName
-     *   Key file name
-     * @param aContent
-     *   Content of .key file
-     */
-    public void writeKeyFile(String aForcefieldDir, 
-            String aForcefield,
-            String aParticle1,
-            String aParticle2,
-            String aKeyFileName, 
-            String aContent) {
+    public void writeKeyFile(String aKeyFileName, String aContent) {
         
-        String tmpExtraPrmName;
-        String tmpKeyFileString;
-        String tmpParticle;
-        int tmpRoundtripSize;
-        
-        if (aParticle2.isEmpty() || aParticle1.equals(aParticle2)) {
-            tmpRoundtripSize = 1;
-        } else {
-            tmpRoundtripSize = 2;
-        }
-        tmpParticle = aParticle1;
-        tmpKeyFileString = aContent;
-        
-        for (int i = 0; i < tmpRoundtripSize; i++) {
-            if (i == 1) {
-                tmpParticle = aParticle2;
-            } 
-            tmpExtraPrmName = aForcefieldDir
-                    + FILESEPARATOR
-                    + aForcefield
-                    + FILESEPARATOR
-                    + tmpParticle
-                    + ".prm";
-            
-            // Check if there is a extra .prm file
-            try {
-                if (Files.exists(Paths.get(tmpExtraPrmName))) {
-                    tmpKeyFileString += LINESEPARATOR;
-                    tmpKeyFileString += Files.readString(Path
-                            .of(tmpExtraPrmName));
-                }
-            } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                        "IOException during read extra .prm file.", ex);
-            }
-            
-            // Write .key file
-            try (PrintWriter tmpOut = new PrintWriter(aKeyFileName)) {
-                tmpOut.print(tmpKeyFileString);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during writing .key file.", ex);
-            }
+        // Write .key file
+        try (PrintWriter tmpOut = new PrintWriter(aKeyFileName)) {
+            tmpOut.print(aContent);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during writing .key file.", ex);
         }
     }
     

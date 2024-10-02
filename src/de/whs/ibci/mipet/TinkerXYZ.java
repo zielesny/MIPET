@@ -26,6 +26,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -173,10 +177,23 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Constructor TinkerXYZ
      * 
-     * @param aTxyzFileName Tinker xyz filename
+     * @param aTxyzFileName Tinker xyz filename or Tinker xyz as a string
      */
     public TinkerXYZ(String aTxyzFileName) {
-        this.initialize(aTxyzFileName, 1, 0, 0);
+        String tmpTxyz;
+        Path tmpPath;
+        
+        if (aTxyzFileName.contains(LINESEPARATOR)) {
+            this.initialize(aTxyzFileName, 1, 0, 0);
+        } else {
+            tmpPath = Path.of(aTxyzFileName);
+            try {
+                tmpTxyz = Files.readString(tmpPath);
+            } catch (IOException ex) {
+                throw new IllegalArgumentException("IOException in TinkerXYZ.");
+            }
+            this.initialize(tmpTxyz, 1, 0, 0);
+        }
     }
     
     /**
@@ -199,8 +216,16 @@ public class TinkerXYZ implements Cloneable {
      */
     public TinkerXYZ(String aTxyzFileName, int anIterationSize, 
             int anAtomSize1, int anAtomSize2) {
-        this.initialize(aTxyzFileName, anIterationSize, anAtomSize1, 
-                anAtomSize2);
+        String tmpTxyz;
+        Path tmpPath;
+        
+        tmpPath = Path.of(aTxyzFileName);
+        try {
+            tmpTxyz = Files.readString(tmpPath);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("IOException in TinkerXYZ.");
+        }
+        this.initialize(tmpTxyz, anIterationSize, anAtomSize1, anAtomSize2);
     }
     /**
      * Constructor TinkerXYZ
@@ -516,6 +541,7 @@ public class TinkerXYZ implements Cloneable {
      * Returns the distances of centre of mass from first particle to 
      *  centre of mass from second particle(s)
      * 
+     * @param aBoxLength Box length in Angstrom
      * @return distances between particle1 to particle2 
      * [i][j][k] i: index of simulation; j: index of partikel2
      * k = 0: x
@@ -859,7 +885,7 @@ public class TinkerXYZ implements Cloneable {
     /**
      * initialize mothod
      * 
-     * @param aTxyzFileName
+     * @param aTinkerXyz
      *   Tinker xyz filename
      * @param itrerationSize
      *   number of iteration
@@ -868,12 +894,12 @@ public class TinkerXYZ implements Cloneable {
      * @param anAtomSize2
      *   atom number of second particle
      */
-    private void initialize(String aTxyzFileName, int anIterationSize, 
+    private void initialize(String aTinkerXyz, int anIterationSize, 
             int anAtomSize1, int anAtomSize2) {
         
         // Check parameters
-        if (aTxyzFileName == null || aTxyzFileName.isEmpty()) {
-            throw new IllegalArgumentException("Filename is null or empty.");
+        if (aTinkerXyz == null || aTinkerXyz.isEmpty()) {
+            throw new IllegalArgumentException(".xyz file is null or empty.");
         } else if (anIterationSize <= 0) {
             throw new IllegalArgumentException("iterationSize should be not "
                     + "negative or zero.");
@@ -885,19 +911,21 @@ public class TinkerXYZ implements Cloneable {
                     + "negative.");
         }
         
-        this.fileContent = new StringBuilder(STRINGBUILDER_CAPACITY);
-        File tmpSourceFile = new File(aTxyzFileName);
-        String tmpReadLine;
-        String[] tmpReadLineArray;
         int tmpAtomNumber;
         int tmpConnectionSize;
-        Boolean tmpHasCommentLine = false;
+        boolean tmpHasCommentLine;
         double tmpX;
         double tmpY;
         double tmpZ;
+        String tmpReadLine;
+        String[] tmpReadLineArray;
+        Reader tmpStringReader;
         
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpSourceFile), this.READER_BUFFERSIZE)) {
+        tmpStringReader = new StringReader(aTinkerXyz);
+        tmpHasCommentLine = false;
+        this.fileContent = new StringBuilder(STRINGBUILDER_CAPACITY);
+        
+        try (BufferedReader tmpBR = new BufferedReader(tmpStringReader)) {
             
             // read first line
             tmpReadLine = tmpBR.readLine();
@@ -1015,7 +1043,6 @@ public class TinkerXYZ implements Cloneable {
                     }
                 }
             }
-            tmpBR.close();
         } catch (FileNotFoundException ex) {
             throw new IllegalArgumentException("File not found in TinkerXYZ.");
         } catch (IOException ex) {
@@ -1121,6 +1148,11 @@ public class TinkerXYZ implements Cloneable {
         }
         
     }
+    
+    private void readXyz() {
+        
+    }
+    
     
     /**
      * Fills left side of the string with spaces so the string is right aligned
