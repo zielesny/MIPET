@@ -72,7 +72,7 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Line separator
      */
-    final private String LINESEPARATOR = System.getProperty("line.separator");
+    final private String LINESEPARATOR = System.lineSeparator();
     
     /**
      * Atomic mass of elements
@@ -183,9 +183,7 @@ public class TinkerXYZ implements Cloneable {
         String tmpTxyz;
         Path tmpPath;
         
-        if (aTxyzFileName.contains(LINESEPARATOR)) {
-            this.initialize(aTxyzFileName, 1, 0, 0);
-        } else {
+        if (new File(aTxyzFileName).isFile()) {
             tmpPath = Path.of(aTxyzFileName);
             try {
                 tmpTxyz = Files.readString(tmpPath);
@@ -193,6 +191,8 @@ public class TinkerXYZ implements Cloneable {
                 throw new IllegalArgumentException("IOException in TinkerXYZ.");
             }
             this.initialize(tmpTxyz, 1, 0, 0);
+        } else {
+            this.initialize(aTxyzFileName, 1, 0, 0);
         }
     }
     

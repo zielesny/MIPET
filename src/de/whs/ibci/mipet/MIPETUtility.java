@@ -77,7 +77,7 @@ public class MIPETUtility{
      /**
      * Line separator
      */
-    final private String LINESEPARATOR = System.getProperty("line.separator");
+    final private String LINESEPARATOR = System.lineSeparator();
     
     /**
      * File separator

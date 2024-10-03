@@ -56,8 +56,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     /**
      * File separator
      */
-    private final String FILESEPARATOR = System
-            .getProperty("file.separator");
+    private final String FILESEPARATOR = System.getProperty("file.separator");
     
     /**
      * Tinkerxyz object

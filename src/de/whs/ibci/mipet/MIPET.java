@@ -1033,7 +1033,11 @@ public class MIPET {
                 String tmpKeyContent;
 
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
-                tmpPrmID2 = particleNames.indexOf(tmpParticleName2);
+                if (tmpIsSameParticle) {
+                    tmpPrmID2 = tmpPrmID1;
+                } else {
+                    tmpPrmID2 = particleNames.indexOf(tmpParticleName2);
+                }
                 
                 // Write .key file
                 tmpKeyContent = keyFileStringOrigin 
@@ -2330,7 +2334,6 @@ public class MIPET {
                 }
                 
                 prmContent2[i] = tmpPrm2.toString();
-                System.console();
             } else {
                 prmContent2[i] = "";
             }
