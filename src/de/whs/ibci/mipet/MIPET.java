@@ -889,6 +889,7 @@ public class MIPET {
         Path tmpOptDistFile;
         String tmpOutputName;
         String tmpLine;
+        int tmpXyz1ID;
         int tmpXyz2ID;
         
         tmpCurrentIndex = 0;
@@ -949,17 +950,22 @@ public class MIPET {
 
                 //<editor-fold defaultstate="collapsed" desc="Centre first fragment">
                 // Centre the fragments and move to the centre
-                tmpTinkerXYZ1 = new TinkerXYZ(optXYZDirectory
-                        + FILESEPARATOR
-                        + forcefield_IE
-                        + FILESEPARATOR
-                        + tmpParticleName1
-                        + FILESEPARATOR
-                        + tmpParticleName1 + ".xyz");
+                if (tmpForcefield.equals("OPLSAA")) {
+                    tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
+                    tmpTinkerXYZ1 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
+                } else {
+                    tmpTinkerXYZ1 = new TinkerXYZ(optXYZDirectory
+                            + FILESEPARATOR
+                            + forcefield_IE
+                            + FILESEPARATOR
+                            + tmpParticleName1
+                            + FILESEPARATOR
+                            + tmpParticleName1 + ".xyz");
+                }
                 tmpXyzData1 = tmpTinkerXYZ1.getCoordinateList1()[0];
                 tmpCentre1 = tmpTinkerXYZ1.findCentreCoordinate();
-                tmpXyzData1 = tmpTinkerXYZ1
-                        .moveCoordinates(tmpXyzData1, tmpCentre1);
+                tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
+                        tmpCentre1);
                 if (tmpIsSameParticle) {
                     tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
                     tmpXyzData2 = tmpXyzData1.clone();
@@ -2335,6 +2341,7 @@ public class MIPET {
                 
                 prmContent2[i] = tmpPrm2.toString();
             } else {
+                xyzContent2[i] = xyzContent1[i];
                 prmContent2[i] = "";
             }
         }
