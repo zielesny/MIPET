@@ -2,6 +2,8 @@
 # Please, put an asterisk front of the force field name for the energy calculation
 #  and use $ symbol in front of the force field name for the coordination number calculation.
 # Please be aware You can't use MM3 force field parameters for the coordination number calculation.
+# If You select OPLSAA MIPETConformationalAnalysis is automatically set to false,
+#  because conformational analysis will change the strucutre of the molecule.
 # -------------------------
 * OPLSAA
 $
@@ -9,10 +11,10 @@ $
 #--------------------------
 # Test particles
 #--------------------------
-H2O
+#H2O
 #Me
 MeOH
-Et
+#Et
 #Me2O
 
 # -------------------------

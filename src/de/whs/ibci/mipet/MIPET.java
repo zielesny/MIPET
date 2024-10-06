@@ -716,8 +716,7 @@ public class MIPET {
         
         //</editor-fold>
         
-        //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
-        readXyz_Prm();
+        
         
         //</editor-fold>
         
@@ -829,12 +828,16 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Optimize and scan particle">
-        int tmpParticleID;
-        String tmpOptXyzDirName;
         String tmpSourceName;
         String tmpTargetName;
-        Path tmpOptXyzDir;
-        Path tmpOptXyzFile;
+        String tmpFileName;
+        Path tmpSourcePath;
+        Path tmpTargetPath;
+        Path tmpOptXyzPath;
+        
+        if (forcefield_IE.equals("OPLSAA")) {
+            isConformationalAnalysis = false;
+        }
         if (isConformationalAnalysis) {
             System.out.println("Conformational Analysis...");
             scanParticle();
@@ -843,12 +846,12 @@ public class MIPET {
             tmpForcefield = tmpJobTaskRecordList.get(0).forcefield_IE_Name();
             
             for (String tmpParticleName : particleNames) {
-                tmpOptXyzDir = Paths.get(optXYZDirectory, 
+                tmpOptXyzPath = Paths.get(optXYZDirectory, 
                         tmpForcefield, 
                         tmpParticleName);
-                if (!Files.exists(tmpOptXyzDir)) {
+                if (!Files.exists(tmpOptXyzPath)) {
                     try {
-                        Files.createDirectories(tmpOptXyzDir);
+                        Files.createDirectories(tmpOptXyzPath);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during creating OptXyz directory.", 
@@ -859,29 +862,41 @@ public class MIPET {
             
             // Copy .xyz file to optXYZ directory
             for (String tmpParticleName : particleNames) {
-                tmpParticleID = particleNames.indexOf(tmpParticleName);
-                tmpOptXyzDirName = optXYZDirectory
+                tmpSourceName = sourceDirectory
                         + FILESEPARATOR 
+                        + tmpForcefield 
+                        + FILESEPARATOR 
+                        + tmpParticleName
+                        + ".xyz";
+                tmpFileName = FILESEPARATOR 
                         + tmpForcefield 
                         + FILESEPARATOR 
                         + tmpParticleName
                         + FILESEPARATOR 
                         + tmpParticleName
                         + ".xyz";
+                tmpTargetName = optXYZDirectory + tmpFileName;
+
                 // Check whether already scanned
-                tmpOptXyzFile = Paths.get(tmpOptXyzDirName);
-                if (!Files.exists(tmpOptXyzFile)) {
-                   
-                    try (PrintWriter tmpOut = new PrintWriter (
-                            tmpOptXyzDirName)) {
-                        tmpOut.print(xyzContent1[tmpParticleID]);
+                tmpSourcePath = Paths.get(tmpSourceName);
+                tmpTargetPath = Paths.get(tmpTargetName);
+                if (!Files.exists(tmpTargetPath)) {
+                    try{
+                        Files.copy(tmpSourcePath, tmpTargetPath, 
+                                StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
-                                "IOException during writing .xyz file.", ex);
+                                "IOException during copying .xyz file.", ex);
                     }
                 }
             }
+            
         }
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
+        readXyz_Prm();
         
         //</editor-fold>
         
@@ -950,18 +965,8 @@ public class MIPET {
 
                 //<editor-fold defaultstate="collapsed" desc="Centre first fragment">
                 // Centre the fragments and move to the centre
-                if (tmpForcefield.equals("OPLSAA")) {
-                    tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
-                    tmpTinkerXYZ1 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
-                } else {
-                    tmpTinkerXYZ1 = new TinkerXYZ(optXYZDirectory
-                            + FILESEPARATOR
-                            + forcefield_IE
-                            + FILESEPARATOR
-                            + tmpParticleName1
-                            + FILESEPARATOR
-                            + tmpParticleName1 + ".xyz");
-                }
+                tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
+                tmpTinkerXYZ1 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
                 tmpXyzData1 = tmpTinkerXYZ1.getCoordinateList1()[0];
                 tmpCentre1 = tmpTinkerXYZ1.findCentreCoordinate();
                 tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
@@ -970,18 +975,8 @@ public class MIPET {
                     tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
                     tmpXyzData2 = tmpXyzData1.clone();
                 } else {
-                    if (tmpForcefield.equals("OPLSAA")) {
-                        tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
-                        tmpTinkerXYZ2 = new TinkerXYZ(xyzContent2[tmpXyz2ID]);
-                    } else {
-                        tmpTinkerXYZ2 = new TinkerXYZ(optXYZDirectory
-                                + FILESEPARATOR
-                                + forcefield_IE
-                                + FILESEPARATOR
-                                + tmpParticleName2
-                                + FILESEPARATOR
-                                + tmpParticleName2 + ".xyz");
-                    }
+                    tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
+                    tmpTinkerXYZ2 = new TinkerXYZ(xyzContent2[tmpXyz2ID]);
                     tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
                     tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
                     tmpXyzData2 = tmpTinkerXYZ2
@@ -1538,7 +1533,6 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Copy results">
                 Path tmpOriginal;
                 Path tmpTarget;
-                String tmpFileName;
                 Boolean tmpHasH2O;
                 
                 // Write ouput.0 file
@@ -2229,7 +2223,8 @@ public class MIPET {
      * Read .xyz and .prm files in variables and convert atomtype number
      */
     private static void readXyz_Prm() {
-        int tmpParticlesLength = particleNames.size();
+        int tmpParticlesLength;
+        String tmpSourceName;
         String tmpXyzName1;
         String tmpPrmName1;
         String tmpOldAtomType;
@@ -2238,6 +2233,8 @@ public class MIPET {
         String[] tmpTokens;
         StringBuilder tmpXyz2;
         StringBuilder tmpPrm2;
+        
+        tmpParticlesLength = particleNames.size();
         xyzContent1 = new String[tmpParticlesLength];
         xyzContent2 = new String[tmpParticlesLength];
         prmContent1 = new String[tmpParticlesLength];
@@ -2247,13 +2244,18 @@ public class MIPET {
         
         for (int i = 0; i < tmpParticlesLength; i++) {
             // Read .xyz and .prm files
-            tmpXyzName1 = sourceDirectory
+            if (isConformationalAnalysis) {
+                tmpSourceName = optXYZDirectory;                
+            } else {
+                tmpSourceName = sourceDirectory;
+            }
+            tmpXyzName1 = tmpSourceName
                     + FILESEPARATOR
                     + forcefield_IE
                     + FILESEPARATOR
                     + particleNames.get(i)
                     + ".xyz";
-            if (forcefield_IE.equals("OPLSAA")) {
+            if (forcefield_IE.equals("OPLSAA") && !isConformationalAnalysis) {
                 tmpPrmName1 = parameterDirectory
                     + FILESEPARATOR
                     + forcefield_IE
@@ -2378,7 +2380,7 @@ public class MIPET {
         Path tmpOptXyzDir;
         Path tmpOptXyzFile;
         Path tmOptArcFile;
-        Path tmpOriginal;
+        Path tmpSource;
         Path tmpTarget;
         TinkerXYZ tmpTinkerXYZ;
         TinkerXYZ tmpTinkerXYZ0;
@@ -2391,7 +2393,6 @@ public class MIPET {
         Integer[] tmpEnergyIndices;
         double[][][] tmpCoords;
         ArrayIndexComparator tmpComparator;
-        int tmpParticleID;
         
         tmpProcess = null;
         tmpTaskName = new HashSet<>();
@@ -2415,10 +2416,8 @@ public class MIPET {
         }
         
         for (String tmpForcefield_Particle : tmpTaskName) {
-            
             tmpForcefield = tmpForcefield_Particle.split("_")[0];
             tmpParticle = tmpForcefield_Particle.split("_")[1];
-            tmpParticleID = particleNames.indexOf(tmpParticle);
             tmpParticleXyzName = tmpParticle + ".xyz";
             tmpOptXyzDirName = optXYZDirectory
                     + FILESEPARATOR 
@@ -2441,14 +2440,23 @@ public class MIPET {
                     + FILESEPARATOR
                     + tmpParticleXyzName);
             if (!Files.exists(tmpOptXyzFile)) {
+                tmpSourceName = sourceDirectory
+                        + FILESEPARATOR
+                        + tmpForcefield
+                        + FILESEPARATOR
+                        + tmpParticle
+                        + ".xyz";
                 tmpTargetName = tmpOptXyzDirName
                         + FILESEPARATOR
                         + tmpParticleXyzName;
-                try (PrintWriter tmpOut = new PrintWriter (tmpTargetName)) {
-                    tmpOut.print(xyzContent1[tmpParticleID]);
+                tmpSource = Paths.get(tmpSourceName);
+                tmpTarget = Paths.get(tmpTargetName);
+                try {
+                    Files.copy(tmpSource, tmpTarget, StandardCopyOption
+                            .REPLACE_EXISTING);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
-                            "IOException during writing .xyz file.", ex);
+                            "IOException during copying .xyz file.", ex);
                 }
                 tmpTinkerXYZ = new TinkerXYZ(tmpTargetName);
                 tmpKeyPathName = tmpOptXyzDirName 
@@ -2467,9 +2475,6 @@ public class MIPET {
                         + LINESEPARATOR;
                         
                 // Write .key file
-                if (tmpForcefield.equals("OPLSAA")) {
-                    tmpKeyContent += prmContent1[tmpParticleID];
-                }
                 MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
                 
                 // Create optimized .xyz files for the particles via Tinker optimize.
@@ -2517,10 +2522,10 @@ public class MIPET {
                         + ".xyz_2");
                 tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
                         .getCoordinateList1());
-                tmpOriginal = Paths.get(tmpOptXyzDirName, tmpParticle 
+                tmpSource = Paths.get(tmpOptXyzDirName, tmpParticle 
                         + ".xyz_2");
                 try {
-                    Files.deleteIfExists(tmpOriginal);
+                    Files.deleteIfExists(tmpSource);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during deleting .xyz_2 file", ex);
@@ -2645,11 +2650,11 @@ public class MIPET {
                                 + FILESEPARATOR
                                 + tmpParticle
                                 + ".xyz";
-                        tmpOriginal = Paths.get(tmpSourceName);
+                        tmpSource = Paths.get(tmpSourceName);
                         tmpTarget = Paths.get(tmpTargetName);
                         try {
-                            if (Files.exists(tmpOriginal)) {
-                                Files.copy(tmpOriginal, tmpTarget,
+                            if (Files.exists(tmpSource)) {
+                                Files.copy(tmpSource, tmpTarget,
                                         StandardCopyOption.REPLACE_EXISTING);
                             }
                         } catch (IOException ex) {
@@ -2693,10 +2698,10 @@ public class MIPET {
                                 + ".xyz_2");
                         tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
                                 .getCoordinateList1());
-                        tmpOriginal = Paths.get(tmpOptXyzDirName, 
+                        tmpSource = Paths.get(tmpOptXyzDirName, 
                                 tmpParticle + ".xyz_2");
                         try {
-                            Files.deleteIfExists(tmpOriginal);
+                            Files.deleteIfExists(tmpSource);
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, "IOException during deleting .xyz_2 file.", ex);
                         }
