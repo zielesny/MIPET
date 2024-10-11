@@ -808,26 +808,7 @@ public class MIPET {
         
         //</editor-fold>
         
-        //<editor-fold defaultstate="collapsed" desc="Determine Water model name">
-        String tmpWaterFileName;
-        String tmpFirstLine;
-        
-        tmpWaterFileName = "Molecules"
-                + FILESEPARATOR
-                + forcefield_IE
-                + FILESEPARATOR
-                + "H2O.xyz";
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpWaterFileName))) {
-            tmpFirstLine = tmpBR.readLine();
-            watermodel = tmpFirstLine.trim().split("\\s+")[1];
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "IOException during reading H2O.xyz.", ex);
-        }
-        
-        //</editor-fold>
-        
-        //<editor-fold defaultstate="collapsed" desc="Optimize and scan particle">
+        //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
         String tmpSourceName;
         String tmpTargetName;
         String tmpFileName;
@@ -835,9 +816,6 @@ public class MIPET {
         Path tmpTargetPath;
         Path tmpOptXyzPath;
         
-        if (forcefield_IE.equals("OPLSAA")) {
-            isConformationalAnalysis = false;
-        }
         if (isConformationalAnalysis) {
             System.out.println("Conformational Analysis...");
             scanParticle();
@@ -919,8 +897,7 @@ public class MIPET {
             //   were calculated.
             if (tmpJobTaskRecordList.get(tmpCurrentIndex).hasEnergieJob()) {
                 //<editor-fold defaultstate="collapsed" desc="Job task record">
-                tmpForcefield = tmpJobTaskRecordList.get(tmpCurrentIndex)
-                        .forcefield_IE_Name();
+                tmpForcefield = forcefield_IE;
                 tmpParticleName1 = tmpJobTaskRecordList.get(tmpCurrentIndex)
                         .particleName1();
                 tmpParticleName2 = tmpJobTaskRecordList.get(tmpCurrentIndex)
@@ -1052,7 +1029,7 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpParticlePair 
                         + ".key";
-                if (tmpForcefield.equals("OPLSAA")) {
+                if (tmpForcefield.equals("OPLSAA_LIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrmID1];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrmID2];
@@ -1220,7 +1197,7 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpKeyFileName;
                 tmpKeyContent = tmpKeyFileString;
-                if (tmpForcefield.equals("OPLSAA")) {
+                if (tmpForcefield.equals("OPLSAA_LIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrmID1];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrmID2];
@@ -2224,11 +2201,11 @@ public class MIPET {
      */
     private static void readXyz_Prm() {
         int tmpParticlesLength;
-        String tmpSourceName;
         String tmpXyzName1;
         String tmpPrmName1;
         String tmpOldAtomType;
         String tmpNewAtomType;
+        String tmpParticleName;
         String[] tmpLines;
         String[] tmpTokens;
         StringBuilder tmpXyz2;
@@ -2243,24 +2220,33 @@ public class MIPET {
         tmpPrm2 = new StringBuilder(100000);
         
         for (int i = 0; i < tmpParticlesLength; i++) {
+            tmpParticleName = particleNames.get(i);
             // Read .xyz and .prm files
             if (isConformationalAnalysis) {
-                tmpSourceName = optXYZDirectory;                
+                tmpXyzName1 = optXYZDirectory
+                        + FILESEPARATOR
+                        + forcefield_IE
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + ".xyz";
             } else {
-                tmpSourceName = sourceDirectory;
+                tmpXyzName1 = sourceDirectory
+                        + FILESEPARATOR
+                        + forcefield_IE
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + ".xyz";
             }
-            tmpXyzName1 = tmpSourceName
-                    + FILESEPARATOR
-                    + forcefield_IE
-                    + FILESEPARATOR
-                    + particleNames.get(i)
-                    + ".xyz";
-            if (forcefield_IE.equals("OPLSAA") && !isConformationalAnalysis) {
+            
+            if (forcefield_IE.equals("OPLSAA_LIGPARGEN") && 
+                    !isConformationalAnalysis) {
                 tmpPrmName1 = parameterDirectory
                     + FILESEPARATOR
                     + forcefield_IE
                     + FILESEPARATOR
-                    + particleNames.get(i)
+                    + tmpParticleName
                     + ".prm";
                 try {
                     if (Files.exists(Paths.get(tmpPrmName1))) {
@@ -2274,6 +2260,7 @@ public class MIPET {
                             "IOException during reading .prm file.", ex);
                 }
             }
+            
             try {
                 if (Files.exists(Paths.get(tmpXyzName1))) {
                     xyzContent1[i] = Files.readString(Paths
@@ -2286,7 +2273,8 @@ public class MIPET {
             
             // Change atomtype number of 2. particle to avoid redundancy
             tmpXyz2.setLength(0);
-            if (forcefield_IE.equals("OPLSAA") && !prmContent1[i].equals("")) {
+            if (forcefield_IE.equals("OPLSAA_LIGPARGEN") && 
+                    !prmContent1[i].equals("")) {
                 tmpLines = xyzContent1[i].split(LINESEPARATOR);
                 tmpXyz2.append(tmpLines[0]);
                 
@@ -3150,7 +3138,7 @@ public class MIPET {
                 tmpKeyFileName = tmpCurrentDir
                         + tmpParticlePair
                         + ".key";
-                if (forcefield_CN.equals("OPLSAA")) {
+                if (forcefield_CN.equals("OPLSAA_LIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrm1ID];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrm2ID];
