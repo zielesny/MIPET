@@ -609,7 +609,17 @@ public class MIPET {
         //</editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc="Set original .key file">
-        keyFileStringOrigin =
+        if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+            keyFileStringOrigin =
+                "# Force Field Selection"
+                + LINESEPARATOR
+                + "PARAMETERS\t\""
+                + parameterDirectory
+                + "/"
+                + "oplsaa.prm\""
+                + LINESEPARATOR;
+        } else {
+            keyFileStringOrigin =
                 "# Force Field Selection"
                 + LINESEPARATOR
                 + "PARAMETERS\t\""
@@ -617,6 +627,8 @@ public class MIPET {
                 + "/"
                 + forcefield_IE.toLowerCase() + ".prm\""
                 + LINESEPARATOR;
+        }
+        
         // </editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Create log file">
@@ -809,6 +821,12 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
+        readXyz_Prm();
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
+        
         String tmpSourceName;
         String tmpTargetName;
         String tmpFileName;
@@ -873,10 +891,7 @@ public class MIPET {
         
         //</editor-fold>
         
-        //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
-        readXyz_Prm();
         
-        //</editor-fold>
         
         Path tmpKeyFile;
         Path tmpOptDistFile;
@@ -1029,7 +1044,7 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpParticlePair 
                         + ".key";
-                if (tmpForcefield.equals("OPLSAA_LIGPARGEN")) {
+                if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrmID1];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrmID2];
@@ -1197,7 +1212,7 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpKeyFileName;
                 tmpKeyContent = tmpKeyFileString;
-                if (tmpForcefield.equals("OPLSAA_LIGPARGEN")) {
+                if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrmID1];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrmID2];
@@ -2222,26 +2237,22 @@ public class MIPET {
         for (int i = 0; i < tmpParticlesLength; i++) {
             tmpParticleName = particleNames.get(i);
             // Read .xyz and .prm files
-            if (isConformationalAnalysis) {
-                tmpXyzName1 = optXYZDirectory
-                        + FILESEPARATOR
-                        + forcefield_IE
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + ".xyz";
-            } else {
-                tmpXyzName1 = sourceDirectory
-                        + FILESEPARATOR
-                        + forcefield_IE
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + ".xyz";
+            tmpXyzName1 = sourceDirectory
+                    + FILESEPARATOR
+                    + forcefield_IE
+                    + FILESEPARATOR
+                    + tmpParticleName
+                    + ".xyz";
+            try {
+                if (Files.exists(Paths.get(tmpXyzName1))) {
+                    xyzContent1[i] = Files.readString(Paths
+                            .get(tmpXyzName1));
+                } 
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during reading .xyz file.", ex);
             }
-            
-            if (forcefield_IE.equals("OPLSAA_LIGPARGEN") && 
-                    !isConformationalAnalysis) {
+            if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
                 tmpPrmName1 = parameterDirectory
                     + FILESEPARATOR
                     + forcefield_IE
@@ -2261,19 +2272,9 @@ public class MIPET {
                 }
             }
             
-            try {
-                if (Files.exists(Paths.get(tmpXyzName1))) {
-                    xyzContent1[i] = Files.readString(Paths
-                            .get(tmpXyzName1));
-                } 
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during reading .xyz file.", ex);
-            }
-            
             // Change atomtype number of 2. particle to avoid redundancy
             tmpXyz2.setLength(0);
-            if (forcefield_IE.equals("OPLSAA_LIGPARGEN") && 
+            if (forcefield_IE.equals("OPLSAALIGPARGEN") && 
                     !prmContent1[i].equals("")) {
                 tmpLines = xyzContent1[i].split(LINESEPARATOR);
                 tmpXyz2.append(tmpLines[0]);
@@ -2380,6 +2381,7 @@ public class MIPET {
         Double[] tmpEnergyList;
         Integer[] tmpEnergyIndices;
         double[][][] tmpCoords;
+        int tmpKeyIndex;
         ArrayIndexComparator tmpComparator;
         
         tmpProcess = null;
@@ -2451,6 +2453,9 @@ public class MIPET {
                         + FILESEPARATOR 
                         + tmpParticle 
                         + ".key";
+                if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+                    tmpForcefield = "OPLSAA";
+                }
                 tmpKeyContent = "# Force Field Selection"
                         + LINESEPARATOR 
                         + "PARAMETERS\t\""
@@ -2461,7 +2466,11 @@ public class MIPET {
                         + "DIELECTRIC\t" 
                         + dielectricConstant
                         + LINESEPARATOR;
-                        
+                if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+                    tmpKeyIndex = particleNames.indexOf(tmpParticle);
+                    tmpKeyContent += prmContent1[tmpKeyIndex];
+                }
+                
                 // Write .key file
                 MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
                 
@@ -2491,7 +2500,7 @@ public class MIPET {
                             tmpOutput.close();
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, 
-                                    "IOException during writing .log file.", 
+                                    "IOException during writing .log file.",
                                     ex);
                         }
                         try {
@@ -3138,7 +3147,7 @@ public class MIPET {
                 tmpKeyFileName = tmpCurrentDir
                         + tmpParticlePair
                         + ".key";
-                if (forcefield_CN.equals("OPLSAA_LIGPARGEN")) {
+                if (forcefield_CN.equals("OPLSAALIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrm1ID];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrm2ID];

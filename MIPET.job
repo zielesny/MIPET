@@ -5,7 +5,7 @@
 # If You select OPLSAA MIPETConformationalAnalysis is automatically set to false,
 #  because conformational analysis will change the strucutre of the molecule.
 # -------------------------
-* OPLSAA
+* OPLSAALIGPARGEN
 $
 
 #--------------------------
