@@ -820,13 +820,13 @@ public class MIPET {
         
         //</editor-fold>
         
-        //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
-        readXyz_Prm();
+        //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
+        readXyz(true);
+        readPrm();
         
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
-        
         String tmpSourceName;
         String tmpTargetName;
         String tmpFileName;
@@ -837,6 +837,9 @@ public class MIPET {
         if (isConformationalAnalysis) {
             System.out.println("Conformational Analysis...");
             scanParticle();
+            
+            // Overwrite xyzContent with new .xyz
+            readXyz(false);
         } else {
             System.out.println("Conformational Analysis skipped.");
             tmpForcefield = tmpJobTaskRecordList.get(0).forcefield_IE_Name();
@@ -890,8 +893,6 @@ public class MIPET {
         }
         
         //</editor-fold>
-        
-        
         
         Path tmpKeyFile;
         Path tmpOptDistFile;
@@ -2210,39 +2211,47 @@ public class MIPET {
         return tmpParticlePairs;
     }
     
-    /** 
-     * Method readXyz_Prm
-     * Read .xyz and .prm files in variables and convert atomtype number
+    /**
+     * Method readXyz
+     * Read .xyz files and store in xyzContent.
+     * If conformational analysis is set xyzContent is overwritten with optimized data.
      */
-    private static void readXyz_Prm() {
+    private static void readXyz(boolean anIsOriginal) {
         int tmpParticlesLength;
+        String tmpParticleName;
         String tmpXyzName1;
-        String tmpPrmName1;
         String tmpOldAtomType;
         String tmpNewAtomType;
-        String tmpParticleName;
         String[] tmpLines;
         String[] tmpTokens;
         StringBuilder tmpXyz2;
-        StringBuilder tmpPrm2;
         
         tmpParticlesLength = particleNames.size();
         xyzContent1 = new String[tmpParticlesLength];
         xyzContent2 = new String[tmpParticlesLength];
-        prmContent1 = new String[tmpParticlesLength];
-        prmContent2 = new String[tmpParticlesLength];
         tmpXyz2 = new StringBuilder(2000);
-        tmpPrm2 = new StringBuilder(100000);
         
         for (int i = 0; i < tmpParticlesLength; i++) {
             tmpParticleName = particleNames.get(i);
-            // Read .xyz and .prm files
-            tmpXyzName1 = sourceDirectory
-                    + FILESEPARATOR
-                    + forcefield_IE
-                    + FILESEPARATOR
-                    + tmpParticleName
-                    + ".xyz";
+            
+            // Read .xyz files
+            if (anIsOriginal) {
+                tmpXyzName1 = sourceDirectory
+                        + FILESEPARATOR
+                        + forcefield_IE
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + ".xyz";
+            } else {
+                tmpXyzName1 = optXYZDirectory
+                        + FILESEPARATOR
+                        + forcefield_IE
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + FILESEPARATOR
+                        + tmpParticleName
+                        + ".xyz";
+            }
             try {
                 if (Files.exists(Paths.get(tmpXyzName1))) {
                     xyzContent1[i] = Files.readString(Paths
@@ -2252,6 +2261,54 @@ public class MIPET {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during reading .xyz file.", ex);
             }
+            
+            // Change atomtype number of 2. particle to avoid redundancy
+            tmpXyz2.setLength(0);
+            if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+                tmpLines = xyzContent1[i].split(LINESEPARATOR);
+                tmpXyz2.append(tmpLines[0]);
+
+                for (int j = 1; j < tmpLines.length; j++) {
+                    tmpTokens = tmpLines[j].trim().split("\\s+");
+                    tmpOldAtomType = " " + tmpTokens[5] + " ";
+                    tmpNewAtomType = " " + String.valueOf(Integer
+                            .parseInt(tmpTokens[5]) + 100) + " ";
+                    tmpLines[j] = tmpLines[j].replace(tmpOldAtomType, 
+                            tmpNewAtomType);
+                    tmpXyz2.append(LINESEPARATOR);
+                    tmpXyz2.append(tmpLines[j]);
+                }
+
+                xyzContent2[i] = tmpXyz2.toString();
+            } else {
+                xyzContent2[i] = xyzContent1[i];
+            }
+        }
+        
+    }
+    
+    /** 
+     * Method readPrm
+     * Read .prm files for OPLSAALIGPARGEN and convert atomtype number of 
+     *  second particle
+     */
+    private static void readPrm() {
+        int tmpParticlesLength;
+        String tmpPrmName1;
+        String tmpParticleName;
+        String[] tmpLines;
+        String[] tmpTokens;
+        StringBuilder tmpPrm2;
+        
+        tmpParticlesLength = particleNames.size();
+        prmContent1 = new String[tmpParticlesLength];
+        prmContent2 = new String[tmpParticlesLength];
+        tmpPrm2 = new StringBuilder(100000);
+        
+        for (int i = 0; i < tmpParticlesLength; i++) {
+            tmpParticleName = particleNames.get(i);
+            
+            // Read .prm files
             if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
                 tmpPrmName1 = parameterDirectory
                     + FILESEPARATOR
@@ -2273,26 +2330,10 @@ public class MIPET {
             }
             
             // Change atomtype number of 2. particle to avoid redundancy
-            tmpXyz2.setLength(0);
             if (forcefield_IE.equals("OPLSAALIGPARGEN") && 
                     !prmContent1[i].equals("")) {
-                tmpLines = xyzContent1[i].split(LINESEPARATOR);
-                tmpXyz2.append(tmpLines[0]);
-                
-                for (int j = 1; j < tmpLines.length; j++) {
-                    tmpTokens = tmpLines[j].trim().split("\\s+");
-                    tmpOldAtomType = " " + tmpTokens[5] + " ";
-                    tmpNewAtomType = " " + String.valueOf(Integer
-                            .parseInt(tmpTokens[5]) + 100) + " ";
-                    tmpLines[j] = tmpLines[j].replace(tmpOldAtomType, 
-                            tmpNewAtomType);
-                    tmpXyz2.append(LINESEPARATOR);
-                    tmpXyz2.append(tmpLines[j]);
-                }
-                
-                xyzContent2[i] = tmpXyz2.toString();
-                tmpLines = prmContent1[i].split("\\n");
                 tmpPrm2.setLength(0);
+                tmpLines = prmContent1[i].split("\\n");
                 
                 for (int j = 25; j < tmpLines.length; j++) {
                     tmpTokens = tmpLines[j].trim().split("\\s+");
@@ -2329,14 +2370,11 @@ public class MIPET {
                     tmpPrm2.append(tmpLines[j]);
                     tmpPrm2.append(LINESEPARATOR);
                 }
-                
                 prmContent2[i] = tmpPrm2.toString();
             } else {
-                xyzContent2[i] = xyzContent1[i];
                 prmContent2[i] = "";
             }
         }
-        
     }
     
     /**
@@ -2346,7 +2384,6 @@ public class MIPET {
      *  Job task records
      */
     private static void scanParticle() {
-        
         String tmpForcefield;
         String tmpParticle;
         String tmpTaskCandidate;
@@ -2487,16 +2524,16 @@ public class MIPET {
                             "IOException during process start.", ex);
                 } finally {
                     if (tmpProcess != null) {
-                        try {
-                            InputStream tmpInput = tmpProcess.getInputStream();
+                        OutputStream tmpOutput;
+                        try (InputStream tmpInput = tmpProcess
+                                .getInputStream()) {
                             tmpOptXyzLogName = tmpOptXyzDirName
-                                    + FILESEPARATOR 
+                                    + FILESEPARATOR
                                     + tmpParticle
                                     + "_preoptimize.log";
-                            OutputStream tmpOutput = new FileOutputStream(
+                            tmpOutput = new FileOutputStream(
                                     tmpOptXyzLogName, false);
                             tmpInput.transferTo(tmpOutput);
-                            tmpInput.close();
                             tmpOutput.close();
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, 
@@ -2672,10 +2709,11 @@ public class MIPET {
                                     + FILESEPARATOR 
                                     + tmpParticle
                                     + "_afteroptimize.log";
-                                OutputStream tmpOutput = new FileOutputStream(
-                                        tmpOptXyzLogName, false);
-                                tmpInput.transferTo(tmpOutput);
-                                tmpOutput.close();
+                                try (OutputStream tmpOutput = 
+                                        new FileOutputStream (tmpOptXyzLogName, 
+                                                false)) {
+                                    tmpInput.transferTo(tmpOutput);
+                                }
                             }
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, "IOException during writing .log file", ex);
@@ -2925,6 +2963,8 @@ public class MIPET {
         int tmpJobTaskLength;
         int tmpJobNumber;
         int tmpJobIndex;
+        int tmpXyzID1;
+        int tmpXyzID2;
         long tmpTotalCNTime;
         long boxMinimizationTime;
         long tmpDynamicWarmUpTime;
@@ -2982,8 +3022,14 @@ public class MIPET {
                 tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
                 tmpIsSameParticle = aJobTaskRecordList.get(i)
                         .isSameParticle();
+                tmpXyzID1 = particleNames.indexOf(tmpParticle1);
+                if (tmpIsSameParticle) {
+                    tmpXyzID2 = tmpXyzID1;
+                } else {
+                    tmpXyzID2 = particleNames.indexOf(tmpParticle2);
+                }
 
-                // Copy .xyz files to scratch directory
+                // Create directory in scratch directory
                 tmpTargetDir = Paths.get(scratchDirectory 
                         + FILESEPARATOR 
                         + forcefield_CN
@@ -2998,6 +3044,8 @@ public class MIPET {
                             ex);
                     }
                 }
+                
+                // Copy .xyz files
                 tmpSource = Paths.get(optXYZDirectory
                         + FILESEPARATOR
                         + forcefield_CN
@@ -3015,8 +3063,9 @@ public class MIPET {
                         + tmpParticle1
                         + ".xyz");
                 try {
-                    Files.copy(tmpSource, tmpTarget, 
-                            StandardCopyOption.REPLACE_EXISTING);
+                    Files.writeString(tmpTarget, xyzContent1[tmpXyzID1]);
+//                    Files.copy(tmpSource, tmpTarget, 
+//                            StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during copying files to scratch.", ex);

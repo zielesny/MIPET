@@ -1,9 +1,12 @@
 # Force fields
 # Please, put an asterisk front of the force field name for the energy calculation
 #  and use $ symbol in front of the force field name for the coordination number calculation.
-# Please be aware You can't use MM3 force field parameters for the coordination number calculation.
-# If You select OPLSAA MIPETConformationalAnalysis is automatically set to false,
-#  because conformational analysis will change the strucutre of the molecule.
+# You can choose following force fields:
+# MM3. MMFF, OPLSAA, OPLSAALIGPARGEN, AMOEBA09, SMOOTHAA
+# Please, be aware You can't use MM3 force field parameters for the coordination number calculation.
+# Please, keep in mind that if You choose OPLSAALIGPARGEN and set conformational analysis at same time
+#  MIPET will use same parameter set from LigParGen but the new optimized structure needs new
+#  parameter set. 
 # -------------------------
 * OPLSAALIGPARGEN
 $
@@ -14,7 +17,7 @@ $
 #H2O
 #Me
 MeOH
-#Et
+Et
 #Me2O
 
 # -------------------------
