@@ -8,8 +8,8 @@
 #  MIPET will use same parameter set from LigParGen but the new optimized structure needs new
 #  parameter set. 
 # -------------------------
-* OPLSAALIGPARGEN
-$
+* MMFF
+$ OPLSAA
 
 #--------------------------
 # Test particles
@@ -17,7 +17,7 @@ $
 #H2O
 #Me
 MeOH
-Et
+#Et
 #Me2O
 
 # -------------------------

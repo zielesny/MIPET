@@ -821,8 +821,8 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
-        readXyz(true);
-        readPrm();
+        readXyz(true, forcefield_IE);
+        readPrm(forcefield_IE);
         
         //</editor-fold>
         
@@ -839,7 +839,7 @@ public class MIPET {
             scanParticle();
             
             // Overwrite xyzContent with new .xyz
-            readXyz(false);
+            readXyz(false, forcefield_IE);
         } else {
             System.out.println("Conformational Analysis skipped.");
             tmpForcefield = tmpJobTaskRecordList.get(0).forcefield_IE_Name();
@@ -905,7 +905,8 @@ public class MIPET {
         tmpIsExitCondition = false;
         tmpKeyFileString = keyFileStringOrigin 
                 + "DIELECTRIC\t" 
-                + dielectricConstant;	
+                + dielectricConstant;
+        tmpForcefield = forcefield_IE;
         System.out.println("Calculating intermolecular energy...");
         
         while (tmpIsExitCondition == false) {
@@ -913,7 +914,6 @@ public class MIPET {
             //   were calculated.
             if (tmpJobTaskRecordList.get(tmpCurrentIndex).hasEnergieJob()) {
                 //<editor-fold defaultstate="collapsed" desc="Job task record">
-                tmpForcefield = forcefield_IE;
                 tmpParticleName1 = tmpJobTaskRecordList.get(tmpCurrentIndex)
                         .particleName1();
                 tmpParticleName2 = tmpJobTaskRecordList.get(tmpCurrentIndex)
@@ -2216,7 +2216,7 @@ public class MIPET {
      * Read .xyz files and store in xyzContent.
      * If conformational analysis is set xyzContent is overwritten with optimized data.
      */
-    private static void readXyz(boolean anIsOriginal) {
+    private static void readXyz(boolean anIsOriginal, String aForcefield) {
         int tmpParticlesLength;
         String tmpParticleName;
         String tmpXyzName1;
@@ -2238,14 +2238,14 @@ public class MIPET {
             if (anIsOriginal) {
                 tmpXyzName1 = sourceDirectory
                         + FILESEPARATOR
-                        + forcefield_IE
+                        + aForcefield
                         + FILESEPARATOR
                         + tmpParticleName
                         + ".xyz";
             } else {
                 tmpXyzName1 = optXYZDirectory
                         + FILESEPARATOR
-                        + forcefield_IE
+                        + aForcefield
                         + FILESEPARATOR
                         + tmpParticleName
                         + FILESEPARATOR
@@ -2264,7 +2264,8 @@ public class MIPET {
             
             // Change atomtype number of 2. particle to avoid redundancy
             tmpXyz2.setLength(0);
-            if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+            if (aForcefield.equals("OPLSAALIGPARGEN") && !tmpParticleName
+                    .equals("H2O")) {
                 tmpLines = xyzContent1[i].split(LINESEPARATOR);
                 tmpXyz2.append(tmpLines[0]);
 
@@ -2292,7 +2293,7 @@ public class MIPET {
      * Read .prm files for OPLSAALIGPARGEN and convert atomtype number of 
      *  second particle
      */
-    private static void readPrm() {
+    private static void readPrm(String aForcefield) {
         int tmpParticlesLength;
         String tmpPrmName1;
         String tmpParticleName;
@@ -2309,10 +2310,10 @@ public class MIPET {
             tmpParticleName = particleNames.get(i);
             
             // Read .prm files
-            if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+            if (aForcefield.equals("OPLSAALIGPARGEN")) {
                 tmpPrmName1 = parameterDirectory
                     + FILESEPARATOR
-                    + forcefield_IE
+                    + aForcefield
                     + FILESEPARATOR
                     + tmpParticleName
                     + ".prm";
@@ -2330,7 +2331,7 @@ public class MIPET {
             }
             
             // Change atomtype number of 2. particle to avoid redundancy
-            if (forcefield_IE.equals("OPLSAALIGPARGEN") && 
+            if (aForcefield.equals("OPLSAALIGPARGEN") && 
                     !prmContent1[i].equals("")) {
                 tmpPrm2.setLength(0);
                 tmpLines = prmContent1[i].split("\\n");
@@ -3015,6 +3016,16 @@ public class MIPET {
         tmpBoxLengths = new double[tmpJobNumber];
         tmpJobIndex = 0;
         
+        // Read xyzContent and prmContent
+        if (!forcefield_IE.equals(forcefield_CN)) {
+            if (isConformationalAnalysis) {
+                readXyz(false, forcefield_CN);
+            } else {
+                readXyz(true, forcefield_CN);
+            }
+            readPrm(forcefield_CN);
+        }
+        
         for (int i = 0; i < tmpJobTaskLength; i++) {
             if (aJobTaskRecordList.get(i).hasCNJob()) {
                 tmpParticle1 = aJobTaskRecordList.get(i).particleName1();
@@ -3046,14 +3057,6 @@ public class MIPET {
                 }
                 
                 // Copy .xyz files
-                tmpSource = Paths.get(optXYZDirectory
-                        + FILESEPARATOR
-                        + forcefield_CN
-                        + FILESEPARATOR 
-                        + tmpParticle1
-                        + FILESEPARATOR 
-                        + tmpParticle1
-                        + ".xyz");
                 tmpTarget = Paths.get(scratchDirectory
                         + FILESEPARATOR
                         + forcefield_CN
@@ -3064,21 +3067,11 @@ public class MIPET {
                         + ".xyz");
                 try {
                     Files.writeString(tmpTarget, xyzContent1[tmpXyzID1]);
-//                    Files.copy(tmpSource, tmpTarget, 
-//                            StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during copying files to scratch.", ex);
                 }
                 if (!tmpIsSameParticle) {
-                    tmpSource = Paths.get(optXYZDirectory
-                            + FILESEPARATOR
-                            + forcefield_CN
-                            + FILESEPARATOR 
-                            + tmpParticle2
-                            + FILESEPARATOR 
-                            + tmpParticle2
-                            + ".xyz");
                     tmpTarget = Paths.get(scratchDirectory
                             + FILESEPARATOR
                             + forcefield_CN
@@ -3088,8 +3081,7 @@ public class MIPET {
                             + tmpParticle2
                             + ".xyz");
                     try {
-                        Files.copy(tmpSource, tmpTarget, 
-                                StandardCopyOption.REPLACE_EXISTING);
+                        Files.writeString(tmpTarget, xyzContent1[tmpXyzID2]);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during copying files to scratch.", ex);
@@ -3150,10 +3142,8 @@ public class MIPET {
         for (int i = 0; i < tmpJobTaskLength; i++) {
             if (aJobTaskRecordList.get(i).hasCNJob()) {
                 tmpHasCNHeadLine = false;
-                tmpParticle1 = aJobTaskRecordList.get(i)
-                        .particleName1(); // solute
-                tmpParticle2 = aJobTaskRecordList.get(i)
-                        .particleName2(); // solvent
+                tmpParticle1 = aJobTaskRecordList.get(i).particleName1(); // solute
+                tmpParticle2 = aJobTaskRecordList.get(i).particleName2(); // solvent
                 tmpPrm1ID = particleNames.indexOf(tmpParticle1);
                 tmpPrm2ID = particleNames.indexOf(tmpParticle2);
                 tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
@@ -3202,7 +3192,7 @@ public class MIPET {
                         tmpKeyContent += prmContent2[tmpPrm2ID];
                     } 
                 }
-                MIPETUTIL.writeKeyFile(tmpKeyContent, tmpKeyContent);
+                MIPETUTIL.writeKeyFile(tmpKeyFileName, tmpKeyContent);
 
                 // </editor-fold>
 
