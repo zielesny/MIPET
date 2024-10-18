@@ -260,36 +260,6 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
-     * Set the header (also in fileContent)
-     * 
-     * @param aHeader A new Header
-     */
-    public void setHeader(String aHeader) {
-        this.header = aHeader;
-        int tmpStartIndex;
-        int tmpEndIndex;
-        Boolean tmpIsFirstNonSpace;
-        tmpStartIndex = 0;
-        tmpIsFirstNonSpace = false;
-        tmpEndIndex = this.fileContent.indexOf(LINESEPARATOR);
-        String tmpHeader = this.fileContent.substring(0, tmpEndIndex);
-        
-        // Determine first space after non-space character
-        for (int i = 0; i < tmpHeader.length(); i++) {
-            if (tmpHeader.charAt(i) != ' ') {
-                tmpIsFirstNonSpace = true;
-            } else {
-                if (tmpIsFirstNonSpace) {
-                    tmpStartIndex = i + 1;
-                    break;
-                }
-            }
-        }
-        
-        this.fileContent.replace(tmpStartIndex, tmpEndIndex, aHeader);
-    }
-    
-    /**
      * Returns the atom number of the first particle
      * 
      * @return Atom number of first particle
@@ -636,6 +606,36 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
+     * Set the header (also in fileContent)
+     * 
+     * @param aHeader A new Header
+     */
+    public void setHeader(String aHeader) {
+        this.header = aHeader;
+        int tmpStartIndex;
+        int tmpEndIndex;
+        Boolean tmpIsFirstNonSpace;
+        tmpStartIndex = 0;
+        tmpIsFirstNonSpace = false;
+        tmpEndIndex = this.fileContent.indexOf(LINESEPARATOR);
+        String tmpHeader = this.fileContent.substring(0, tmpEndIndex);
+        
+        // Determine first space after non-space character
+        for (int i = 0; i < tmpHeader.length(); i++) {
+            if (tmpHeader.charAt(i) != ' ') {
+                tmpIsFirstNonSpace = true;
+            } else {
+                if (tmpIsFirstNonSpace) {
+                    tmpStartIndex = i + 1;
+                    break;
+                }
+            }
+        }
+        
+        this.fileContent.replace(tmpStartIndex, tmpEndIndex, aHeader);
+    }
+    
+    /**
      * Sets aFileContent attribute
      * 
      * @param aFileContent TinkerXYZ file content as StringBuilder object
@@ -877,6 +877,15 @@ public class TinkerXYZ implements Cloneable {
         double[][][][] tmpCoord2 = new double[1][1][][];
         tmpCoord2[0][0] = aCoord2;
         setCoordinateList2(tmpCoord2);
+    }
+    
+    
+    public void setParameterList1(int[] aParameterList) {
+        
+    }
+    
+    public void setParameterList2(int[] aParameterList) {
+        
     }
     
     // </editor-fold>

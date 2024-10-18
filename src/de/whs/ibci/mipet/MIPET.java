@@ -1195,7 +1195,8 @@ public class MIPET {
                 // Delete old .key file and make new one
                 tmpKeyFile = Paths.get(scratchDirectory 
                         + FILESEPARATOR
-                        + tmpParticlePair+ ".key");
+                        + tmpParticlePair
+                        + ".key");
                 try {
                     Files.deleteIfExists(tmpKeyFile);
                 } catch (IOException ex) {
@@ -2385,9 +2386,7 @@ public class MIPET {
      *  Job task records
      */
     private static void scanParticle() {
-        String tmpForcefield;
-        String tmpParticle;
-        String tmpTaskCandidate;
+        String tmpForcefieldName;
         String tmpKeyContent;
         String tmpKeyPathName;
         String tmpParticleXyzName;
@@ -2403,7 +2402,6 @@ public class MIPET {
         String tmpSourceName;
         String tmpTargetName;
         String[] tmpCmdList;
-        HashSet<String> tmpTaskName;
         Path tmpOptXyzDir;
         Path tmpOptXyzFile;
         Path tmOptArcFile;
@@ -2415,6 +2413,7 @@ public class MIPET {
         Process tmpProcess;
         ProcessBuilder tmpPB;
         List<Double> tmpEnergyValues;
+        LinkedList<String> tmpForcefieldList;
         List<String> tmpMinimumList;
         Double[] tmpEnergyList;
         Integer[] tmpEnergyIndices;
@@ -2423,339 +2422,343 @@ public class MIPET {
         ArrayIndexComparator tmpComparator;
         
         tmpProcess = null;
-        tmpTaskName = new HashSet<>();
+        tmpForcefieldList = new LinkedList<>();
         
-        for (String tmpParticleName : particleNames) {
-            
-            for (int j = 0; j < 2; j++) {
-                if (j == 0) {
-                    tmpForcefield = forcefield_IE;
-                } else {
-                    tmpForcefield = forcefield_CN;
-                }
-                if (!tmpForcefield.isEmpty()) {
-                    tmpTaskCandidate = tmpForcefield + "_" + tmpParticleName;
-                    if (!tmpTaskName.contains(tmpTaskCandidate)) {
-                        tmpTaskName.add(tmpTaskCandidate);
-                    }
-                }
-            }
-            
+        if (!forcefield_IE.equals("")) {
+            tmpForcefieldList.add(forcefield_IE);
+        }
+        if (!forcefield_CN.equals("")) {
+            tmpForcefieldList.add(forcefield_CN);
         }
         
-        for (String tmpForcefield_Particle : tmpTaskName) {
-            tmpForcefield = tmpForcefield_Particle.split("_")[0];
-            tmpParticle = tmpForcefield_Particle.split("_")[1];
-            tmpParticleXyzName = tmpParticle + ".xyz";
-            tmpOptXyzDirName = optXYZDirectory
-                    + FILESEPARATOR 
-                    + tmpForcefield 
-                    + FILESEPARATOR 
-                    + tmpParticle;
-            tmpOptXyzDir = Paths.get(tmpOptXyzDirName);
-            if (!Files.exists(tmpOptXyzDir)) {
-                try {
-                    Files.createDirectories(tmpOptXyzDir);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during creating OptXyz directory.",
-                            ex);
-                }
-            }
+        for (String tmpForcefield : tmpForcefieldList) {
             
-            // Check whether already scanned
-            tmpOptXyzFile = Paths.get(tmpOptXyzDirName
-                    + FILESEPARATOR
-                    + tmpParticleXyzName);
-            if (!Files.exists(tmpOptXyzFile)) {
-                tmpSourceName = sourceDirectory
-                        + FILESEPARATOR
-                        + tmpForcefield
-                        + FILESEPARATOR
-                        + tmpParticle
-                        + ".xyz";
-                tmpTargetName = tmpOptXyzDirName
-                        + FILESEPARATOR
-                        + tmpParticleXyzName;
-                tmpSource = Paths.get(tmpSourceName);
-                tmpTarget = Paths.get(tmpTargetName);
-                try {
-                    Files.copy(tmpSource, tmpTarget, StandardCopyOption
-                            .REPLACE_EXISTING);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during copying .xyz file.", ex);
-                }
-                tmpTinkerXYZ = new TinkerXYZ(tmpTargetName);
-                tmpKeyPathName = tmpOptXyzDirName 
+            for (String tmpParticle : particleNames) {
+                tmpParticleXyzName = tmpParticle + ".xyz";
+                tmpOptXyzDirName = optXYZDirectory
                         + FILESEPARATOR 
-                        + tmpParticle 
-                        + ".key";
-                if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
-                    tmpForcefield = "OPLSAA";
-                }
-                tmpKeyContent = "# Force Field Selection"
-                        + LINESEPARATOR 
-                        + "PARAMETERS\t\""
-                        + parameterDirectory
-                        + "/"
-                        + tmpForcefield.toLowerCase() + ".prm\""
-                        + LINESEPARATOR
-                        + "DIELECTRIC\t" 
-                        + dielectricConstant
-                        + LINESEPARATOR;
-                if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
-                    tmpKeyIndex = particleNames.indexOf(tmpParticle);
-                    tmpKeyContent += prmContent1[tmpKeyIndex];
-                }
-                
-                // Write .key file
-                MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
-                
-                // Create optimized .xyz files for the particles via Tinker optimize.
-                try {
-                    tmpProcess = new ProcessBuilder(tinkerOptimize,
-                        tmpOptXyzDirName
+                        + tmpForcefield 
                         + FILESEPARATOR 
-                        + tmpParticleXyzName,
-                        String.valueOf(optimizeRmsGradient))
-                        .start();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during process start.", ex);
-                } finally {
-                    if (tmpProcess != null) {
-                        OutputStream tmpOutput;
-                        try (InputStream tmpInput = tmpProcess
-                                .getInputStream()) {
-                            tmpOptXyzLogName = tmpOptXyzDirName
-                                    + FILESEPARATOR
-                                    + tmpParticle
-                                    + "_preoptimize.log";
-                            tmpOutput = new FileOutputStream(
-                                    tmpOptXyzLogName, false);
-                            tmpInput.transferTo(tmpOutput);
-                            tmpOutput.close();
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, 
-                                    "IOException during writing .log file.",
-                                    ex);
-                        }
-                        try {
-                            tmpProcess.waitFor();
-                        } catch (InterruptedException ex) {
-                                LOGGER.log(Level.SEVERE, 
-                                        "InterruptException during processing optimize.exe",
-                                        ex);
-                        }
-                        tmpProcess.destroy();
+                        + tmpParticle;
+                tmpOptXyzDir = Paths.get(tmpOptXyzDirName);
+                if (!Files.exists(tmpOptXyzDir)) {
+                    try {
+                        Files.createDirectories(tmpOptXyzDir);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during creating OptXyz directory.", 
+                                ex);
                     }
                 }
-                tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
-                        + FILESEPARATOR 
-                        + tmpParticle 
-                        + ".xyz_2");
-                tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
-                        .getCoordinateList1());
-                tmpSource = Paths.get(tmpOptXyzDirName, tmpParticle 
-                        + ".xyz_2");
-                try {
-                    Files.deleteIfExists(tmpSource);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during deleting .xyz_2 file", ex);
-                }
-                tmpXyzFileName = tmpOptXyzDirName 
-                        + FILESEPARATOR 
-                        + tmpParticleXyzName;
-                try (PrintWriter tmpOut = new PrintWriter((tmpXyzFileName))) {
-                    tmpOut.print(tmpTinkerXYZ.getFileContent());
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during writing .xyz file.", ex);
-                }
                 
-                // Run Tinker Scan.exe with optimized particles
-                tmpPB = new ProcessBuilder();
-                tmpCmdList = new String[]{tinkerScan,
-                    tmpXyzFileName,
-                    scanProgram,
-                    nSearchDirection,
-                    energyThreshold,
-                    rmsGradient};
-                tmpOutputName = tmpOptXyzDirName
+                // Check whether already scanned
+                tmpOptXyzFile = Paths.get(tmpOptXyzDirName
                         + FILESEPARATOR
-                        + tmpParticle
-                        + ".out";
-                tmpPB.redirectOutput(new File(tmpOutputName));
-                tmpPB.command(tmpCmdList);
-                try {
-                    tmpProcess = tmpPB.start();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during tinker's scan.exe", ex);
-                } finally {
-                    if (tmpProcess != null) {
-                        // This is necessary because .waitFor() will hang otherwise
-                        try (BufferedReader tmpBR = new BufferedReader(
-                                new InputStreamReader(tmpProcess.getInputStream()))) {
-                            while (tmpBR.readLine() != null ) {
-                            }
-                        } catch (IOException ex) {
-                        }
-                        try {
-                            tmpProcess.waitFor();
-                        } catch (InterruptedException ex) {
-                            LOGGER.log(Level.SEVERE,
-                                    "IOException during tinker's scan.exe", ex);
-                        }
-                        tmpProcess.destroy();
-                    }
-                }
-                tmpOptArcName = tmpOptXyzDirName 
-                        + FILESEPARATOR 
-                        + tmpParticle 
-                        + ".arc";
-                tmOptArcFile = Paths.get(tmpOptArcName);
-                if (Files.exists(tmOptArcFile) && 
-                        !Files.isDirectory(tmOptArcFile)) { 
-                    tmpCoords = tmpTinkerXYZ.readCoordFromArc(tmpOptArcName);
-
-                    for (int j = 0; j < tmpCoords.length; j++) {
-                        tmpTinkerXYZ.setCoordinateList1(tmpCoords[j]);
-                        tmpXyzFileName = tmpOptXyzDirName 
+                        + tmpParticleXyzName);
+                if (!Files.exists(tmpOptXyzFile)) {
+                    tmpSourceName = sourceDirectory
+                            + FILESEPARATOR
+                            + tmpForcefield
                             + FILESEPARATOR
                             + tmpParticle
-                            + "_"
-                            + j
-                            + ".txyz";
-                        tmpTinkerXYZ.writeToTxyzFile(tmpXyzFileName);
+                            + ".xyz";
+                    tmpTargetName = tmpOptXyzDirName
+                            + FILESEPARATOR
+                            + tmpParticleXyzName;
+                    tmpSource = Paths.get(tmpSourceName);
+                    tmpTarget = Paths.get(tmpTargetName);
+                    try {
+                        Files.copy(tmpSource, tmpTarget, StandardCopyOption
+                                .REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during copying .xyz file.", ex);
                     }
-
-                    tmpSearchString = MIPETUTIL.getResourceString(
-                            "MIPETScanMinimumEnergyText");
-                    tmpMinimumList = MIPETUTIL.findList(tmpOutputName, 
-                            tmpSearchString);
-                    if (!tmpMinimumList.isEmpty()) {
-                        tmpEnergyValues = new LinkedList<>();
-
-                        for (int j = 0; j < tmpMinimumList.size(); j++) {
-                            tmpEnergyValues.add(Double.valueOf(tmpMinimumList
-                                    .get(j)
-                                    .substring(58, 68)));
+                    tmpTinkerXYZ = new TinkerXYZ(tmpTargetName);
+                    tmpKeyPathName = tmpOptXyzDirName 
+                            + FILESEPARATOR 
+                            + tmpParticle 
+                            + ".key";
+                    if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+                        tmpForcefieldName = "oplsaa";
+                    } else {
+                        tmpForcefieldName = tmpForcefield;
+                    }
+                    tmpKeyContent = "# Force Field Selection"
+                            + LINESEPARATOR 
+                            + "PARAMETERS\t\""
+                            + parameterDirectory
+                            + "/"
+                            + tmpForcefieldName.toLowerCase() + ".prm\""
+                            + LINESEPARATOR
+                            + "DIELECTRIC\t" 
+                            + dielectricConstant
+                            + LINESEPARATOR;
+                    if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+                        tmpKeyIndex = particleNames.indexOf(tmpParticle);
+                        if (prmContent1[tmpKeyIndex] == null || 
+                                prmContent1[tmpKeyIndex].isEmpty()) {
+                            readPrm(tmpForcefield);
                         }
-
-                        tmpEnergyList = new Double[tmpEnergyValues.size()];
-
-                        for (int j = 0; j < tmpEnergyValues.size(); j++) {
-                            tmpEnergyList[j] = tmpEnergyValues.get(j);
-                        }
-
-                        tmpComparator = new ArrayIndexComparator(tmpEnergyList);
-                        tmpEnergyIndices = tmpComparator.createIndexArray();
-                        Arrays.sort(tmpEnergyIndices, tmpComparator);
-                        tmpOptXyzName = tmpOptXyzDirName 
-                                + FILESEPARATOR
-                                + tmpParticle 
-                                + "_0.txyz";
-                        tmpAfterScan = new TinkerXYZ(tmpOptXyzName); 
-                        tmpTinkerXYZ.setCoordinateList1(tmpAfterScan
-                                .getCoordinateList1());
-
-                        // Convert tinker xyz files to .xyz file
-                        for (int j = 0; j < tmpEnergyValues.size(); j++) {
-                            tmpFileTxyzName = tmpOptXyzDirName 
-                                + FILESEPARATOR
-                                + tmpParticle
-                                + "_" + j +".txyz";
-                            tmpTinkerXYZ0 = new TinkerXYZ(tmpFileTxyzName);
-                            tmpFileName = tmpOptXyzDirName 
-                                + FILESEPARATOR
-                                + tmpParticle
-                                + "_o" + j + ".xyz";
-                            tmpTinkerXYZ0.writeToXyzFile(tmpFileName);
-                        }
-
-                        // Copy configuration data with lowest energy to Particle.xyz
-                        tmpSourceName = tmpOptXyzDirName 
-                                + FILESEPARATOR
-                                + tmpParticle
-                                + "_0.txyz";
-                        tmpTargetName = tmpOptXyzDirName 
-                                + FILESEPARATOR
-                                + tmpParticle
-                                + ".xyz";
-                        tmpSource = Paths.get(tmpSourceName);
-                        tmpTarget = Paths.get(tmpTargetName);
-                        try {
-                            if (Files.exists(tmpSource)) {
-                                Files.copy(tmpSource, tmpTarget,
-                                        StandardCopyOption.REPLACE_EXISTING);
-                            }
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, "IOException during copying .xyz file", ex);
-                        }
-
-                        // Optimize after scan.exe
-                        try {
-                            tmpProcess = new ProcessBuilder(tinkerOptimize,
-                                    tmpOptXyzDirName
-                                    + FILESEPARATOR 
-                                    + tmpParticleXyzName,
-                                    String.valueOf(optimizeRmsGradient))
-                                    .start();
+                        tmpKeyContent += prmContent1[tmpKeyIndex];
+                    }
+                    
+                    // Write .key file
+                    MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
+                    
+                    // Create optimized .xyz files for the particles via Tinker optimize.
+                    try {
+                        tmpProcess = new ProcessBuilder(tinkerOptimize,
+                            tmpOptXyzDirName
+                            + FILESEPARATOR 
+                            + tmpParticleXyzName,
+                            String.valueOf(optimizeRmsGradient))
+                            .start();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE,
+                                "IOException during process start.", ex);
+                    } finally {
+                        if (tmpProcess != null) {
+                            OutputStream tmpOutput;
                             try (InputStream tmpInput = tmpProcess
                                     .getInputStream()) {
                                 tmpOptXyzLogName = tmpOptXyzDirName
-                                    + FILESEPARATOR 
+                                        + FILESEPARATOR
+                                        + tmpParticle
+                                        + "_preoptimize.log";
+                                tmpOutput = new FileOutputStream(
+                                        tmpOptXyzLogName, false);
+                                tmpInput.transferTo(tmpOutput);
+                                tmpOutput.close();
+                            } catch (IOException ex) {
+                                LOGGER.log(Level.SEVERE, 
+                                        "IOException during writing .log file.",
+                                        ex);
+                            }
+                            try {
+                                tmpProcess.waitFor();
+                            } catch (InterruptedException ex) {
+                                    LOGGER.log(Level.SEVERE, 
+                                            "InterruptException during processing optimize.exe",
+                                            ex);
+                            }
+                            tmpProcess.destroy();
+                        }
+                    }
+                    tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
+                            + FILESEPARATOR 
+                            + tmpParticle 
+                            + ".xyz_2");
+                    tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
+                            .getCoordinateList1());
+                    tmpSource = Paths.get(tmpOptXyzDirName, tmpParticle 
+                            + ".xyz_2");
+                    try {
+                        Files.deleteIfExists(tmpSource);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during deleting .xyz_2 file", ex);
+                    }
+                    tmpXyzFileName = tmpOptXyzDirName 
+                            + FILESEPARATOR 
+                            + tmpParticleXyzName;
+                    try (PrintWriter tmpOut = new PrintWriter((tmpXyzFileName))) {
+                        tmpOut.print(tmpTinkerXYZ.getFileContent());
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE,
+                                "IOException during writing .xyz file.", ex);
+                    }
+                    
+                    // Run Tinker Scan.exe with optimized particles
+                    tmpPB = new ProcessBuilder();
+                    tmpCmdList = new String[]{tinkerScan,
+                        tmpXyzFileName,
+                        scanProgram,
+                        nSearchDirection,
+                        energyThreshold,
+                        rmsGradient};
+                    tmpOutputName = tmpOptXyzDirName
+                            + FILESEPARATOR
+                            + tmpParticle
+                            + ".out";
+                    tmpPB.redirectOutput(new File(tmpOutputName));
+                    tmpPB.command(tmpCmdList);
+                    try {
+                        tmpProcess = tmpPB.start();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE,
+                                "IOException during tinker's scan.exe", ex);
+                    } finally {
+                        if (tmpProcess != null) {
+                            // This is necessary because .waitFor() will hang otherwise
+                            try (BufferedReader tmpBR = new BufferedReader(
+                                    new InputStreamReader(tmpProcess.getInputStream()))) {
+                                while (tmpBR.readLine() != null ) {
+                                }
+                            } catch (IOException ex) {
+                            }
+                            try {
+                                tmpProcess.waitFor();
+                            } catch (InterruptedException ex) {
+                                LOGGER.log(Level.SEVERE,
+                                        "IOException during tinker's scan.exe", ex);
+                            }
+                            tmpProcess.destroy();
+                        }
+                    }
+                    tmpOptArcName = tmpOptXyzDirName 
+                            + FILESEPARATOR 
+                            + tmpParticle 
+                            + ".arc";
+                    tmOptArcFile = Paths.get(tmpOptArcName);
+                    if (Files.exists(tmOptArcFile) && 
+                            !Files.isDirectory(tmOptArcFile)) { 
+                        tmpCoords = tmpTinkerXYZ.readCoordFromArc(tmpOptArcName);
+
+                        for (int j = 0; j < tmpCoords.length; j++) {
+                            tmpTinkerXYZ.setCoordinateList1(tmpCoords[j]);
+                            tmpXyzFileName = tmpOptXyzDirName 
+                                + FILESEPARATOR
+                                + tmpParticle
+                                + "_"
+                                + j
+                                + ".txyz";
+                            tmpTinkerXYZ.writeToTxyzFile(tmpXyzFileName);
+                        }
+
+                        tmpSearchString = MIPETUTIL.getResourceString(
+                                "MIPETScanMinimumEnergyText");
+                        tmpMinimumList = MIPETUTIL.findList(tmpOutputName, 
+                                tmpSearchString);
+                        if (!tmpMinimumList.isEmpty()) {
+                            tmpEnergyValues = new LinkedList<>();
+
+                            for (int j = 0; j < tmpMinimumList.size(); j++) {
+                                tmpEnergyValues.add(Double
+                                        .valueOf(tmpMinimumList
+                                        .get(j)
+                                        .substring(58, 68)));
+                            }
+
+                            tmpEnergyList = new Double[tmpEnergyValues.size()];
+
+                            for (int j = 0; j < tmpEnergyValues.size(); j++) {
+                                tmpEnergyList[j] = tmpEnergyValues.get(j);
+                            }
+
+                            tmpComparator = new ArrayIndexComparator(
+                                    tmpEnergyList);
+                            tmpEnergyIndices = tmpComparator.createIndexArray();
+                            Arrays.sort(tmpEnergyIndices, tmpComparator);
+                            tmpOptXyzName = tmpOptXyzDirName 
+                                    + FILESEPARATOR
+                                    + tmpParticle 
+                                    + "_0.txyz";
+                            tmpAfterScan = new TinkerXYZ(tmpOptXyzName); 
+                            tmpTinkerXYZ.setCoordinateList1(tmpAfterScan
+                                    .getCoordinateList1());
+
+                            // Convert tinker xyz files to .xyz file
+                            for (int j = 0; j < tmpEnergyValues.size(); j++) {
+                                tmpFileTxyzName = tmpOptXyzDirName 
+                                    + FILESEPARATOR
                                     + tmpParticle
-                                    + "_afteroptimize.log";
-                                try (OutputStream tmpOutput = 
-                                        new FileOutputStream (tmpOptXyzLogName, 
-                                                false)) {
-                                    tmpInput.transferTo(tmpOutput);
+                                    + "_" + j +".txyz";
+                                tmpTinkerXYZ0 = new TinkerXYZ(tmpFileTxyzName);
+                                tmpFileName = tmpOptXyzDirName 
+                                    + FILESEPARATOR
+                                    + tmpParticle
+                                    + "_o" + j + ".xyz";
+                                tmpTinkerXYZ0.writeToXyzFile(tmpFileName);
+                            }
+
+                            // Copy configuration data with lowest energy to Particle.xyz
+                            tmpSourceName = tmpOptXyzDirName 
+                                    + FILESEPARATOR
+                                    + tmpParticle
+                                    + "_0.txyz";
+                            tmpTargetName = tmpOptXyzDirName 
+                                    + FILESEPARATOR
+                                    + tmpParticle
+                                    + ".xyz";
+                            tmpSource = Paths.get(tmpSourceName);
+                            tmpTarget = Paths.get(tmpTargetName);
+                            try {
+                                if (Files.exists(tmpSource)) {Files
+                                        .copy(tmpSource, tmpTarget,
+                                            StandardCopyOption
+                                                    .REPLACE_EXISTING);
+                                }
+                            } catch (IOException ex) {
+                                LOGGER.log(Level.SEVERE, 
+                                        "IOException during copying .xyz file", 
+                                        ex);
+                            }
+
+                            // Optimize after scan.exe
+                            try {
+                                tmpProcess = new ProcessBuilder(tinkerOptimize,
+                                        tmpOptXyzDirName
+                                        + FILESEPARATOR 
+                                        + tmpParticleXyzName,
+                                        String.valueOf(optimizeRmsGradient))
+                                        .start();
+                                try (InputStream tmpInput = tmpProcess
+                                        .getInputStream()) {
+                                    tmpOptXyzLogName = tmpOptXyzDirName
+                                        + FILESEPARATOR 
+                                        + tmpParticle
+                                        + "_afteroptimize.log";
+                                    try (OutputStream tmpOutput = 
+                                            new FileOutputStream (tmpOptXyzLogName, 
+                                                    false)) {
+                                        tmpInput.transferTo(tmpOutput);
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                LOGGER.log(Level.SEVERE, "IOException during writing .log file", ex);
+                            } finally {
+                                if (tmpProcess != null) {
+                                    try {
+                                        tmpProcess.waitFor();
+                                    } catch (InterruptedException ex) {
+                                        LOGGER.log(Level.SEVERE, "InterruptedException during writing optimize.exe", ex);
+                                    } 
+                                    tmpProcess.destroy();
                                 }
                             }
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, "IOException during writing .log file", ex);
-                        } finally {
-                            if (tmpProcess != null) {
-                                try {
-                                    tmpProcess.waitFor();
-                                } catch (InterruptedException ex) {
-                                    LOGGER.log(Level.SEVERE, "InterruptedException during writing optimize.exe", ex);
-                                } 
-                                tmpProcess.destroy();
+                            tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
+                                    + FILESEPARATOR 
+                                    + tmpParticle 
+                                    + ".xyz_2");
+                            tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
+                                    .getCoordinateList1());
+                            tmpSource = Paths.get(tmpOptXyzDirName, 
+                                    tmpParticle + ".xyz_2");
+                            try {
+                                Files.deleteIfExists(tmpSource);
+                            } catch (IOException ex) {
+                                LOGGER.log(Level.SEVERE, "IOException during deleting .xyz_2 file.", ex);
                             }
-                        }
-                        tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
-                                + FILESEPARATOR 
-                                + tmpParticle 
-                                + ".xyz_2");
-                        tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
-                                .getCoordinateList1());
-                        tmpSource = Paths.get(tmpOptXyzDirName, 
-                                tmpParticle + ".xyz_2");
-                        try {
-                            Files.deleteIfExists(tmpSource);
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, "IOException during deleting .xyz_2 file.", ex);
-                        }
-                        tmpXyzFileName = tmpOptXyzDirName 
-                                + FILESEPARATOR 
-                                + tmpParticleXyzName;
-                        try (PrintWriter tmpOut = new PrintWriter(
-                                tmpXyzFileName)) {
-                            tmpOut.print(tmpTinkerXYZ.getFileContent());
-                        } catch(IOException ex) {
-                            LOGGER.log(Level.SEVERE,
-                                    "IOException during writing .xyz file.", ex);
-                        }
-                    } 
+                            tmpXyzFileName = tmpOptXyzDirName 
+                                    + FILESEPARATOR 
+                                    + tmpParticleXyzName;
+                            try (PrintWriter tmpOut = new PrintWriter(
+                                    tmpXyzFileName)) {
+                                tmpOut.print(tmpTinkerXYZ.getFileContent());
+                            } catch(IOException ex) {
+                                LOGGER.log(Level.SEVERE,
+                                        "IOException during writing .xyz file.", ex);
+                            }
+                        } 
+                    }
                 }
             }
         }
-
+        
+        if (forcefield_CN.equals("OPLSAALIGPARGEN")) {
+            readPrm(forcefield_IE);
+        }
     }
     
     /**
@@ -3023,7 +3026,9 @@ public class MIPET {
             } else {
                 readXyz(true, forcefield_CN);
             }
-            readPrm(forcefield_CN);
+            if (forcefield_CN.equals("OPLSAALIGPARGEN")) {
+                readPrm(forcefield_CN);
+            }
         }
         
         for (int i = 0; i < tmpJobTaskLength; i++) {
@@ -3134,6 +3139,7 @@ public class MIPET {
         String tmpBuildLogName;
         String tmpSoakLogName;
         String tmpMinimizeLogName;
+        String tmpForcefieldName;
         int tmpPrm1ID;
         int tmpPrm2ID;
         
@@ -3170,11 +3176,17 @@ public class MIPET {
                         + ".xyz");
 
                 // <editor-fold defaultstate="collapsed" desc="Make .key file for dynamic">
+                if (forcefield_CN.equals("OPLSAALIGPARGEN")) {
+                    tmpForcefieldName = "oplsaa";
+                    
+                } else {
+                    tmpForcefieldName = forcefield_CN.toLowerCase();
+                }
                 tmpKeyContent = tmpKeyFixContent
                         + "PARAMETERS\t\""
                         + parameterDirectory
                         + "/"
-                        + forcefield_CN.toLowerCase()
+                        + tmpForcefieldName
                         + ".prm\""
                         + LINESEPARATOR    
                         + "a-axis "
@@ -3254,7 +3266,8 @@ public class MIPET {
                     try {
                         tmpProcess = tmpProcessBuilder.start();
                         try (BufferedReader tmpBR = new BufferedReader(
-                                new InputStreamReader(tmpProcess.getInputStream()))) {
+                                new InputStreamReader(tmpProcess
+                                        .getInputStream()))) {
                             if (isLogSoakBox) {
                                 tmpSoakLogName = tmpResultPathName
                                         + FILESEPARATOR

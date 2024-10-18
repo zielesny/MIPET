@@ -197,6 +197,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     if (!tmpIs2Close) {
                         tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
                         tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
+                        //todo: setParameterList
+                        tmpTinkerXYZ.
                         tmpBW.append(tmpTinkerXYZ.getFileContent());
                     }
                     tmpChunkIndex++;
