@@ -880,13 +880,27 @@ public class TinkerXYZ implements Cloneable {
     }
     
     
-    public void setParameterList1(int[] aParameterList) {
-        
-    }
-    
-    public void setParameterList2(int[] aParameterList) {
-        
-    }
+//    public void setParameterList1(int[] aParameterList) {
+//        
+//        // Check parameters
+//        if (aParameterList == null || aParameterList.length == 0) {
+//            throw new IllegalArgumentException("Null or empty object was passed"
+//                    + "to the setParameterList1 method.");
+//        }
+//        
+//        this.parameterList1 = aParameterList.clone();
+//        
+//    }
+//    
+//    public void setParameterList2(int[] aParameterList) {
+//        // Check parameters
+//        if (aParameterList == null || aParameterList.length == 0) {
+//            throw new IllegalArgumentException("Null or empty object was passed"
+//                    + "to the setParameterList2 method.");
+//        }
+//        
+//        this.parameterList2 = aParameterList.clone();
+//    }
     
     // </editor-fold>
         

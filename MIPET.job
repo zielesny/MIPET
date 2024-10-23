@@ -23,34 +23,34 @@ $
 # -------------------------
 # Particles
 # -------------------------
-#AcCO
+AcCO
 #AcNH2
 #Azolid
 #Bu
 #CisButene
 #DiMeNH
-DMP
-Et
+#DMP
+#Et
+#Et2O
 #Ethene
-#Ethyne
 #EtNH2
 #EtOH
 #Et2O
 #Furan
 #Guanidine
+H2O
 #HAc
 #HCHO
-#H2O
 #Imidazole
 #Me
+#Me2O
+#Me2S
+#Me2S2
 #MeAc
 #MeAcNH
 #MeNH2
 #MeOH
 #MeSH
-#Me2O
-#Me2S
-#Me2S2
 #MP
 #MP2
 #Ph
