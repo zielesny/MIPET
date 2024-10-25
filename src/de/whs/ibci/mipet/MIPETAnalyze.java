@@ -168,7 +168,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 + this.PARTICLE_PAIR + ".out" 
                 + this.DISTANCEINDEX + "_"
                 + this.CHUNKINDEX;
-        tmpTinkerXYZ = this.TINKERXYZ.clone();
+        tmpTinkerXYZ = this.TINKERXYZ;
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
@@ -197,8 +197,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     if (!tmpIs2Close) {
                         tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
                         tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
-                        //todo: setParameterList
-                        //tmpTinkerXYZ.
                         tmpBW.append(tmpTinkerXYZ.getFileContent());
                     }
                     tmpChunkIndex++;

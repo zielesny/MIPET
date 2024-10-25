@@ -687,14 +687,14 @@ public class MIPET {
         confNumber1 = sphereNodeNumber;
 	confNumber2 = sphereNodeNumber * rotationNumber;
         // Development version
-        String tmpFileNameSphereNode = 
-                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+//        String tmpFileNameSphereNode = 
+//                "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                + sphereNodeNumber + ".txt";
         
         // Distribution version
-//        String tmpFileNameSphereNode = 
-//                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                + sphereNodeNumber + ".txt";
+        String tmpFileNameSphereNode = 
+                "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                + sphereNodeNumber + ".txt";
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
