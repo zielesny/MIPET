@@ -1,116 +1,157 @@
-# -----------------------------------------------------------------
-# 2024-02-23
-# Definition of new/additional OPLS-AA parameters for protonated dimethyl phosphate (DMP)
-# according to 
-#
-# Krzysztof Murzyn, Maciej Bratek, and Marta Pasenkiewicz-Gierula
-# Refined OPLS All-Atom Force Field Parameters for n-Pentadecane, Methyl Acetate, and Dimethyl Phosphate
-# J. Phys. Chem. B 2013, 117, 16388−16396
-# https://doi.org/10.1021/jp408162d
-# -----------------------------------------------------------------
+!---------------------------------------------
+!        Generated with LigParGen 
+!        William L. Jorgensen Lab
+!     Author: israel.cabezadevaca@yale.edu
+!    OPLS Force Field with CM1A derived Atomic Charges
+!---------------------------------------------
+#Force Field Definition
+
+forcefield              OPLS-AA
+
+vdwindex                TYPE
+vdwtype                 LENNARD-JONES
+radiusrule              GEOMETRIC
+radiustype              SIGMA
+radiussize              DIAMETER
+epsilonrule             GEOMETRIC
+torsionunit             1.0
+imptorunit              1.0
+vdw-14-scale            2.0
+chg-14-scale            2.0
+electric                332.06
+dielectric              1.0
 
 
-      #############################
-      ##                         ##
-      ##  Atom Type Definitions  ##
-      ##                         ##
-      #############################
-
-# The original OPLS-AA force field definition in Tinker
-# atom        388   20    OS    "Me Phosphate CH3-O"         8    15.999    1
-# has an incorrect connectivity of 1: The correct connectivity of oxygen 388 is 2
-atom        388   20    OS    "Me Phosphate CH3-O"         8    15.999    2
-atom        907    5    OH    "Phosphoric Acid -OH"          8    15.999    2
-atom        908    7    HO    "Phosphoric Acid -POOH"        1     1.008    1
+        #############################
+        ##                         ##
+        ##  Atom Type Definitions  ##
+        ##                         ##
+        #############################
 
 
-      ################################
-      ##                            ##
-      ##  Van der Waals Parameters  ##
-      ##                            ##
-      ################################
-
-# OH    "Phosphoric Acid -OH"
-vdw         907               3.1000     0.1400
-
-# P     "Me Phosphate P"
-vdw         386               3.7400     0.1400
-
-# O2    "Me Phosphate O=P-O"
-vdw         387               3.1500     0.1700
-
-# OS    "Me Phosphate CH3-O"
-vdw         388               2.9000     0.1200
-
-      
-      ##################################
-      ##                              ##
-      ##  Bond Stretching Parameters  ##
-      ##                              ##
-      ##################################
-
-#OS-P: "Me Phosphate CH3-O" to "Me Phosphate P"
-bond         20   64          262.50     1.6100
-
-#OH-P: "Phosphoric Acid -OH" to "Me Phosphate P"
-bond          5   64          262.50     1.6100
+atom        805  805    CT    "C05"         6     12.011     4
+atom        806  806    HC    "H06"         1      1.008     1
+atom        807  807    HC    "H07"         1      1.008     1
+atom        808  808    HC    "H08"         1      1.008     1
+atom        800  800     P    "P00"        15     30.974     4
+atom        801  801    OH    "O01"         8     15.999     2
+atom        802  802    OS    "O02"         8     15.999     2
+atom        803  803    OH    "O03"         8     15.999     2
+atom        809  809    HO    "H09"         1      1.008     1
+atom        804  804     O    "O04"         8     15.999     1
+atom        810  810    HO    "H0A"         1      1.008     1
 
 
-      ################################
-      ##                            ##
-      ##  Angle Bending Parameters  ##
-      ##                            ##
-      ################################
-
-#OH-P-OS: "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate CH3-O"
-angle         5   64   20      70.00     102.60
-
-#OH-P-O2: "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate O=P-O"
-angle         5   64   52      70.00     108.23
-
-
-      ############################
-      ##                        ##
-      ##  Torsional Parameters  ##
-      ##                        ##
-      ############################
-
-# O2-P-OH-HO: "DiMe Phosphate O=P-O", "Me Phosphate P", "Phosphoric Acid -OH", "Phosphoric Acid -POOH"
-torsion      52   64    5    7      0.000 0.0 1    0.000 180.0 2    0.000 0.0 3  
-
-# HO-OH-P-OS: "Phosphoric Acid -POOH", "Phosphoric Acid -OH", "Me Phosphate P", "Me Phosphate CH3-O"
-torsion       7    5   64   20      0.000 0.0 1    0.000 180.0 2    0.000 0.0 3
-
-# CT-OS-P-O2: "Me Phosphate CH3-O", "Me Phosphate CH3-O",  "Me Phosphate O=PO2", "Me Phosphate CH3-O"
-torsion      13   20   64   52      0.000 0.0 1    0.000 180.0 2    0.562 0.0 3
-
-# OH-P-OS-CT "Phosphoric Acid -OH", "Me Phosphate P","Me Phosphate CH3-O", "Me Phosphate CH3-O"
-torsion       5   64   20   13      4.800 0.0 1    -2.40 180.0 2    0.500 0.0 3 
-
-# HC-CT-OS-P: "Phosphoric Acid -OH", "Me Phosphate CH3-O", "Me Phosphate CH3-O", "Me Phosphate O=PO2"
-torsion      46   13   20   64      0.000 0.0 1     0.000 180.0 2   0.357 0.0 3
+        ################################
+        ##                            ##
+        ##  Van der Waals Parameters  ##
+        ##                            ##
+        ################################
+        
+        
+vdw         805           3.5000   0.0660 
+vdw         806           2.5000   0.0300 
+vdw         807           2.5000   0.0300 
+vdw         808           2.5000   0.0300 
+vdw         800           3.7400   0.2000 
+vdw         801           3.1200   0.1700 
+vdw         802           2.9000   0.1400 
+vdw         803           3.1200   0.1700 
+vdw         809           0.0000   0.0000 
+vdw         804           2.9600   0.2100 
+vdw         810           0.0000   0.0000 
 
 
-      ########################################
-      ##                                    ##
-      ##  Atomic Partial Charge Parameters  ##
-      ##                                    ##
-      ########################################      
+        ##################################
+        ##                              ##
+        ##  Bond Stretching Parameters  ##
+        ##                              ##
+        ##################################
 
-# OH    "Phosphoric Acid -OH"
-charge      907              -0.6400
 
-# HO    "Phosphoric Acid -POOH"
-charge      908               0.4200
+bond        801  800           230.00   1.6100 
+bond        802  800           230.00   1.6100 
+bond        803  800           230.00   1.6100 
+bond        804  800           525.00   1.4800 
+bond        805  802           320.00   1.4100 
+bond        806  805           340.00   1.0900 
+bond        807  805           340.00   1.0900 
+bond        808  805           340.00   1.0900 
+bond        809  803           553.00   0.9450 
+bond        810  801           553.00   0.9450 
 
-# P     "DiMe Phosphate P"
-charge      386               1.2700
 
-# O2    "DiMe Phosphate O=P-O"
-charge      387              -0.7900
+        ################################
+        ##                            ##
+        ##  Angle Bending Parameters  ##
+        ##                            ##
+        ################################
 
-# OS    "DiMe Phosphate CH3-O"
-charge      388              -0.4700
 
-# CT    "DiMe Phosphate CH3-O"
-charge      389               0.4300
+angle       802  800  801    45.00   102.60 
+angle       803  800  801    45.00   102.60 
+angle       804  800  801    100.00   108.23 
+angle       805  802  800    100.00   120.50 
+angle       806  805  802    35.00   109.50 
+angle       807  805  802    35.00   109.50 
+angle       808  805  802    35.00   109.50 
+angle       809  803  800    55.00   108.50 
+angle       810  801  800    55.00   108.50 
+angle       803  800  802    45.00   102.60 
+angle       804  800  802    100.00   108.23 
+angle       804  800  803    100.00   108.23 
+angle       807  805  806    33.00   107.80 
+angle       808  805  806    33.00   107.80 
+angle       808  805  807    33.00   107.80 
+
+
+        ############################
+        ##                        ##
+        ##  Torsional Parameters  ##
+        ##                        ##
+        ############################
+
+
+torsion     805  802  800  801        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     806  805  802  800        0.000  0.0  1  0.000 180.0  2  0.150  0.0  3 
+torsion     807  805  802  800        0.000  0.0  1  0.000 180.0  2  0.150  0.0  3 
+torsion     808  805  802  800        0.000  0.0  1  0.000 180.0  2  0.150  0.0  3 
+torsion     809  803  800  801        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     810  801  800  802        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     809  803  800  802        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     810  801  800  803        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     805  802  800  803        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     810  801  800  804        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     805  802  800  804        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+torsion     809  803  800  804        0.000  0.0  1  0.000 180.0  2  0.000  0.0  3 
+
+
+        #####################################
+        ##                                 ##
+        ##  Improper Torsional Parameters  ##
+        ##                                 ##
+        #####################################
+
+
+
+
+        ########################################
+        ##                                    ##
+        ##  Atomic Partial Charge Parameters  ##
+        ##                                    ##
+        ########################################
+
+
+charge         805           0.0050 
+charge         806           0.1009 
+charge         807           0.1009 
+charge         808           0.1009 
+charge         800           3.0192 
+charge         801          -1.0473 
+charge         802          -0.8833 
+charge         803          -1.0611 
+charge         809           0.4756 
+charge         804          -1.2887 
+charge         810           0.4778 
+
+
