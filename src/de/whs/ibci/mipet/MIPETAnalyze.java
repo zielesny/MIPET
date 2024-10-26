@@ -21,9 +21,10 @@ package de.whs.ibci.mipet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -155,19 +156,12 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         int tmpRot2Size;
         int tmpChunkIndex;
         ArrayList<Double> tmpEnergyList;
-        String tmpFileName;
         String tmpArcFileName;
-        String tmpOutFileName;
         String tmpMinFileName;
         String tmpValueCandidate;
         TinkerXYZ tmpTinkerXYZ;
 
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
-        tmpFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + this.PARTICLE_PAIR + ".out" 
-                + this.DISTANCEINDEX + "_"
-                + this.CHUNKINDEX;
         tmpTinkerXYZ = this.TINKERXYZ;
         
         // Check if the particles are not too close together
@@ -212,7 +206,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     "IOException during making .arc file.", ex);
         }
         
-        // Start analyze
+        // Start analyze.exe
+        //  read .arc files and find intermolecular energy
         StringBuilder tmpPartArc;
         ProcessBuilder tmpPBuilder;
         Process tmpProcess;
@@ -225,7 +220,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         
         tmpPBuilder = new ProcessBuilder();
         tmpPBuilder.command(this.COMMAND_LIST);
-        tmpPBuilder.redirectOutput(new File(tmpFileName));
         tmpSearch = "Intermolecular Energy";
         tmpMinEnergy = 1E10;
         tmpMinIndex = -1;
@@ -233,16 +227,10 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         
         try {
             tmpProcess = tmpPBuilder.start();
-            tmpProcess.waitFor();
-            tmpProcess.destroy();
-        } catch(IOException | InterruptedException ex) {
-            LOGGER.log(Level.SEVERE,
-                    "Exception during tinker's analyze.exe", ex);
-        }
-        
-        // Read .arc files and find intermolecular energy
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpFileName))) {
+            InputStream tmpInStream = tmpProcess.getInputStream();
+            BufferedReader tmpBR;
+            tmpBR = new BufferedReader(new InputStreamReader(tmpInStream));
+            
             while ((tmpLine = tmpBR.readLine()) != null) {
                 if (tmpLine.contains(tmpSearch)) {
                     tmpValueCandidate = tmpLine.substring(25, 50);
@@ -257,9 +245,12 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     }
                 }
             }
-        } catch (IOException ex) {
+            
+            tmpProcess.waitFor();
+            tmpProcess.destroy();
+        } catch(IOException | InterruptedException ex) {
             LOGGER.log(Level.SEVERE,
-                    "IOException during reading .out file." , ex);
+                    "Exception during tinker's analyze.exe", ex);
         }
             
         // Export .xyz file with lowest intermolecular energy
@@ -272,13 +263,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 + this.FILESEPARATOR
                 + this.PARTICLE_PAIR
                 + ".arc" 
-                + this.DISTANCEINDEX 
-                + "_" 
-                + this.CHUNKINDEX;
-        tmpOutFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + this.PARTICLE_PAIR
-                + ".out" 
                 + this.DISTANCEINDEX 
                 + "_" 
                 + this.CHUNKINDEX;
@@ -295,10 +279,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
         tmpEnergyList.sort(Comparator.naturalOrder());
 
-        // Delete .arc file and .out file
+        // Delete .arc files
         try {
             Files.delete(Paths.get(tmpArcFileName));
-            Files.delete(Paths.get(tmpOutFileName));
         } catch(IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during deleting files in scratch directory.", ex);
