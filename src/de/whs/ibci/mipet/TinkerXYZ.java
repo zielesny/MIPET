@@ -684,7 +684,7 @@ public class TinkerXYZ implements Cloneable {
             tmpStartIndex += 8;
             tmpElement = anElementList[i];
             this.fileContent.replace(tmpStartIndex, tmpStartIndex + 4,
-                    padRightLoopSB(tmpElement, 3));
+                    MIPETUTIL.padRight(tmpElement, 3));
             tmpStartIndex = this.fileContent
                 .indexOf(this.LINESEPARATOR, tmpStartIndex);
             tmpStartIndex += this.LINESEPARATOR.length();
@@ -725,7 +725,7 @@ public class TinkerXYZ implements Cloneable {
             tmpStartIndex += 8;
             tmpElement = anElementList[i];
             this.fileContent.replace(tmpStartIndex, tmpStartIndex + 4,
-                    padRightLoopSB(tmpElement, 3));
+                    MIPETUTIL.padRight(tmpElement, 3));
             tmpStartIndex = this.fileContent
                 .indexOf(this.LINESEPARATOR, tmpStartIndex);
             tmpStartIndex += this.LINESEPARATOR.length();
@@ -767,21 +767,21 @@ public class TinkerXYZ implements Cloneable {
         }
         
         for (int i = 0; i < this.atomSize1; i++) {
-            tmpStartIndex += 12;
+            tmpStartIndex += 11;
             tmpX = tmpDF.format(aCoordinates1[0][i][0]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpX, 11));
-            tmpStartIndex += 12;
+            tmpX = MIPETUTIL.padLeft(tmpX, 10);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 10, tmpX);
+            tmpStartIndex += 11;
             tmpY = tmpDF.format(aCoordinates1[0][i][1]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpY, 11));
+            tmpY = MIPETUTIL.padLeft(tmpY, 11);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11, tmpY);
             tmpStartIndex += 12;
             tmpZ = tmpDF.format(aCoordinates1[0][i][2]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpZ, 11));
+            tmpZ = MIPETUTIL.padLeft(tmpZ, 11);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11, tmpZ);
             tmpStartIndex = this.fileContent
-                .indexOf(this.LINESEPARATOR, tmpStartIndex);
-            tmpStartIndex += this.LINESEPARATOR.length();
+                .indexOf(this.LINESEPARATOR, tmpStartIndex)
+                + this.LINESEPARATOR.length();
         }
     }
     
@@ -841,21 +841,21 @@ public class TinkerXYZ implements Cloneable {
         }
         
         for (int i = 0; i < this.atomSize2; i++) {
-            tmpStartIndex += 12;
+            tmpStartIndex += 11;
             tmpX = tmpDF.format(aCoord2[0][0][i][0]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpX, 11));
-            tmpStartIndex += 12;
+            tmpX = MIPETUTIL.padLeft(tmpX, 10);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 10, tmpX);
+            tmpStartIndex += 11;
             tmpY = tmpDF.format(aCoord2[0][0][i][1]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpY, 11));
+            tmpY = MIPETUTIL.padLeft(tmpY, 11);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11, tmpY);
             tmpStartIndex += 12;
             tmpZ = tmpDF.format(aCoord2[0][0][i][2]);
-            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11,
-                    padLeftLoopSB(tmpZ, 11));
+            tmpZ = MIPETUTIL.padLeft(tmpZ, 11);
+            this.fileContent.replace(tmpStartIndex, tmpStartIndex + 11, tmpZ);
             tmpStartIndex = this.fileContent
-                .indexOf(this.LINESEPARATOR, tmpStartIndex);
-            tmpStartIndex += this.LINESEPARATOR.length();
+                .indexOf(this.LINESEPARATOR, tmpStartIndex)
+                    + this.LINESEPARATOR.length();
         }
     }
     
@@ -878,29 +878,6 @@ public class TinkerXYZ implements Cloneable {
         tmpCoord2[0][0] = aCoord2;
         setCoordinateList2(tmpCoord2);
     }
-    
-    
-//    public void setParameterList1(int[] aParameterList) {
-//        
-//        // Check parameters
-//        if (aParameterList == null || aParameterList.length == 0) {
-//            throw new IllegalArgumentException("Null or empty object was passed"
-//                    + "to the setParameterList1 method.");
-//        }
-//        
-//        this.parameterList1 = aParameterList.clone();
-//        
-//    }
-//    
-//    public void setParameterList2(int[] aParameterList) {
-//        // Check parameters
-//        if (aParameterList == null || aParameterList.length == 0) {
-//            throw new IllegalArgumentException("Null or empty object was passed"
-//                    + "to the setParameterList2 method.");
-//        }
-//        
-//        this.parameterList2 = aParameterList.clone();
-//    }
     
     // </editor-fold>
         
@@ -1138,8 +1115,8 @@ public class TinkerXYZ implements Cloneable {
         this.connectionList2 = aTinkerXYZ2.getConnectionList2();
         this.fileContent = new StringBuilder(STRINGBUILDER_CAPACITY);
         this.fileContent.append(aTinkerXYZ1.getFileContent());
-        this.fileContent.replace(0, 6, 
-                padLeftLoopSB(Integer.toString(this.atomNumber) + "  ", 6));
+        this.fileContent.replace(0, 6, MIPETUTIL.padLeft(Integer
+                .toString(this.atomNumber) + "  ", 6));
         this.coordinateList1 = new double[1][tmpAtomSize1][3];
         this.coordinateList1 = aTinkerXYZ1.coordinateList1;
         this.coordinateList2 = new double[1][1][tmpAtomSize2][3];
@@ -1147,24 +1124,24 @@ public class TinkerXYZ implements Cloneable {
         
         for (int i = 0; i < tmpAtomSize2; i++) {
             tmpAtomNumber = Integer.toString(i + tmpAtomSize1 + 1);
-            this.fileContent.append(padLeftLoopSB(tmpAtomNumber, 6));
+            this.fileContent.append(MIPETUTIL.padLeft(tmpAtomNumber, 6));
             this.fileContent.append("  ");
-            this.fileContent.append(padRightLoopSB(aTinkerXYZ2
-                    .getElementList1()[i], 3));
+            this.fileContent.append(MIPETUTIL.padRight(aTinkerXYZ2
+                    .getElementList1()[i], 2));
             tmpX = tmpDF.format(aTinkerXYZ2.getCoordinateList1()[0][i][0]);
-            this.fileContent.append(padLeftLoopSB(tmpX, 12));
+            this.fileContent.append(MIPETUTIL.padLeft(tmpX, 11));
             tmpY = tmpDF.format(aTinkerXYZ2.getCoordinateList1()[0][i][1]);
-            this.fileContent.append(padLeftLoopSB(tmpY, 12));
+            this.fileContent.append(MIPETUTIL.padLeft(tmpY, 12));
             tmpZ = tmpDF.format(aTinkerXYZ2.getCoordinateList1()[0][i][2]);
-            this.fileContent.append(padLeftLoopSB(tmpZ, 12));
+            this.fileContent.append(MIPETUTIL.padLeft(tmpZ, 12));
             tmpParameter = Integer.toString(aTinkerXYZ2.getParameterList1()[i]);
-            this.fileContent.append(padLeftLoopSB(tmpParameter, 7));
+            this.fileContent.append(MIPETUTIL.padLeft(tmpParameter, 6));
             tmpNConnection = aTinkerXYZ2.getConnectionList1()[i].length;
             
             for (int j = 0; j < tmpNConnection; j++) {
                 tmpConnection = Integer.toString( 
                         aTinkerXYZ2.getConnectionList1()[i][j] + tmpAtomSize1);
-                this.fileContent.append(padLeftLoopSB(tmpConnection, 6));
+                this.fileContent.append(MIPETUTIL.padLeft(tmpConnection, 6));
             }
             
             this.fileContent.append(this.LINESEPARATOR);
@@ -1172,71 +1149,6 @@ public class TinkerXYZ implements Cloneable {
         
     }
     
-    private void readXyz() {
-        
-    }
-    
-    
-    /**
-     * Fills left side of the string with spaces so the string is right aligned
-     *   It is much faster version of String.format()
-     * @param aInput
-     *   Inputstring
-     * @param aPadUpTo
-     *   Total length of Inputstring and spaces
-     * @return 
-     *   String with left filled with spaces
-     */
-    private static String padLeftLoopSB(String aInput, int aPadUpTo) {
-        
-        // Check parameters
-        if (aInput == null || aInput.isEmpty()) {
-            throw new IllegalArgumentException("aInput is null or empty.");
-        } else if (aPadUpTo <= 0) {
-            throw new IllegalArgumentException("aPadUpTo should be positive.");
-        }
-        
-        StringBuilder tmpSB = new StringBuilder();
-        char tmpPadChar = ' ';
-        
-        for (int toPrepend = aPadUpTo - aInput.length(); 
-                toPrepend > 0; toPrepend--) {
-            tmpSB.append(tmpPadChar);
-        }
-        
-        tmpSB.append(aInput);
-        return tmpSB.toString();
-    }
-    
-    /**
-     * Fills right side of string with spaces so the string is left aligned
-     *   Much faster version of String.format()
-     * @param aInput
-     *   Inputstring
-     * @param aPadUpTo
-     *   Total length of Inputstring and spaces
-     * @return 
-     *   String with right filled with spaces
-     */
-    private static String padRightLoopSB(String aInput, int aPadUpTo) {
-        
-        if (aInput == null || aInput.isEmpty()) {
-            throw new IllegalArgumentException("aInput is null or empty.");
-        } else if (aPadUpTo <= 0) {
-            throw new IllegalArgumentException("aPadUpTo should be positive.");
-        }
-        
-        StringBuilder tmpSb = new StringBuilder();
-        char tmpPadChar = ' ';
-        tmpSb.append(aInput);
-        
-        for (int toAppend = aInput.length(); 
-                toAppend < aPadUpTo; toAppend++) {
-            tmpSb.append(tmpPadChar);
-        }
-        
-        return tmpSb.toString();
-    }
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Public methods">
@@ -1357,7 +1269,7 @@ public class TinkerXYZ implements Cloneable {
         try (BufferedWriter tmpBW = new BufferedWriter(
                 new FileWriter(tmpTargetFile))) {
             // first line
-            tmpBW.append(String.format("%d", this.atomNumber)
+            tmpBW.append(Integer.toString(this.atomNumber)
                     +"    "
                     + this.header 
                     + this.LINESEPARATOR);
@@ -1376,12 +1288,13 @@ public class TinkerXYZ implements Cloneable {
             decimalFormat.applyPattern("#0.000000");
             
             for (int i = 0; i < this.atomNumber; i++) {
-                tmpBW.append(padRightLoopSB(tmpElements[i], 5));
-                tmpBW.append(padLeftLoopSB(decimalFormat
+                tmpBW.append("  ");
+                tmpBW.append(MIPETUTIL.padRight(tmpElements[i], 2));
+                tmpBW.append(MIPETUTIL.padLeft(decimalFormat
                     .format(tmpCoordList[i][0]), 12));
-                tmpBW.append(padLeftLoopSB(decimalFormat
+                tmpBW.append(MIPETUTIL.padLeft(decimalFormat
                     .format(tmpCoordList[i][1]), 12));
-                tmpBW.append(padLeftLoopSB(decimalFormat
+                tmpBW.append(MIPETUTIL.padLeft(decimalFormat
                     .format(tmpCoordList[i][2]), 12));
                 tmpBW.append(LINESEPARATOR);
             }

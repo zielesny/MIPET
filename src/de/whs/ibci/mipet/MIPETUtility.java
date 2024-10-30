@@ -1779,6 +1779,67 @@ public class MIPETUtility{
         return tmpResult; 
     }
     
+    /**
+     * Fills left side of the string with spaces so the string is right aligned
+     *   It is much faster version of String.format()
+     * @param aInput
+     *   Inputstring
+     * @param aPadUpTo
+     *   Total length of Inputstring and spaces
+     * @return 
+     *   String with left filled with spaces
+     */
+    public String padLeft(String aInput, int aPadUpTo) {
+        
+        // Check parameters
+        if (aInput == null || aInput.isEmpty()) {
+            throw new IllegalArgumentException("aInput is null or empty.");
+        } else if (aPadUpTo <= 0) {
+            throw new IllegalArgumentException("aPadUpTo should be positive.");
+        }
+        
+        StringBuilder tmpSB = new StringBuilder();
+        char tmpPadChar = ' ';
+        
+        for (int toPrepend = aPadUpTo - aInput.length(); 
+                toPrepend > 0; toPrepend--) {
+            tmpSB.append(tmpPadChar);
+        }
+        
+        tmpSB.append(aInput);
+        return tmpSB.toString();
+    }
+    
+    /**
+     * Fills right side of string with spaces so the string is left aligned
+     *   Much faster version of String.format()
+     * @param aInput
+     *   Inputstring
+     * @param aPadUpTo
+     *   Total length of Inputstring and spaces
+     * @return 
+     *   String with right filled with spaces
+     */
+    public String padRight(String aInput, int aPadUpTo) {
+        
+        if (aInput == null || aInput.isEmpty()) {
+            throw new IllegalArgumentException("aInput is null or empty.");
+        } else if (aPadUpTo <= 0) {
+            throw new IllegalArgumentException("aPadUpTo should be positive.");
+        }
+        
+        StringBuilder tmpSb = new StringBuilder();
+        char tmpPadChar = ' ';
+        tmpSb.append(aInput);
+        
+        for (int toAppend = aInput.length(); 
+                toAppend < aPadUpTo; toAppend++) {
+            tmpSb.append(tmpPadChar);
+        }
+        
+        return tmpSb.toString();
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
