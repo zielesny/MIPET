@@ -1,9 +1,7 @@
-AcCO			CC(=O)C
 AcNH2     CC(=O)N
 Azolid    N1CCCC1
 Bu				CCCC
 CisButene C/C=C\C
-DiMeNH		CNC
 DMP       O=P(OC)(OC)O
 Et				CC
 Et2O			CCOCC
@@ -17,9 +15,12 @@ HAc				CC(O)=O
 HCHO			C=O
 Imidazole N1C=CN=C1
 Me				C
+Me2NH			CNC
 Me2O			COC
+Me2CO			CC(=O)C
 Me2S			CSC
 Me2S2			CSSC
+Me3N      CN(C)C
 MeAc      CC(OC)=O
 MeAcNH    CC(=O)NC
 MeNH2     CN
@@ -34,4 +35,3 @@ PrImine 	CC(=N)C
 PrOH			CCCO
 Pyridine	C1=CN=CC=C1
 Pyrrole   N1C=CC=C1
-TriMeN    CN(C)C

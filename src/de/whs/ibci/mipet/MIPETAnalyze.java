@@ -207,7 +207,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         
         // Start analyze.exe
         //  read .arc files and find intermolecular energy
-        StringBuilder tmpPartArc;
         ProcessBuilder tmpPBuilder;
         Process tmpProcess;
         int tmpConfigIndex;
@@ -247,6 +246,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             
             tmpProcess.waitFor();
             tmpProcess.destroy();
+            tmpInStream.close();
+            tmpBR.close();
         } catch(IOException | InterruptedException ex) {
             LOGGER.log(Level.SEVERE,
                     "Exception during tinker's analyze.exe", ex);
@@ -255,6 +256,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         // Export .xyz file with lowest intermolecular energy
         int tmpStartIndex;
         int tmpEndIndex;
+        StringBuilder tmpPartArc;
         
         tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
         tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
