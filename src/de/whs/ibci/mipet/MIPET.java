@@ -1255,6 +1255,7 @@ public class MIPET {
                     tmpProcess = null;
                     if (isOptRigidOnly && i == 1 || !isOptRigidOnly) {
                         tmpPB = new ProcessBuilder();
+                        tmpPB.redirectErrorStream(true);
                         tmpPB.command(tmpCmdList);
                         try {
                             tmpProcess = tmpPB.start();
@@ -1304,6 +1305,7 @@ public class MIPET {
                         + ".xyz",
                         "E"};
                     tmpPB = new ProcessBuilder();
+                    tmpPB.redirectErrorStream(true);
                     tmpPB.command(tmpCmdList);
                     tmpPB.redirectOutput(tmpOptFile);
                     try {
@@ -2575,6 +2577,7 @@ public class MIPET {
                     
                     // Run Tinker Scan.exe with optimized particles
                     tmpPB = new ProcessBuilder();
+                    tmpPB.redirectErrorStream(true);
                     tmpCmdList = new String[]{tinkerScan,
                         tmpXyzFileName,
                         scanProgram,

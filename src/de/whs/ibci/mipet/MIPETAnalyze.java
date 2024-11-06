@@ -217,6 +217,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         String tmpLine;
         
         tmpPBuilder = new ProcessBuilder();
+        tmpPBuilder.redirectErrorStream(true);
         tmpPBuilder.command(this.COMMAND_LIST);
         tmpSearch = "Intermolecular Energy";
         tmpMinEnergy = 1E10;
@@ -225,29 +226,28 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         
         try {
             tmpProcess = tmpPBuilder.start();
-            InputStream tmpInStream = tmpProcess.getInputStream();
-            BufferedReader tmpBR;
-            tmpBR = new BufferedReader(new InputStreamReader(tmpInStream));
-            
-            while ((tmpLine = tmpBR.readLine()) != null) {
-                if (tmpLine.contains(tmpSearch)) {
-                    tmpValueCandidate = tmpLine.substring(25, 50);
-                    if (!tmpValueCandidate.contains("D")) {
-                        tmpValue = Double.parseDouble(tmpValueCandidate);
-                        tmpEnergyList.add(tmpValue);
-                        tmpConfigIndex++;
-                        if (tmpValue < tmpMinEnergy) {
-                            tmpMinEnergy = tmpValue;
-                            tmpMinIndex = tmpConfigIndex;
+            try (InputStream tmpInStream = tmpProcess.getInputStream();
+                    BufferedReader tmpBR = new BufferedReader(
+                            new InputStreamReader(tmpInStream))){
+
+                while ((tmpLine = tmpBR.readLine()) != null) {
+                    if (tmpLine.contains(tmpSearch)) {
+                        tmpValueCandidate = tmpLine.substring(25, 50);
+                        if (!tmpValueCandidate.contains("D")) {
+                            tmpValue = Double.parseDouble(tmpValueCandidate);
+                            tmpEnergyList.add(tmpValue);
+                            tmpConfigIndex++;
+                            if (tmpValue < tmpMinEnergy) {
+                                tmpMinEnergy = tmpValue;
+                                tmpMinIndex = tmpConfigIndex;
+                            }
                         }
                     }
                 }
+                
+                tmpProcess.waitFor();
+                tmpProcess.destroy();
             }
-            
-            tmpProcess.waitFor();
-            tmpProcess.destroy();
-            tmpInStream.close();
-            tmpBR.close();
         } catch(IOException | InterruptedException ex) {
             LOGGER.log(Level.SEVERE,
                     "Exception during tinker's analyze.exe", ex);

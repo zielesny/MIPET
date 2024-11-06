@@ -16,18 +16,16 @@ $
 #--------------------------
 #H2O
 #Me
-#MeOH
+MeOH
 #Et
 #Me2O
 
 # -------------------------
 # Particles
 # -------------------------
-AcCO
 #AcNH2
 #Bu
 #CisButene
-#DiMeNH
 #DMP
 #Et
 #Et2O
@@ -42,9 +40,12 @@ AcCO
 #HCHO
 #Imidazole
 #Me
+#Me2CO
+#Me2NH
 #Me2O
 #Me2S
 #Me2S2
+#Me3N
 #MeAc
 #MeAcNH
 #MeNH2
@@ -59,4 +60,3 @@ AcCO
 #PrOH
 #Pyridine
 #Pyrrole
-#TriMeN
