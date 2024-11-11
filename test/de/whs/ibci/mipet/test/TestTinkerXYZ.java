@@ -239,13 +239,13 @@ public class TestTinkerXYZ {
     }
     
     @Test
-    public void TestgetDistances() {
+    public void TestgetPBCDistances() {
         TinkerXYZ tmpH2O_Et = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
         double[][] tmpDistances;
         double tmpBoxLength;
         
         tmpBoxLength = 9.070700;
-        tmpDistances = tmpH2O_Et.getDistances(tmpBoxLength);
+        tmpDistances = tmpH2O_Et.getPBCDistances(tmpBoxLength);
         Assert.assertEquals(5.443870652, tmpDistances[0][0], 0.000001);
         Assert.assertEquals(3.838142478, tmpDistances[0][8], 0.000001);
     }
@@ -253,9 +253,7 @@ public class TestTinkerXYZ {
     @Test
     // This is only for experimental purpose
     public void TestRDF() {
-        String tmpParticle1;
         String tmpParticle2;
-        String tmpParticlePair;
         String tmpDatFileName;
         Path tmpTargetDir;
         int tmpSolventNumber;
@@ -278,13 +276,10 @@ public class TestTinkerXYZ {
         
         
         Locale.setDefault(Locale.ENGLISH);
-        tmpParticle1 = "MeOH";
         tmpParticle2 = "MeOH";
         tmpSolventNumber = 5000;
         tmpIntervalIndex = 0;
         tmpDistanceIndex = 0;
-        tmpBoundary = 0.0;
-        tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
         tmpTargetDir = Paths.get("Z:\\Scratch\\");
         tmpDatFileName = "Z:/Scratch/distances.dat";
         tmpIntervalWidth = 1.0;
@@ -310,7 +305,7 @@ public class TestTinkerXYZ {
                 (tmpBoxLength * tmpBoxLength * tmpBoxLength);
         
         // Determine distances before warmup
-        tmpDistances = tmpMeOH.getDistances(tmpBoxLength);
+        tmpDistances = tmpMeOH.getPBCDistances(tmpBoxLength);
         tmpDistancesSize = tmpDistances[0].length - 1;
         Arrays.sort(tmpDistances[0]);
         tmpIntervalSize = (int)Math.ceil(tmpDistances[0][tmpDistancesSize]);

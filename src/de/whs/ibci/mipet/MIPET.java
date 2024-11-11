@@ -709,7 +709,7 @@ public class MIPET {
         }
         tmpRotMatrices1 = RotationUtil
                 .getRotationMatrices1 (tmpSphereNodeCoord, 
-                        new double[]{1., 0., 0.});
+                        new double[] {1., 0., 0.});
         tmpRotMatrices2 = RotationUtil.
                 getRotationMatrices2 (tmpSphereNodeCoord, 
                         new double[] {-1.0, 0.0, 0.0}, rotationNumber);

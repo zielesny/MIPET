@@ -507,18 +507,30 @@ public class TinkerXYZ implements Cloneable {
         return tmpCentreOfMass;    
     }
     
+    
+    
+    public double[][] getDistances() {
+    
+        
+        return null;
+    }
+    
+    
+    
+    
+    
     /** 
      * Returns the distances of centre of mass from first particle to 
      *  centre of mass from second particle(s)
      * 
      * @param aBoxLength Box length in Angstrom
      * @return distances between particle1 to particle2 
-     * [i][j][k] i: index of simulation; j: index of partikel2
+     * [i][j][k] i: index of simulation; j: atom index of partikel2
      * k = 0: x
-     * k = 0: y
-     * k = 0: z
+     * k = 1: y
+     * k = 2: z
      */
-    public double[][] getDistances(double aBoxLength) {
+    public double[][] getPBCDistances(double aBoxLength) {
         final double ONEHALF = 0.5;
         int tmpIterationSize;
         double[][] tmpCentre1;
