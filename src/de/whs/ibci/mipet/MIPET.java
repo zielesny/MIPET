@@ -971,6 +971,8 @@ public class MIPET {
                 // Centre the fragments and move to the centre
                 tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
                 tmpTinkerXYZ1 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
+                tmpTinkerXYZ1.setForcefieldName(tmpForcefield);
+                tmpTinkerXYZ1.setParticleName1(tmpParticleName1);
                 tmpXyzData1 = tmpTinkerXYZ1.getCoordinateList1()[0];
                 tmpCentre1 = tmpTinkerXYZ1.findCentreCoordinate();
                 tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
@@ -986,6 +988,7 @@ public class MIPET {
                     tmpXyzData2 = tmpTinkerXYZ2
                             .moveCoordinates(tmpXyzData2, tmpCentre2);
                 }
+                tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
 
                 //</editor-fold>
 
@@ -2555,6 +2558,7 @@ public class MIPET {
                             + FILESEPARATOR 
                             + tmpParticle 
                             + ".xyz_2");
+                    tmpTinkerXYZ.setForcefieldName(forcefield_IE);
                     tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
                             .getCoordinateList1());
                     tmpSource = Paths.get(tmpOptXyzDirName, tmpParticle 
@@ -2799,6 +2803,8 @@ public class MIPET {
         int tmpConfigIndex;
         int tmpRotData1Index;
         int tmpRotData2Index;
+        int tmpPrmID1;
+        int tmpPrmID2;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
@@ -2847,6 +2853,15 @@ public class MIPET {
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
                         tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
+                        if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+                            tmpPrmID1 = particleNames.indexOf(tmpTinkerXYZ
+                                    .getParticleName1());
+                            tmpPrmID2 = particleNames.indexOf(tmpTinkerXYZ
+                                    .getParticleName2());
+                            
+                            tmpTinkerXYZ.readPrm(prmContent1[tmpPrmID1],
+                                    prmContent2[tmpPrmID2]);
+                        }
                         tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,

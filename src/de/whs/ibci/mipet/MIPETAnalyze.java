@@ -168,6 +168,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkIndex = 0;
+        
+        // todo: if (this.forcefieldName.equals("OPLSAALIGPARGEN")
         tmpArcFileName = this.SCRATCH_DIR
                 + FILESEPARATOR 
                 + this.PARTICLE_PAIR 
@@ -190,7 +192,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     if (!tmpIs2Close) {
                         tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
                         tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
-                        // call getDistance
+                        tmpTinkerXYZ.setDistances();
+                        
+                        
                         tmpBW.append(tmpTinkerXYZ.getFileContent());
                     }
                     tmpChunkIndex++;
