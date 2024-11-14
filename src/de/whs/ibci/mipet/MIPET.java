@@ -167,6 +167,11 @@ public class MIPET {
      */
     private static LinkedList<String> particleNames;
     
+    /** 
+     * MoleculeRecord
+     */
+    private static LinkedList<MoleculeRecord> molecules;
+    
     /**
      * New particles for calculation
      */
@@ -825,6 +830,7 @@ public class MIPET {
         //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
         readXyz(true, forcefield_IE);
         readPrm(forcefield_IE);
+        makeMoleculeRecord();
         
         //</editor-fold>
         
@@ -2315,7 +2321,7 @@ public class MIPET {
         prmContent1 = new String[tmpParticlesLength];
         prmContent2 = new String[tmpParticlesLength];
         tmpPrm2 = new StringBuilder(100000);
-        
+                
         for (int i = 0; i < tmpParticlesLength; i++) {
             tmpParticleName = particleNames.get(i);
             
@@ -2354,38 +2360,112 @@ public class MIPET {
                                     tmpTokens[1], tmpLines[j]);
                         }
                         case "bond" -> {
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
-                                    tmpTokens[1], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
-                                    tmpTokens[2], tmpLines[j]);
+                            tmpLines[j] = "";
                         }
                         case "angle" -> {
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
-                                    tmpTokens[1], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
-                                    tmpTokens[2], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[3], 
-                                    tmpTokens[3], tmpLines[j]);
+                            tmpLines[j] = "";
                         }
                         case "imptors", "torsion" -> {
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
-                                    tmpTokens[1], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[2], 
-                                    tmpTokens[2], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[3], 
-                                    tmpTokens[3], tmpLines[j]);
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[4], 
-                                    tmpTokens[4], tmpLines[j]);
+                            tmpLines[j] = "";
                         }
                     }
-                    tmpPrm2.append(tmpLines[j]);
-                    tmpPrm2.append(LINESEPARATOR);
+                    if (!tmpLines[j].equals("")) {
+                        tmpPrm2.append(tmpLines[j]);
+                        tmpPrm2.append(LINESEPARATOR);
+                    }
                 }
                 prmContent2[i] = tmpPrm2.toString();
             } else {
                 prmContent2[i] = "";
             }
         }
+    }
+
+
+    /** 
+     * Method makeMoleculeRecord
+     * Make molecules record for intermolecular energy calculation without tinker
+     *  (only for OPLSAALIGPARGEN)
+     */
+    private static void makeMoleculeRecord() {
+        int tmpParticleNameLength;
+        int tmpSigmaIndex;
+        int tmpChargeIndex;
+        int[] tmpAtomNumber;
+        int[][] tmpAtomTypes;
+        double[][] tmpEpsilsons;
+        double[][] tmpSigmas;
+        double[][] tmpCharges;
+        String tmpLine;
+        String[] tmpLines;
+        String[][] tmpElements;
+        
+        tmpParticleNameLength = particleNames.size();
+        tmpAtomNumber = new int[tmpParticleNameLength];
+        tmpElements = new String[tmpParticleNameLength][];
+        tmpAtomTypes = new int[tmpParticleNameLength][];
+        tmpSigmas = new double[tmpParticleNameLength][];
+        tmpEpsilsons = new double[tmpParticleNameLength][];
+        tmpCharges = new double[tmpParticleNameLength][];
+        
+        // Read elements and atomTypes
+        for (int i = 0; i < tmpParticleNameLength; i++) {
+            tmpLines = xyzContent1[i].split(LINESEPARATOR);
+            tmpLine = tmpLines[0].substring(0, 6).trim();
+            tmpAtomNumber[i] = Integer.parseInt(tmpLine);
+            tmpElements[i] = new String[tmpAtomNumber[i]];
+            tmpAtomTypes[i] = new int[tmpAtomNumber[i]];
+            
+            for (int j = 1; j < tmpLines.length; j++) {
+                tmpLine = tmpLines[j].substring(7, 11).trim();
+                tmpElements[i][j - 1] = tmpLine;
+                tmpLine = tmpLines[j].substring(47, 51).trim();
+                tmpAtomTypes[i][j-1] = Integer.parseInt(tmpLine);
+            }
+            
+        }
+        
+        // Read epsilons, sigmas and charges
+        
+        
+        for (int i = 0; i < tmpParticleNameLength; i++) {
+            tmpSigmaIndex = 0;
+            tmpChargeIndex = 0;
+            tmpLines = prmContent1[i].split(LINESEPARATOR);
+            tmpSigmas[i] = new double[tmpAtomNumber[i]];
+            tmpEpsilsons[i] = new double[tmpAtomNumber[i]];
+            tmpCharges[i] = new double[tmpAtomNumber[i]];
+            
+            for (int j = 0; j < tmpLines.length; j++) {
+                if (tmpLines[j].startsWith("vdw ")) {
+                    tmpLine = tmpLines[j].substring(20, 32).trim();
+                    tmpSigmas[i][tmpSigmaIndex] = Double.parseDouble(tmpLine);
+                    tmpLine = tmpLines[j].substring(32).trim();
+                    tmpEpsilsons[i][tmpSigmaIndex] = Double
+                            .parseDouble(tmpLine);
+                    tmpSigmaIndex++;
+                    
+                }
+                if (tmpLines[j].startsWith("charge ")) {
+                    tmpLine = tmpLines[j].substring(20);
+                    tmpCharges[i][tmpChargeIndex] = Double.parseDouble(tmpLine);
+                    tmpChargeIndex++;
+                }
+            }
+            
+            molecules = new LinkedList<>();
+            molecules.add(new MoleculeRecord(
+                    particleNames.get(i),
+                    tmpAtomNumber[i],
+                    tmpElements[i],
+                    tmpAtomTypes[i],
+                    tmpEpsilsons[i],
+                    tmpSigmas[i],
+                    tmpCharges[i]
+            ));
+            
+        }
+        
     }
     
     /**
@@ -2853,15 +2933,6 @@ public class MIPET {
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
                         tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
-                        if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
-                            tmpPrmID1 = particleNames.indexOf(tmpTinkerXYZ
-                                    .getParticleName1());
-                            tmpPrmID2 = particleNames.indexOf(tmpTinkerXYZ
-                                    .getParticleName2());
-                            
-                            tmpTinkerXYZ.readPrm(prmContent1[tmpPrmID1],
-                                    prmContent2[tmpPrmID2]);
-                        }
                         tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,

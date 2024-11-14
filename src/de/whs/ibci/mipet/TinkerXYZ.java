@@ -1602,23 +1602,23 @@ public class TinkerXYZ implements Cloneable {
         String tmpLine;
         int tmpAtomType;
         
-        tmpSourceFile = new File(aFileName);
-        try (BufferedReader tmpBR = new BufferedReader (
-                new FileReader (tmpSourceFile), this.READER_BUFFERSIZE)) {
-            
-            while((tmpLine = tmpBR.readLine()) != null) {
-                if (tmpLine.startsWith("vdw ")) {
-                    tmpAtomType = Integer.valueOf(tmpLine
-                            .substring(11, 15).trim());
-                    
-                }
-                
-            }
-            
-        }catch(IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException in readPrm().", ex);
-        }
+        //tmpSourceFile = new File(aFileName);
+//        try (BufferedReader tmpBR = new BufferedReader (
+//                new FileReader (tmpSourceFile), this.READER_BUFFERSIZE)) {
+//            
+//            while((tmpLine = tmpBR.readLine()) != null) {
+//                if (tmpLine.startsWith("vdw ")) {
+//                    tmpAtomType = Integer.valueOf(tmpLine
+//                            .substring(11, 15).trim());
+//                    
+//                }
+//                
+//            }
+//            
+//        }catch(IOException ex) {
+//            LOGGER.log(Level.SEVERE, 
+//                    "IOException in readPrm().", ex);
+//        }
         
     }
     

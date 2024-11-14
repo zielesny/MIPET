@@ -25,11 +25,10 @@ package de.whs.ibci.mipet;
  * @author Mirco Daniel
  */
 public record MoleculeRecord(
-        String moleculeName,
-        String smiles,
+        String name,
+        int atomNumber,
         String[] elements,
         int[] atomTypes,
-        double[] atomicMasses,
         double[] epsilons,
         double[] sigmas,
         double[] charges
