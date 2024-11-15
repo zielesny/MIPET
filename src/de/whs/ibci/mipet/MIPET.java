@@ -158,6 +158,11 @@ public class MIPET {
     private static boolean isTinker9;
     
     /**
+     * Using Tinker flag
+     */
+    private static boolean isTinkerOn;
+    
+    /**
      * Job file name
      */
     private static String jobFileName;
@@ -985,10 +990,12 @@ public class MIPET {
                         tmpCentre1);
                 if (tmpIsSameParticle) {
                     tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
+                    tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
                     tmpXyzData2 = tmpXyzData1.clone();
                 } else {
                     tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
                     tmpTinkerXYZ2 = new TinkerXYZ(xyzContent2[tmpXyz2ID]);
+                    tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
                     tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
                     tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
                     tmpXyzData2 = tmpTinkerXYZ2
@@ -2044,6 +2051,8 @@ public class MIPET {
         
         isTinker9 = MIPETUTIL.getResourceString("MIPET.Tinker9").toLowerCase()
                 .equals("true");
+        isTinkerOn = MIPETUTIL.getResourceString("MIPET.TinkerOn")
+                .toLowerCase().equals("true");
         jobFileName = MIPETUTIL.getResourceString("MIPET.File.jobfile");
         cpuCoreNumber = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETCPUCoreNumber"));
@@ -2640,7 +2649,7 @@ public class MIPET {
                             + ".xyz_2");
                     tmpTinkerXYZ.setForcefieldName(forcefield_IE);
                     tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
-                            .getCoordinateList1());
+                            .getCoordinateList1(), isTinkerOn);
                     tmpSource = Paths.get(tmpOptXyzDirName, tmpParticle 
                             + ".xyz_2");
                     try {
@@ -2707,7 +2716,8 @@ public class MIPET {
                         tmpCoords = tmpTinkerXYZ.readCoordFromArc(tmpOptArcName);
 
                         for (int j = 0; j < tmpCoords.length; j++) {
-                            tmpTinkerXYZ.setCoordinateList1(tmpCoords[j]);
+                            tmpTinkerXYZ.setCoordinateList1(tmpCoords[j], 
+                                    isTinkerOn);
                             tmpXyzFileName = tmpOptXyzDirName 
                                 + FILESEPARATOR
                                 + tmpParticle
@@ -2747,7 +2757,7 @@ public class MIPET {
                                     + "_0.txyz";
                             tmpAfterScan = new TinkerXYZ(tmpOptXyzName); 
                             tmpTinkerXYZ.setCoordinateList1(tmpAfterScan
-                                    .getCoordinateList1());
+                                    .getCoordinateList1(), isTinkerOn);
 
                             // Convert tinker xyz files to .xyz file
                             for (int j = 0; j < tmpEnergyValues.size(); j++) {
@@ -2823,7 +2833,7 @@ public class MIPET {
                                     + tmpParticle 
                                     + ".xyz_2");
                             tmpTinkerXYZ.setCoordinateList1(tmpTinkerXYZ0
-                                    .getCoordinateList1());
+                                    .getCoordinateList1(), isTinkerOn);
                             tmpSource = Paths.get(tmpOptXyzDirName, 
                                     tmpParticle + ".xyz_2");
                             try {
@@ -2883,8 +2893,6 @@ public class MIPET {
         int tmpConfigIndex;
         int tmpRotData1Index;
         int tmpRotData2Index;
-        int tmpPrmID1;
-        int tmpPrmID2;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
@@ -2932,7 +2940,8 @@ public class MIPET {
                     tmpRotData2Index++;
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
-                        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2);
+                        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2,
+                                isTinkerOn);
                         tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,
@@ -2941,6 +2950,7 @@ public class MIPET {
                             tmpPath + i + "_"+ tmpChunkIndex, "E"};
                         tmpTaskList.add(new MIPETAnalyze(
                                 tmpTinkerXYZ,
+                                isTinkerOn,
                                 i,
                                 tmpChunkIndex,
                                 tmpAtomNumber,
@@ -2949,8 +2959,8 @@ public class MIPET {
                                 tmpRotData1,
                                 tmpRotData2,
                                 scratchDirectory,
-                                aParticlePair,
-                                tmpCmdList));
+                                tmpCmdList,
+                                molecules));
                         tmpPart1StartIndex = tmpRotData1Index + 1;
                         tmpChunkIndex++;
                     }

@@ -275,9 +275,11 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @param aTinkerXYZ1 TinkerXYZ object of first fragment
      * @param aTinkerXYZ2 TinkerXYZ object of second fragment
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    public TinkerXYZ(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2) {
-        this.initialize2(aTinkerXYZ1, aTinkerXYZ2);
+    public TinkerXYZ(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2, 
+            boolean aTinkerOn) {
+        this.initialize2(aTinkerXYZ1, aTinkerXYZ2, aTinkerOn);
         
     }
     
@@ -689,11 +691,12 @@ public class TinkerXYZ implements Cloneable {
      * Set the header (also in fileContent)
      * 
      * @param aHeader A new Header
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    public void setHeader(String aHeader) {
+    public void setHeader(String aHeader, boolean aTinkerOn) {
         this.header = aHeader;
         
-        if (!this.forcefieldName.equals("OPLSAALIGPARGEN")) {
+        if (!this.forcefieldName.equals("OPLSAALIGPARGEN") || aTinkerOn) {
             int tmpStartIndex;
             int tmpEndIndex;
             Boolean tmpIsFirstNonSpace;
@@ -862,7 +865,8 @@ public class TinkerXYZ implements Cloneable {
      * @param aCoordinates1 
      *   [i, j, k] i: simulation/config. index, j: atom, k: xyz
      */
-    public void setCoordinateList1(double[][][] aCoordinates1) {
+    public void setCoordinateList1(double[][][] aCoordinates1, 
+            boolean aTinkerOn) {
         
         // Check parameters
         if (aCoordinates1 == null || aCoordinates1.length == 0) {
@@ -872,7 +876,7 @@ public class TinkerXYZ implements Cloneable {
         
         this.coordinateList1 = aCoordinates1.clone();
         
-        if (!this.forcefieldName.equals("OPLSAALIGPARGEN")) {
+        if (!this.forcefieldName.equals("OPLSAALIGPARGEN") || aTinkerOn) {
             int tmpSkipLines;
             DecimalFormat tmpDF = new DecimalFormat("0.000000", 
                     DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -918,8 +922,9 @@ public class TinkerXYZ implements Cloneable {
      * Set first coordinate list and overwrite stringbuilder
      * 
      * @param aCoord1  [i][j] i: atomid, j: xyz
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    public void setCoordinateList1(double[][] aCoord1) {
+    public void setCoordinateList1(double[][] aCoord1, boolean aTinkerOn) {
         
         // Check parameters
         if (aCoord1 == null || aCoord1.length == 0) {
@@ -929,7 +934,7 @@ public class TinkerXYZ implements Cloneable {
         
         double[][][] tmpCoord1 = new double[1][][];
         tmpCoord1[0] = aCoord1;
-        setCoordinateList1(tmpCoord1);
+        setCoordinateList1(tmpCoord1, aTinkerOn);
     }
     
     /**
@@ -937,8 +942,9 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @param aCoord2[i][j][k][l]
      *   i: sim.iteration j: particle k: atom l: xyz
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    public void setCoordinateList2(double[][][][] aCoord2) {
+    public void setCoordinateList2(double[][][][] aCoord2, boolean aTinkerOn) {
         
         // Check parameters
         if (aCoord2 == null || aCoord2.length == 0) {
@@ -946,7 +952,7 @@ public class TinkerXYZ implements Cloneable {
                     + "to the setCoordinateList2 method.");
         }
         this.coordinateList2 = aCoord2;
-        if (!this.forcefieldName.equals("OPLSAALIGPARGEN")) {
+        if (!this.forcefieldName.equals("OPLSAALIGPARGEN") || aTinkerOn) {
             DecimalFormat tmpDF = new DecimalFormat("0.000000", 
             DecimalFormatSymbols.getInstance(Locale.ENGLISH));
             Boolean tmpHasComment = true;
@@ -995,8 +1001,9 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @param aCoord2 
      * [i, j] i: atomid, j: xyz
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    public void setCoordinateList2(double[][] aCoord2) {
+    public void setCoordinateList2(double[][] aCoord2, boolean aTinkerOn) {
         
         // Check parameters
         if (aCoord2 == null || aCoord2.length == 0) {
@@ -1006,7 +1013,7 @@ public class TinkerXYZ implements Cloneable {
         
         double[][][][] tmpCoord2 = new double[1][1][][];
         tmpCoord2[0][0] = aCoord2;
-        setCoordinateList2(tmpCoord2);
+        setCoordinateList2(tmpCoord2, aTinkerOn);
     }
     
     public void setDistances() {
@@ -1254,8 +1261,10 @@ public class TinkerXYZ implements Cloneable {
      *   First TinkerXYZ object
      * @param aTinkerXYZ2 
      *   Second TinkerXYZ object
+     * @param aTinkerOn Flag for whether tinker is used or not
      */
-    private void initialize2(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2) {
+    private void initialize2(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2,
+            boolean aTinkerOn) {
         
         // Check parameters
         if (aTinkerXYZ1 == null) {
@@ -1297,7 +1306,7 @@ public class TinkerXYZ implements Cloneable {
         this.coordinateList1 = aTinkerXYZ1.coordinateList1;
         this.coordinateList2 = new double[1][1][tmpAtomSize2][3];
         this.coordinateList2[0] = aTinkerXYZ2.coordinateList1;
-        if (!this.forcefieldName.equals("OPLSAALIGPARGEN")) {
+        if (!this.forcefieldName.equals("OPLSAALIGPARGEN") || aTinkerOn) {
             this.fileContent = new StringBuilder(STRINGBUILDER_CAPACITY);
             this.fileContent.append(aTinkerXYZ1.getFileContent());
             this.fileContent.replace(0, 6, MIPETUTIL.padLeft(Integer
@@ -1595,31 +1604,6 @@ public class TinkerXYZ implements Cloneable {
         }
         
         return tmpResult;
-    }
-    
-    public void readPrm(String aPrmContent1, String aPrmContent2) {
-        File tmpSourceFile;
-        String tmpLine;
-        int tmpAtomType;
-        
-        //tmpSourceFile = new File(aFileName);
-//        try (BufferedReader tmpBR = new BufferedReader (
-//                new FileReader (tmpSourceFile), this.READER_BUFFERSIZE)) {
-//            
-//            while((tmpLine = tmpBR.readLine()) != null) {
-//                if (tmpLine.startsWith("vdw ")) {
-//                    tmpAtomType = Integer.valueOf(tmpLine
-//                            .substring(11, 15).trim());
-//                    
-//                }
-//                
-//            }
-//            
-//        }catch(IOException ex) {
-//            LOGGER.log(Level.SEVERE, 
-//                    "IOException in readPrm().", ex);
-//        }
-        
     }
     
     /**

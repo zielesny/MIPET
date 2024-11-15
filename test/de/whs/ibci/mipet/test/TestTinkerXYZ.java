@@ -139,7 +139,7 @@ public class TestTinkerXYZ {
         TinkerXYZ tmpTxyz1 = new TinkerXYZ(txyzFileName1);
         TinkerXYZ tmpTxyz2 = new TinkerXYZ(txyzFileName2);
         
-        txyz = new TinkerXYZ(tmpTxyz1, tmpTxyz2);
+        txyz = new TinkerXYZ(tmpTxyz1, tmpTxyz2, true);
         int tmpExpectedAtomSize = 8;
         int tmpAtomSize = txyz.getAtomNumber();
         Assert.assertEquals(tmpExpectedAtomSize, tmpAtomSize);
@@ -164,7 +164,7 @@ public class TestTinkerXYZ {
         TinkerXYZ tmpTxyz1 = new TinkerXYZ("./testdata/H2O.txyz", 3);
         TinkerXYZ tmpTxyz2 = new TinkerXYZ("./testdata/H2Omod1.txyz", 3);
         double[][][] tmpCoords = tmpTxyz2.getCoordinateList1();
-        tmpTxyz1.setCoordinateList1(tmpCoords);
+        tmpTxyz1.setCoordinateList1(tmpCoords, true);
     }
     
     @Test

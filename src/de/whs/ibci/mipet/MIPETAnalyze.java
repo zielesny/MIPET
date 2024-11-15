@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,9 +60,30 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     private final String FILESEPARATOR = System.getProperty("file.separator");
     
     /**
+     * Conversion factor Joule to Calorie (therm.)
+     */
+    private final double J_CAL = 0.2390057361; 
+    
+    /**
+     * Coulomb constant in N*m^2/C^2
+     */
+    private final double COULOMB = 8.9875517862E9; 
+    
+    /**
+     * Elementary charge in C
+     */
+    private final double ELEMENTCHARGE = 1.602176634E-19;
+    
+    /**
+     * Avogadro constant in 1/mole
+     */
+    private final double AVOGADRO = 6.02214076E23;
+    
+    /**
      * Tinkerxyz object
      */
     private final TinkerXYZ TINKERXYZ;
+    private final boolean ISTINKERON;
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
     private final double[][][] ROTDATA2;
@@ -88,14 +110,14 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     private final String SCRATCH_DIR;
     
     /**
-     * Both particle names
-     */
-    private final String PARTICLE_PAIR;
-    
-    /**
      * Command list for tinker's analyze.exe
      */
     private final String[] COMMAND_LIST;
+    
+    /**
+     * MoleculeRecord
+     */
+    private final LinkedList<MoleculeRecord> MOLECULES;
     
     // </editor-fold>
     
@@ -105,6 +127,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * Constructor of MIPET4JavaAnalyze class
      * 
      * @param aTinkerXYZ
+     * @param aTinkerOn Flag for whether tinker is used or not
      * @param aDistanceIndex
      * @param aChunkIndex
      * @param anAtomNumber
@@ -112,8 +135,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * @param aScratchDir
      *   Scratch directory name
      * @param aMinAtomDistance
-     * @param aParticlePair
-     *   Particle pair name
      * @param aRotData1
      * @param aCommandList 
      *   Command list for tinker's analyze.exe
@@ -121,6 +142,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      */
     public MIPETAnalyze(
             TinkerXYZ aTinkerXYZ,
+            boolean aTinkerOn,
             int aDistanceIndex,
             int aChunkIndex,
             int anAtomNumber,
@@ -129,8 +151,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             double[][][] aRotData1,
             double[][][] aRotData2,
             String aScratchDir,
-            String aParticlePair,
-            String[] aCommandList) {
+            String[] aCommandList,
+            LinkedList<MoleculeRecord> aMolecules) {
+        this.ISTINKERON = aTinkerOn;
         this.ROTDATA1 = aRotData1;
         this.ROTDATA2 = aRotData2;
         this.CHUNKSIZE = aChunkSize;
@@ -140,8 +163,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         this.CHUNKINDEX = aChunkIndex;
         this.ATOMNUMBER = anAtomNumber;
         this.SCRATCH_DIR = aScratchDir;
-        this.PARTICLE_PAIR = aParticlePair;
         this.COMMAND_LIST = aCommandList;
+        this.MOLECULES = aMolecules;
     }
     
     // </editor-fold>
@@ -154,61 +177,180 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         int tmpRot1Size;
         int tmpRot2Size;
         int tmpChunkIndex;
+        int tmpAtomSize1;
+        int tmpAtomSize2;
+        int tmpIterationSize;
+        int tmpMoleculeSize;
+        int tmpID1;
+        int tmpID2;
+        double tmpChargeQ;
+        double tmpFactor;
+        double tmpSigma;
+        double tmpEpsilon;
+        double tmpDistances[][][];
+        double tmpEpsilons1[];
+        double tmpEpsilons2[];
+        double tmpSigmas1[];
+        double tmpSigmas2[];
+        double tmpCharges1[];
+        double tmpCharges2[];
+        double tmpCoulombEnergy;
+        double tmpLJEnergy;
+        double tmpEnergy;
+        double tmpRatio;
+        double tmpRatio2; // tmpRatio^2
+        double tmpRatio6; // tmpRatio^6
+        double tmpRatio12; // tmpRatio^12
         ArrayList<Double> tmpEnergyList;
+        String tmpForcefield;
+        String tmpParticlePair;
+        String tmpParticle1;
+        String tmpParticle2;
         String tmpArcFileName;
         String tmpMinFileName;
         String tmpValueCandidate;
         TinkerXYZ tmpTinkerXYZ;
-
+        
+        tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
+        tmpFactor = tmpChargeQ * COULOMB * 1E10;
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
         tmpTinkerXYZ = this.TINKERXYZ;
+        tmpForcefield = tmpTinkerXYZ.getForcefieldName();
+        tmpParticle1 = this.TINKERXYZ.getParticleName1();
+        tmpParticle2 = this.TINKERXYZ.getParticleName2();
+        tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
+        tmpAtomSize1 = tmpTinkerXYZ.getAtomSize1();
+        tmpAtomSize2 = tmpTinkerXYZ.getAtomSize2();
+        tmpIterationSize = this.TINKERXYZ.getDistances()[0][0].length;
+        tmpMoleculeSize = MOLECULES.size();
+        tmpID1 = 0;
+        tmpID2 = 0;
+        
+        for (int i = 0; i < tmpMoleculeSize; i++) {
+            if (tmpParticle1.equals(MOLECULES.get(i).name())) {
+                tmpID1 = i;
+                break;
+            }
+        }
+        
+        for (int i = 0; i < tmpMoleculeSize; i++) {
+            if (tmpParticle2.equals(MOLECULES.get(i).name())) {
+                tmpID2 = i;
+                break;
+            }
+        }
+        
+        tmpSigmas1 = MOLECULES.get(tmpID1).sigmas();
+        tmpSigmas2 = MOLECULES.get(tmpID2).sigmas();
+        tmpEpsilons1 = MOLECULES.get(tmpID1).epsilons();
+        tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
+        tmpCharges1 = MOLECULES.get(tmpID1).charges();
+        tmpCharges2 = MOLECULES.get(tmpID2).charges();
+        tmpEnergy = 0;
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkIndex = 0;
-        
-        // todo: if (this.forcefieldName.equals("OPLSAALIGPARGEN")
-        tmpArcFileName = this.SCRATCH_DIR
-                + FILESEPARATOR 
-                + this.PARTICLE_PAIR 
-                + ".arc"
-                + this.DISTANCEINDEX
-                + "_"
-                + this.CHUNKINDEX;
-        Path tmpPath = Paths.get(tmpArcFileName);
-        try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
-                StandardCharsets.UTF_8)) {
-            
+        if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
+            tmpArcFileName = this.SCRATCH_DIR
+                    + FILESEPARATOR 
+                    + tmpParticlePair 
+                    + ".arc"
+                    + this.DISTANCEINDEX
+                    + "_"
+                    + this.CHUNKINDEX;
+            Path tmpPath = Paths.get(tmpArcFileName);
+            try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
+                    StandardCharsets.UTF_8)) {
+
+                for (int i = 0; i < tmpRot1Size; i++) {
+                    tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
+                            ISTINKERON);
+
+                    for (int j = 0; j < tmpRot2Size; j++) {
+                        tmpIs2Close = MIPETUTIL.isTooClose(
+                                this.ROTDATA1[i], 
+                                this.ROTDATA2[j], 
+                                this.MINATOMDISTANCE);
+                        if (!tmpIs2Close) {
+                            tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
+                            tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
+                                    ISTINKERON);
+                            tmpBW.append(tmpTinkerXYZ.getFileContent());
+                        }
+                        tmpChunkIndex++;
+                        if (tmpChunkIndex >= this.CHUNKSIZE) {
+                            break;
+                        }
+                    }
+
+                }
+
+            } catch(IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during making .arc file.", ex);
+            }
+        } else {
             for (int i = 0; i < tmpRot1Size; i++) {
-                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i]);
-                
+                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
+                        ISTINKERON);
+
                 for (int j = 0; j < tmpRot2Size; j++) {
                     tmpIs2Close = MIPETUTIL.isTooClose(
                             this.ROTDATA1[i], 
                             this.ROTDATA2[j], 
                             this.MINATOMDISTANCE);
                     if (!tmpIs2Close) {
-                        tmpTinkerXYZ.setHeader(this.PARTICLE_PAIR);
-                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j]);
+                        tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
+                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
+                                ISTINKERON);
                         tmpTinkerXYZ.setDistances();
+                        tmpDistances = tmpTinkerXYZ.getDistances();
                         
+                        for (int k = 0; k < tmpAtomSize1; k++) {
+                            
+                            for (int l = 0; l < tmpIterationSize; l++) {
+                                
+                                for (int m = 0; m < tmpAtomSize2; m++) {
+                                    tmpSigma = Math.sqrt(tmpSigmas1[k] 
+                                            * tmpSigmas2[m]);
+                                    tmpRatio =  tmpSigma 
+                                            / tmpDistances[k][l][m];
+                                    tmpRatio2 = tmpRatio * tmpRatio;
+                                    tmpRatio6 = tmpRatio2 * tmpRatio2 
+                                            * tmpRatio2;
+                                    tmpRatio12 = tmpRatio6 * tmpRatio6;
+                                    tmpEpsilon = Math.sqrt(tmpEpsilons1[k] 
+                                            * tmpEpsilons2[m]);
+                                    tmpLJEnergy = 4 * tmpEpsilon * (tmpRatio12 
+                                            - tmpRatio6);
+                                    tmpCoulombEnergy = tmpFactor 
+                                            * tmpCharges1[k] 
+                                            * tmpCharges2[m] 
+                                            / tmpDistances[k][l][m];
+                                    tmpEnergy += AVOGADRO * J_CAL 
+                                            * (tmpCoulombEnergy + tmpLJEnergy);
+                                }
+                                
+                            }
+                            
+                        }
                         
-                        tmpBW.append(tmpTinkerXYZ.getFileContent());
+                        int hugo1 = 1;
+
                     }
                     tmpChunkIndex++;
                     if (tmpChunkIndex >= this.CHUNKSIZE) {
                         break;
                     }
                 }
-                
+
             }
             
-        } catch(IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during making .arc file.", ex);
         }
+        
         
         // Start analyze.exe
         //  read .arc files and find intermolecular energy
@@ -267,7 +409,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
         tmpArcFileName = this.SCRATCH_DIR
                 + this.FILESEPARATOR
-                + this.PARTICLE_PAIR
+                + tmpParticlePair
                 + ".arc" 
                 + this.DISTANCEINDEX 
                 + "_" 
@@ -276,7 +418,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 tmpStartIndex, tmpEndIndex);
         tmpMinFileName = this.SCRATCH_DIR
                 + this.FILESEPARATOR
-                + this.PARTICLE_PAIR
+                + tmpParticlePair
                 +"_"
                 + this.DISTANCEINDEX 
                 + "_" 
