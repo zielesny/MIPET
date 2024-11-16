@@ -2435,8 +2435,6 @@ public class MIPET {
         }
         
         // Read epsilons, sigmas and charges
-        
-        
         for (int i = 0; i < tmpParticleNameLength; i++) {
             tmpSigmaIndex = 0;
             tmpChargeIndex = 0;
@@ -2453,7 +2451,6 @@ public class MIPET {
                     tmpEpsilsons[i][tmpSigmaIndex] = Double
                             .parseDouble(tmpLine);
                     tmpSigmaIndex++;
-                    
                 }
                 if (tmpLines[j].startsWith("charge ")) {
                     tmpLine = tmpLines[j].substring(20);
@@ -2472,7 +2469,6 @@ public class MIPET {
                     tmpSigmas[i],
                     tmpCharges[i]
             ));
-            
         }
         
     }

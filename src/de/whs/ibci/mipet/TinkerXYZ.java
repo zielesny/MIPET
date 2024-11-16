@@ -183,10 +183,9 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Distances of atom1 to atom2
      *  i: atom index of particle1
-     *  j: iteration index
-     *  k: atom index of particle2
+     *  j: atom index of particle2
      */
-    private double[][][] distances;
+    private double[][] distances;
     
     /**
      * L-J-parameter epsilon (depth of potential well in kcal/mole)
@@ -580,7 +579,7 @@ public class TinkerXYZ implements Cloneable {
      *  k: atom index of particle2
      * @return distances of atom1 to atom2
      */
-    public double[][][] getDistances() {
+    public double[][] getDistances() {
         if (this.distances != null) {
             return this.distances;
         } else {
@@ -1034,24 +1033,20 @@ public class TinkerXYZ implements Cloneable {
         
         
         this.distances = 
-                new double[this.atomSize1][this.particleSize2][this.atomSize2];
+                new double[this.atomSize1][this.atomSize2];
         
         for (int i = 0; i < this.atomSize1; i++) {
-            
-            for (int j = 0; j < this.particleSize2; j++) {
                 
-                for (int k = 0; k < this.atomSize2; k++) {
-                    tmpDeltaX = this.coordinateList2[0][j][k][0] 
-                            - this.coordinateList1[0][i][0];
-                    tmpDeltaY = this.coordinateList2[0][j][k][1] 
-                            - this.coordinateList1[0][i][1];
-                    tmpDeltaZ = this.coordinateList2[0][j][k][2] 
-                            - this.coordinateList1[0][i][2];
-                    this.distances[i][j][k] = Math.sqrt(tmpDeltaX * tmpDeltaX
-                            + tmpDeltaY * tmpDeltaY 
-                            + tmpDeltaZ * tmpDeltaZ);
-                }
-                
+            for (int j = 0; j < this.atomSize2; j++) {
+                tmpDeltaX = this.coordinateList2[0][0][j][0] 
+                        - this.coordinateList1[0][i][0];
+                tmpDeltaY = this.coordinateList2[0][0][j][1] 
+                        - this.coordinateList1[0][i][1];
+                tmpDeltaZ = this.coordinateList2[0][0][j][2] 
+                        - this.coordinateList1[0][i][2];
+                this.distances[i][j] = Math.sqrt(tmpDeltaX * tmpDeltaX
+                        + tmpDeltaY * tmpDeltaY 
+                        + tmpDeltaZ * tmpDeltaZ);
             }
             
         }

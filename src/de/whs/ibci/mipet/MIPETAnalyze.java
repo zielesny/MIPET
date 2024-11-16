@@ -179,28 +179,29 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         int tmpChunkIndex;
         int tmpAtomSize1;
         int tmpAtomSize2;
-        int tmpIterationSize;
         int tmpMoleculeSize;
         int tmpID1;
         int tmpID2;
-        double tmpChargeQ;
-        double tmpFactor;
-        double tmpSigma;
-        double tmpEpsilon;
-        double tmpDistances[][][];
+        int tmpConfigIndex;
+        int tmpMinIndex;
+        double tmpChargeQ; // in C^2
+        double tmpFactor; // in kcal * m / (mole * C^2)
+        double tmpSigma; // in Angstrom
+        double tmpEpsilon; // in kcal/mole
+        double tmpDistances[][]; // in Angstrom
         double tmpEpsilons1[];
         double tmpEpsilons2[];
         double tmpSigmas1[];
         double tmpSigmas2[];
         double tmpCharges1[];
         double tmpCharges2[];
-        double tmpCoulombEnergy;
-        double tmpLJEnergy;
-        double tmpEnergy;
+        double tmpCoulombEnergy; // in kcal/mole
+        double tmpLJEnergy; // in kcal/mole
         double tmpRatio;
         double tmpRatio2; // tmpRatio^2
         double tmpRatio6; // tmpRatio^6
-        double tmpRatio12; // tmpRatio^12
+        double tmpValue;
+        double tmpMinEnergy; // in kcal/mole
         ArrayList<Double> tmpEnergyList;
         String tmpForcefield;
         String tmpParticlePair;
@@ -212,7 +213,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         TinkerXYZ tmpTinkerXYZ;
         
         tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
-        tmpFactor = tmpChargeQ * COULOMB * 1E10;
+        tmpFactor = AVOGADRO * J_CAL * tmpChargeQ * COULOMB * 1E7; 
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
         tmpTinkerXYZ = this.TINKERXYZ;
         tmpForcefield = tmpTinkerXYZ.getForcefieldName();
@@ -221,10 +222,12 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
         tmpAtomSize1 = tmpTinkerXYZ.getAtomSize1();
         tmpAtomSize2 = tmpTinkerXYZ.getAtomSize2();
-        tmpIterationSize = this.TINKERXYZ.getDistances()[0][0].length;
         tmpMoleculeSize = MOLECULES.size();
         tmpID1 = 0;
         tmpID2 = 0;
+        tmpMinEnergy = 1E10;
+        tmpMinIndex = -1;
+        tmpConfigIndex = -1;
         
         for (int i = 0; i < tmpMoleculeSize; i++) {
             if (tmpParticle1.equals(MOLECULES.get(i).name())) {
@@ -246,7 +249,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
         tmpCharges1 = MOLECULES.get(tmpID1).charges();
         tmpCharges2 = MOLECULES.get(tmpID2).charges();
-        tmpEnergy = 0;
+        tmpValue = 0;
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
@@ -292,6 +295,48 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during making .arc file.", ex);
             }
+            // Start analyze.exe
+            //  read .arc files and find intermolecular energy
+            ProcessBuilder tmpPBuilder;
+            Process tmpProcess;
+            
+            String tmpSearch;
+            String tmpLine;
+
+            tmpPBuilder = new ProcessBuilder();
+            tmpPBuilder.redirectErrorStream(true);
+            tmpPBuilder.command(this.COMMAND_LIST);
+            tmpSearch = "Intermolecular Energy";
+            
+
+            try {
+                tmpProcess = tmpPBuilder.start();
+                try (InputStream tmpInStream = tmpProcess.getInputStream();
+                        BufferedReader tmpBR = new BufferedReader(
+                                new InputStreamReader(tmpInStream))){
+
+                    while ((tmpLine = tmpBR.readLine()) != null) {
+                        if (tmpLine.contains(tmpSearch)) {
+                            tmpValueCandidate = tmpLine.substring(25, 50);
+                            if (!tmpValueCandidate.contains("D")) {
+                                tmpValue = Double.parseDouble(tmpValueCandidate);
+                                tmpEnergyList.add(tmpValue);
+                                tmpConfigIndex++;
+                                if (tmpValue < tmpMinEnergy) {
+                                    tmpMinEnergy = tmpValue;
+                                    tmpMinIndex = tmpConfigIndex;
+                                }
+                            }
+                        }
+                    }
+
+                    tmpProcess.waitFor();
+                    tmpProcess.destroy();
+                }
+            } catch(IOException | InterruptedException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "Exception during tinker's analyze.exe", ex);
+            }
         } else {
             for (int i = 0; i < tmpRot1Size; i++) {
                 tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
@@ -308,38 +353,36 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                                 ISTINKERON);
                         tmpTinkerXYZ.setDistances();
                         tmpDistances = tmpTinkerXYZ.getDistances();
+                        tmpValue = 0;
                         
                         for (int k = 0; k < tmpAtomSize1; k++) {
                             
-                            for (int l = 0; l < tmpIterationSize; l++) {
-                                
-                                for (int m = 0; m < tmpAtomSize2; m++) {
-                                    tmpSigma = Math.sqrt(tmpSigmas1[k] 
-                                            * tmpSigmas2[m]);
-                                    tmpRatio =  tmpSigma 
-                                            / tmpDistances[k][l][m];
-                                    tmpRatio2 = tmpRatio * tmpRatio;
-                                    tmpRatio6 = tmpRatio2 * tmpRatio2 
-                                            * tmpRatio2;
-                                    tmpRatio12 = tmpRatio6 * tmpRatio6;
-                                    tmpEpsilon = Math.sqrt(tmpEpsilons1[k] 
-                                            * tmpEpsilons2[m]);
-                                    tmpLJEnergy = 4 * tmpEpsilon * (tmpRatio12 
-                                            - tmpRatio6);
-                                    tmpCoulombEnergy = tmpFactor 
-                                            * tmpCharges1[k] 
-                                            * tmpCharges2[m] 
-                                            / tmpDistances[k][l][m];
-                                    tmpEnergy += AVOGADRO * J_CAL 
-                                            * (tmpCoulombEnergy + tmpLJEnergy);
-                                }
-                                
+                            for (int m = 0; m < tmpAtomSize2; m++) {
+                                tmpSigma = Math.sqrt(tmpSigmas1[k] 
+                                        * tmpSigmas2[m]);
+                                tmpEpsilon = Math.sqrt(tmpEpsilons1[k] 
+                                        * tmpEpsilons2[m]);
+                                tmpRatio =  tmpSigma
+                                        / tmpDistances[k][m];
+                                tmpRatio2 = tmpRatio * tmpRatio;
+                                tmpRatio6 = tmpRatio2 * tmpRatio2 * tmpRatio2;
+                                tmpLJEnergy = 4 * tmpEpsilon * tmpRatio6 
+                                        * (tmpRatio6 - 1);
+                                tmpCoulombEnergy = tmpFactor 
+                                        * tmpCharges1[k] 
+                                        * tmpCharges2[m] 
+                                        / tmpDistances[k][m];
+                                tmpValue += tmpCoulombEnergy + tmpLJEnergy;
                             }
-                            
+                                
                         }
                         
-                        int hugo1 = 1;
-
+                        tmpEnergyList.add(tmpValue);
+                        tmpConfigIndex++;
+                        if (tmpValue < tmpMinEnergy) {
+                            tmpMinEnergy = tmpValue;
+                            tmpMinIndex = tmpConfigIndex;
+                        }
                     }
                     tmpChunkIndex++;
                     if (tmpChunkIndex >= this.CHUNKSIZE) {
@@ -352,53 +395,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         }
         
         
-        // Start analyze.exe
-        //  read .arc files and find intermolecular energy
-        ProcessBuilder tmpPBuilder;
-        Process tmpProcess;
-        int tmpConfigIndex;
-        int tmpMinIndex;
-        double tmpMinEnergy;
-        double tmpValue;
-        String tmpSearch;
-        String tmpLine;
         
-        tmpPBuilder = new ProcessBuilder();
-        tmpPBuilder.redirectErrorStream(true);
-        tmpPBuilder.command(this.COMMAND_LIST);
-        tmpSearch = "Intermolecular Energy";
-        tmpMinEnergy = 1E10;
-        tmpMinIndex = -1;
-        tmpConfigIndex = -1;
-        
-        try {
-            tmpProcess = tmpPBuilder.start();
-            try (InputStream tmpInStream = tmpProcess.getInputStream();
-                    BufferedReader tmpBR = new BufferedReader(
-                            new InputStreamReader(tmpInStream))){
-
-                while ((tmpLine = tmpBR.readLine()) != null) {
-                    if (tmpLine.contains(tmpSearch)) {
-                        tmpValueCandidate = tmpLine.substring(25, 50);
-                        if (!tmpValueCandidate.contains("D")) {
-                            tmpValue = Double.parseDouble(tmpValueCandidate);
-                            tmpEnergyList.add(tmpValue);
-                            tmpConfigIndex++;
-                            if (tmpValue < tmpMinEnergy) {
-                                tmpMinEnergy = tmpValue;
-                                tmpMinIndex = tmpConfigIndex;
-                            }
-                        }
-                    }
-                }
-                
-                tmpProcess.waitFor();
-                tmpProcess.destroy();
-            }
-        } catch(IOException | InterruptedException ex) {
-            LOGGER.log(Level.SEVERE,
-                    "Exception during tinker's analyze.exe", ex);
-        }
             
         // Export .xyz file with lowest intermolecular energy
         int tmpStartIndex;
