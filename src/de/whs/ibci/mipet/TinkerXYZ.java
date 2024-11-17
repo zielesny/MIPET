@@ -26,8 +26,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
@@ -1294,9 +1296,10 @@ public class TinkerXYZ implements Cloneable {
         this.elementList1 = aTinkerXYZ1.getElementList1();
         this.elementList2 = aTinkerXYZ2.getElementList1();
         this.parameterList1 = aTinkerXYZ1.getParameterList1();
-        this.parameterList2 = aTinkerXYZ2.getParameterList2();
+        this.parameterList2 = aTinkerXYZ2.getParameterList1();
         this.connectionList1 = aTinkerXYZ1.getConnectionList1();
-        this.connectionList2 = aTinkerXYZ2.getConnectionList2();
+        this.connectionList2 = aTinkerXYZ2.getConnectionList1().clone();
+        this.setConnectionList2();
         this.coordinateList1 = new double[1][tmpAtomSize1][3];
         this.coordinateList1 = aTinkerXYZ1.coordinateList1;
         this.coordinateList2 = new double[1][1][tmpAtomSize2][3];
@@ -1335,9 +1338,23 @@ public class TinkerXYZ implements Cloneable {
         }
     }
     
-    
-    
-    
+    private void setConnectionList2() {
+        int tmpConnectionSize;
+        int[][] tmpConnectionList;
+        
+        tmpConnectionList = this.connectionList2.clone();
+        
+        for (int i = 0; i < this.atomSize2; i++) {
+            tmpConnectionSize = tmpConnectionList[i].length;
+            
+            for (int j = 0; j < tmpConnectionSize; j++) {
+                this.connectionList2[i][j] = tmpConnectionList[i][j] 
+                        + this.atomSize1;
+            }
+            
+        }
+        
+    }
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Public methods">
@@ -1547,7 +1564,7 @@ public class TinkerXYZ implements Cloneable {
         
         // Check parameters
         if (aFileName == null || aFileName.isEmpty()) {
-            throw new IllegalArgumentException("aFileName is null or empty.");
+            throw new IllegalArgumentException("aFileName in readCoordFromArc is null or empty.");
         }
         
         File tmpSourceFile = new File(aFileName);
@@ -1601,6 +1618,91 @@ public class TinkerXYZ implements Cloneable {
         return tmpResult;
     }
     
+    /**
+     * 
+     * @param aFileName 
+     */
+    public void makeArcFile(String aFileName) {
+        // Check parameters
+        if (aFileName == null || aFileName.isEmpty()) {
+            throw new IllegalArgumentException("aFileName in makeArcFile is null or empty.");
+        }
+        
+        StringBuilder tmpContent;
+        int tmpIndex;
+        int tmpConnectionSize;
+        DecimalFormat decimal4;
+        
+        tmpContent = new StringBuilder();
+        decimal4 = (DecimalFormat)NumberFormat.getNumberInstance();
+        decimal4.applyPattern("#0.0000");
+        
+        // Fill the content from TinkerXYZ object
+        tmpContent.append(MIPETUTIL.padLeft(
+                String.valueOf(this.atomNumber), 9));
+        tmpContent.append(" ");
+        tmpContent.append(this.header);
+        tmpContent.append(LINESEPARATOR);
+        tmpIndex = 1;
+        
+        for (int i = 0; i < this.atomSize1; i++) {
+            tmpContent.append(MIPETUTIL.padLeft(String.valueOf(tmpIndex), 9));
+            tmpIndex ++;
+            tmpContent.append("   ");
+            tmpContent.append(MIPETUTIL.padRight(this.elementList1[i], 3));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList1[0][i][0]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList1[0][i][1]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList1[0][i][2]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(
+                    Integer.toString(this.parameterList1[i]), 6));
+            tmpConnectionSize = this.connectionList1[i].length;
+            
+            for (int j = 0; j < tmpConnectionSize; j++) {
+                tmpContent.append(MIPETUTIL.padLeft(
+                    Integer.toString(this.connectionList1[i][j]), 6));
+            }
+            
+            if (i < this.atomSize1) {
+                tmpContent.append(LINESEPARATOR);
+            }
+        }
+        
+        for (int i = 0; i < atomSize2; i++) {
+            tmpContent.append(MIPETUTIL.padLeft(String.valueOf(tmpIndex), 9));
+            tmpIndex++;
+            tmpContent.append("   ");
+            tmpContent.append(MIPETUTIL.padRight(this.elementList2[i], 3));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList2[0][0][i][0]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList2[0][0][i][1]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+                    this.coordinateList2[0][0][i][2]), 12));
+            tmpContent.append(MIPETUTIL.padLeft(
+                    Integer.toString(this.parameterList2[i]), 6));
+            tmpConnectionSize = this.connectionList2[i].length;
+            
+            for (int j = 0; j < tmpConnectionSize; j++) {
+                tmpContent.append(MIPETUTIL.padLeft(
+                    Integer.toString(this.connectionList2[i][j]), 6));
+            }
+            
+            if (i < this.atomSize2 - 1) {
+                tmpContent.append(LINESEPARATOR);
+            }
+        }
+        
+        try (PrintWriter tmpOut = new PrintWriter((aFileName))) {
+            tmpOut.print(tmpContent);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE,
+                    "IOException during writing .arc file in makeArcFile.", ex);
+        }
+    }
+       
     /**
      * Clone method for TinkerXYZ class
      */

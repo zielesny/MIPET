@@ -211,11 +211,13 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         String tmpMinFileName;
         String tmpValueCandidate;
         TinkerXYZ tmpTinkerXYZ;
+        TinkerXYZ tmpTinkerXYZMin;
         
         tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
         tmpFactor = AVOGADRO * J_CAL * tmpChargeQ * COULOMB * 1E7; 
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
         tmpTinkerXYZ = this.TINKERXYZ;
+        tmpTinkerXYZMin = this.TINKERXYZ.clone();
         tmpForcefield = tmpTinkerXYZ.getForcefieldName();
         tmpParticle1 = this.TINKERXYZ.getParticleName1();
         tmpParticle2 = this.TINKERXYZ.getParticleName2();
@@ -228,6 +230,14 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpMinEnergy = 1E10;
         tmpMinIndex = -1;
         tmpConfigIndex = -1;
+        tmpMinFileName = this.SCRATCH_DIR
+                    + this.FILESEPARATOR
+                    + tmpParticlePair
+                    +"_"
+                    + this.DISTANCEINDEX 
+                    + "_" 
+                    + this.CHUNKINDEX
+                    + ".0";
         
         for (int i = 0; i < tmpMoleculeSize; i++) {
             if (tmpParticle1.equals(MOLECULES.get(i).name())) {
@@ -249,7 +259,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
         tmpCharges1 = MOLECULES.get(tmpID1).charges();
         tmpCharges2 = MOLECULES.get(tmpID2).charges();
-        tmpValue = 0;
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
@@ -337,6 +346,33 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 LOGGER.log(Level.SEVERE,
                         "Exception during tinker's analyze.exe", ex);
             }
+            
+            // Export .xyz file with lowest intermolecular energy
+            int tmpStartIndex;
+            int tmpEndIndex;
+            StringBuilder tmpPartArc;
+
+            tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
+            tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
+            tmpArcFileName = this.SCRATCH_DIR
+                    + this.FILESEPARATOR
+                    + tmpParticlePair
+                    + ".arc" 
+                    + this.DISTANCEINDEX 
+                    + "_" 
+                    + this.CHUNKINDEX;
+            tmpPartArc = MIPETUTIL.readPartArcFile(tmpArcFileName, 
+                    tmpStartIndex, tmpEndIndex);
+            TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
+            
+
+            // Delete .arc files
+            try {
+                Files.delete(Paths.get(tmpArcFileName));
+            } catch(IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during deleting files in scratch directory.", ex);
+            }
         } else {
             for (int i = 0; i < tmpRot1Size; i++) {
                 tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
@@ -378,10 +414,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                         }
                         
                         tmpEnergyList.add(tmpValue);
-                        tmpConfigIndex++;
                         if (tmpValue < tmpMinEnergy) {
                             tmpMinEnergy = tmpValue;
-                            tmpMinIndex = tmpConfigIndex;
+                            tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
                         }
                     }
                     tmpChunkIndex++;
@@ -391,47 +426,10 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 }
 
             }
+            tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
             
         }
-        
-        
-        
-            
-        // Export .xyz file with lowest intermolecular energy
-        int tmpStartIndex;
-        int tmpEndIndex;
-        StringBuilder tmpPartArc;
-        
-        tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
-        tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
-        tmpArcFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + tmpParticlePair
-                + ".arc" 
-                + this.DISTANCEINDEX 
-                + "_" 
-                + this.CHUNKINDEX;
-        tmpPartArc = MIPETUTIL.readPartArcFile(tmpArcFileName, 
-                tmpStartIndex, tmpEndIndex);
-        tmpMinFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + tmpParticlePair
-                +"_"
-                + this.DISTANCEINDEX 
-                + "_" 
-                + this.CHUNKINDEX
-                + ".0";
-        TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
         tmpEnergyList.sort(Comparator.naturalOrder());
-
-        // Delete .arc files
-        try {
-            Files.delete(Paths.get(tmpArcFileName));
-        } catch(IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during deleting files in scratch directory.", ex);
-        }
-        
         return tmpEnergyList;
     }
     

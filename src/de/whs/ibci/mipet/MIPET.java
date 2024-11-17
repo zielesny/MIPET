@@ -922,7 +922,7 @@ public class MIPET {
         decimal4 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal2.applyPattern("#0.00");
         decimal3.applyPattern("#0.000");
-        decimal3.applyPattern("#0.0000");
+        decimal4.applyPattern("#0.0000");
         tmpCurrentIndex = 0;
         tmpIsExitCondition = false;
         tmpKeyFileString = keyFileStringOrigin 
@@ -2920,6 +2920,9 @@ public class MIPET {
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
+        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, 
+                                aTinkerXYZ2,
+                                isTinkerOn);
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);
@@ -2936,8 +2939,7 @@ public class MIPET {
                     tmpRotData2Index++;
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
-                        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, aTinkerXYZ2,
-                                isTinkerOn);
+                        tmpTinkerXYZ = tmpTinkerXYZ.clone();
                         tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,
