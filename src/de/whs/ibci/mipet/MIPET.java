@@ -989,19 +989,18 @@ public class MIPET {
                 tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
                         tmpCentre1);
                 if (tmpIsSameParticle) {
-                    tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
-                    tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
-                    tmpXyzData2 = tmpXyzData1.clone();
+                    tmpTinkerXYZ2 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
+                    tmpTinkerXYZ2.setParticleName1(tmpParticleName1);
                 } else {
                     tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
                     tmpTinkerXYZ2 = new TinkerXYZ(xyzContent2[tmpXyz2ID]);
                     tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
-                    tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
-                    tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
+                }
+                tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
+                tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
+                tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
                     tmpXyzData2 = tmpTinkerXYZ2
                             .moveCoordinates(tmpXyzData2, tmpCentre2);
-                }
-                tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
 
                 //</editor-fold>
 

@@ -308,7 +308,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             //  read .arc files and find intermolecular energy
             ProcessBuilder tmpPBuilder;
             Process tmpProcess;
-            
             String tmpSearch;
             String tmpLine;
 
@@ -316,7 +315,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             tmpPBuilder.redirectErrorStream(true);
             tmpPBuilder.command(this.COMMAND_LIST);
             tmpSearch = "Intermolecular Energy";
-            
 
             try {
                 tmpProcess = tmpPBuilder.start();
