@@ -19,7 +19,6 @@
  */
 package de.whs.ibci.mipet.test;
 
-import de.whs.ibci.mipet.JobTaskRecord;
 import de.whs.ibci.mipet.MIPETUtility;
 import de.whs.ibci.mipet.TinkerXYZ;
 import java.io.BufferedWriter;
@@ -28,13 +27,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -84,7 +79,7 @@ public class TestTinkerXYZ {
         Assert.assertArrayEquals(tmpExpectedElementList, tmpElementList);
         
         int[] tmpExpectedParameterList = new int[]{1, 5, 5, 5, 5};
-        int[] tmpParameterList = txyz.getParameterList1();
+        int[] tmpParameterList = txyz.getAtomTypeList1();
         Assert.assertArrayEquals(tmpExpectedParameterList, tmpParameterList);
         
         int[][] tmpExpectedConnectList = new int[][]{{2,3,4,5},{1},{1},{1},{1}};
@@ -121,10 +116,10 @@ public class TestTinkerXYZ {
         Assert.assertArrayEquals(tmpExpectedElementList, tmpElementList);
         
         tmpExpectedParameterList = new int[]{36, 37, 37};
-        tmpParameterList = txyz.getParameterList1();
+        tmpParameterList = txyz.getAtomTypeList1();
         Assert.assertArrayEquals(tmpExpectedParameterList, tmpParameterList);
         tmpExpectedParameterList = new int[]{27, 28, 28, 28, 27, 28, 28, 28};
-        tmpParameterList = txyz.getParameterList2();
+        tmpParameterList = txyz.getAtomTypeList2();
         Assert.assertArrayEquals(tmpExpectedParameterList, tmpParameterList);
         
         tmpExpectedConnectList = 
@@ -136,9 +131,15 @@ public class TestTinkerXYZ {
         // Test make one txyz out of two
         String txyzFileName1 = "./testdata/H2O.txyz";
         String txyzFileName2 = "./testdata/Me.txyz";
-        TinkerXYZ tmpTxyz1 = new TinkerXYZ(txyzFileName1);
-        TinkerXYZ tmpTxyz2 = new TinkerXYZ(txyzFileName2);
-        
+        String tmpForcefield = "MMFF";
+        String tmpParticle1 = "H2O";
+        String tmpParticle2 = "Me";
+        TinkerXYZ tmpTxyz1 = new TinkerXYZ(tmpForcefield, 
+                tmpParticle1, 
+                txyzFileName1);
+        TinkerXYZ tmpTxyz2 = new TinkerXYZ(tmpForcefield,
+                tmpParticle2,
+                txyzFileName2);
         txyz = new TinkerXYZ(tmpTxyz1, tmpTxyz2, true);
         int tmpExpectedAtomSize = 8;
         int tmpAtomSize = txyz.getAtomNumber();
@@ -170,8 +171,12 @@ public class TestTinkerXYZ {
     @Test
     public void TestFindCentreCoordinate() {
         double[] tmpCentre;
+        String tmpForcefield = "MMFF";
+        String tmpParticle1 = "Me";
         
-        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
+                tmpParticle1,
+                "./testdata/Me.txyz");
         tmpCentre= tmpMethane.findCentreCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         Assert.assertEquals(-0.8588, tmpCentre[0], 0.000001);
@@ -182,8 +187,12 @@ public class TestTinkerXYZ {
     @Test
     public void TestMoveCoordinates() {
         double[] tmpCentre;
+        String tmpForcefield = "MMFF";
+        String tmpParticle1 = "Me";
         
-        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
+                tmpParticle1,
+                "./testdata/Me.txyz");
         tmpCentre = tmpMethane.findCentreCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         double[][] tmpMoved;
@@ -195,7 +204,12 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestGetAtomicMassList1() {
-        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        String tmpForcefield = "MMFF";
+        String tmpParticle1 = "Me";
+        
+        TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
+                tmpParticle1,
+                "./testdata/Me.txyz");
         double[] tmpMass = new double[5];
         tmpMass[0] = tmpMethane.getAtomicMassList1()[0];
         tmpMass[1] = tmpMethane.getAtomicMassList1()[1];
@@ -211,7 +225,12 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestGetCentreOfMass1() {
-        TinkerXYZ tmpMethane = new TinkerXYZ("./testdata/Me.txyz");
+        String tmpForcefield = "MMFF";
+        String tmpParticle1 = "Me";
+        
+        TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
+                tmpParticle1,
+                "./testdata/Me.txyz");
         double[][] tmpCentreCoordinate;
         tmpCentreCoordinate = tmpMethane.getCentreOfMass1();
         Assert.assertEquals(-0.8589372, tmpCentreCoordinate[0][0], 0.000001);
@@ -273,7 +292,6 @@ public class TestTinkerXYZ {
         TinkerXYZ tmpMeOH = new TinkerXYZ("Z:/Scratch/MeOH_MeOH.xyz", 1, 6, 6);
         double[][] tmpDistances;
         double[] tmpRDFs;
-        
         
         Locale.setDefault(Locale.ENGLISH);
         tmpParticle2 = "MeOH";
@@ -340,10 +358,5 @@ public class TestTinkerXYZ {
             
         } catch (IOException ex) {
         }
-        
-        
-        // Warmup
-        
-        // 
     }
 }

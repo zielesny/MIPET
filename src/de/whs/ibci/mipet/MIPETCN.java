@@ -179,7 +179,9 @@ public class MIPETCN implements Callable<int[]> {
                     + FILESEPARATOR
                     + tmpParticlePair
                     + FILESEPARATOR;
-        tmpTxyz1 = new TinkerXYZ(tmpCurrentDir + tmpParticle1 + ".xyz");
+        tmpTxyz1 = new TinkerXYZ(tmpForcefield,
+                tmpParticle1,
+                tmpCurrentDir + tmpParticle1 + ".xyz");
         tmpBoxLength = MIPET4JUtil.getBoxLength(tmpCurrentDir 
                 + tmpParticlePair + ".xyz");
         tmpAtomNumber1 = tmpTxyz1.getAtomNumber();
@@ -189,7 +191,9 @@ public class MIPETCN implements Callable<int[]> {
             tmpElements2 = tmpElements1.clone();
         } else {
             tmpXyzFileName2 = tmpCurrentDir + tmpParticle2 + ".xyz";
-            tmpTxyz2 = new TinkerXYZ(tmpXyzFileName2);
+            tmpTxyz2 = new TinkerXYZ(tmpForcefield,
+                    tmpParticle2,
+                    tmpXyzFileName2);
             tmpAtomNumber2 = tmpTxyz2.getAtomNumber();
             tmpElements2 = tmpTxyz2.getElementList1();
         }

@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
@@ -165,12 +164,12 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Parameters of specific parameterset defined in *.prm of first particle
      */
-    private int[] parameterList1;
+    private int[] atomTypeList1;
     
     /**
      * Parameters of specific parameterset defined in *.prm of second particle
      */
-    private int[] parameterList2;
+    private int[] atomTypeList2;
     
     /**
      * Connectionlist of first particle 
@@ -190,26 +189,6 @@ public class TinkerXYZ implements Cloneable {
     private double[][] distances;
     
     /**
-     * L-J-parameter epsilon (depth of potential well in kcal/mole)
-     */
-    private double[][] epsilon;
-    
-    /**
-     * L-J-parameter sigma (distance of atom I and j where the potential is zero in Angstrom) 
-     */
-    private double[][] sigma;
-    
-    /**
-     * partial charge of atom1
-     */
-    private double[] q1;
-    
-    /**
-     * partial charge of atom2
-     */
-    private double[] q2;
-    
-    /**
      * File content
      */
     private StringBuilder fileContent;
@@ -217,13 +196,28 @@ public class TinkerXYZ implements Cloneable {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
+    /**
+     * Constructor TinkerXYZ
+     */
+    public TinkerXYZ() {
+    }
     
     /**
      * Constructor TinkerXYZ
      * 
+     * @param aForcefieldName Name of the force field
+     * @param aParticleName Name of the particle
      * @param aTxyzFileName Tinker xyz filename or Tinker xyz as a string
      */
-    public TinkerXYZ(String aTxyzFileName) {
+    public TinkerXYZ(String aForcefieldName, 
+            String aParticleName, 
+            String aTxyzFileName) {
+        // Check parameters
+        if(aTxyzFileName == null || aTxyzFileName.isEmpty()) {
+            throw new IllegalArgumentException("Null was passed to the " 
+                    + "constructor TinkerXYZ.");
+        }
+        
         String tmpTxyz;
         Path tmpPath;
         
@@ -238,6 +232,8 @@ public class TinkerXYZ implements Cloneable {
         } else {
             this.initialize(aTxyzFileName, 1, 0, 0);
         }
+        this.forcefieldName = aForcefieldName;
+        this.particleName1 = aParticleName;
     }
     
     /**
@@ -648,8 +644,8 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @return Parameters of first particle
      */
-    public int[] getParameterList1() {
-        return this.parameterList1;
+    public int[] getAtomTypeList1() {
+        return this.atomTypeList1;
     }
     
     /**
@@ -657,8 +653,8 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @return Parameters of second particle
      */
-    public int[] getParameterList2() {
-        return this.parameterList2;
+    public int[] getAtomTypeList2() {
+        return this.atomTypeList2;
     }
     
     /**
@@ -1147,8 +1143,8 @@ public class TinkerXYZ implements Cloneable {
                 }
                 this.elementList1 = new String[this.atomSize1];
                 this.elementList2 = new String[anAtomSize2];
-                this.parameterList1 = new int[this.atomSize1];
-                this.parameterList2 = new int[anAtomSize2]; 
+                this.atomTypeList1 = new int[this.atomSize1];
+                this.atomTypeList2 = new int[anAtomSize2]; 
                 this.connectionList1 = new int[this.atomSize1][];
                 this.connectionList2 = new int[anAtomSize2][];
 
@@ -1169,7 +1165,7 @@ public class TinkerXYZ implements Cloneable {
                         tmpConnectionSize = tmpReadLineArray.length - 6;
                         if (i == 0) {
                             this.elementList1[j] = tmpReadLineArray[1];
-                            this.parameterList1[j] = Integer.
+                            this.atomTypeList1[j] = Integer.
                                     parseInt(tmpReadLineArray[5]);
                             this.connectionList1[j] = new int[tmpConnectionSize];
 
@@ -1198,7 +1194,7 @@ public class TinkerXYZ implements Cloneable {
                             tmpConnectionSize = tmpReadLineArray.length - 6;
                             if(i == 0 && j == 0) {
                                 this.elementList2[k] = tmpReadLineArray[1];
-                                this.parameterList2[k] = Integer.
+                                this.atomTypeList2[k] = Integer.
                                         parseInt(tmpReadLineArray[5]);
                                 this.connectionList2[k] = 
                                         new int[tmpConnectionSize];
@@ -1282,8 +1278,8 @@ public class TinkerXYZ implements Cloneable {
         TinkerXYZ tmpTinkerXyz1;
         TinkerXYZ tmpTinkerXyz2;
 
-        tmpTinkerXyz1 = aTinkerXYZ1.clone();
-        tmpTinkerXyz2 = aTinkerXYZ2.clone();
+        tmpTinkerXyz1 = aTinkerXYZ1;
+        tmpTinkerXyz2 = aTinkerXYZ2;
         tmpDF = new DecimalFormat("0.000000", DecimalFormatSymbols
                 .getInstance(Locale.ENGLISH));
         tmpAtomSize1 = tmpTinkerXyz1.getAtomNumber();
@@ -1292,19 +1288,19 @@ public class TinkerXYZ implements Cloneable {
         this.particleName1 = tmpTinkerXyz1.getParticleName1();
         this.particleName2 = tmpTinkerXyz2.getParticleName1();
         this.atomNumber = tmpAtomSize1 + tmpAtomSize2;
-        this.atomSize1 = tmpTinkerXyz1.getAtomNumber();
-        this.atomSize2 = tmpTinkerXyz2.getAtomNumber();
+        this.atomSize1 = tmpAtomSize1;
+        this.atomSize2 = tmpAtomSize2;
         this.particleSize2 = (this.atomNumber - this.atomSize1) 
                             / this.atomSize2;
-        this.elementList1 = tmpTinkerXyz1.getElementList1();
-        this.elementList2 = tmpTinkerXyz2.getElementList1();
-        this.parameterList1 = tmpTinkerXyz1.getParameterList1();
-        this.parameterList2 = tmpTinkerXyz2.getParameterList1();
-        this.connectionList1 = this.cloneInt2(tmpTinkerXyz1
-                .getConnectionList1());
-        this.connectionList2 = this.cloneInt2(tmpTinkerXyz2
-                .getConnectionList1());
-        this.setConnectionList2();
+        this.elementList1 = tmpTinkerXyz1.getElementList1().clone();
+        this.elementList2 = tmpTinkerXyz2.getElementList1().clone();
+        this.atomicMassList1 = tmpTinkerXyz1.getAtomicMassList1().clone();
+        this.atomicMassList2 = tmpTinkerXyz2.getAtomicMassList2().clone();
+        this.atomTypeList1 = tmpTinkerXyz1.getAtomTypeList1().clone();
+        this.atomTypeList2 = tmpTinkerXyz2.getAtomTypeList1().clone();
+        this.connectionList1 = tmpTinkerXyz1.getConnectionList1().clone();
+        this.connectionList2 = tmpTinkerXyz2.getConnectionList1().clone();
+        this.connectionList2 = this.correctConnectionList(this.connectionList2);
         this.coordinateList1 = new double[1][tmpAtomSize1][3];
         this.coordinateList1 = tmpTinkerXyz1.coordinateList1.clone();
         this.coordinateList2 = new double[1][1][tmpAtomSize2][3];
@@ -1331,7 +1327,7 @@ public class TinkerXYZ implements Cloneable {
                         .getCoordinateList1()[0][i][2]);
                 this.fileContent.append(MIPETUTIL.padLeft(tmpZ, 12));
                 tmpParameter = Integer.toString(tmpTinkerXyz2
-                        .getParameterList1()[i]);
+                        .getAtomTypeList1()[i]);
                 this.fileContent.append(MIPETUTIL.padLeft(tmpParameter, 6));
                 tmpNConnection = tmpTinkerXyz2
                         .getConnectionList1()[i].length;
@@ -1348,30 +1344,14 @@ public class TinkerXYZ implements Cloneable {
         }
     }
     
-    private void setConnectionList2() {
-        int tmpConnectionSize;
-        int tmpAtomSize2;
-        
-        tmpAtomSize2 = this.atomSize2;
-        
-        for (int i = 0; i < tmpAtomSize2; i++) {
-            tmpConnectionSize = this.connectionList2[i].length;
-            
-            for (int j = 0; j < tmpConnectionSize; j++) {
-                this.connectionList2[i][j] += this.atomSize1;
-            }
-            
-        }
-        
-    }
-    
-    private int[][] cloneInt2(int[][] aIntegerList) {
+    private int[][] correctConnectionList(int[][] aIntegerList) {
         int[][] tmpIntegerList = new int[aIntegerList.length][];
         
         for (int i = 0; i < aIntegerList.length; i++) {
             tmpIntegerList[i] = new int[aIntegerList[i].length];
+            
             for (int j = 0; j < aIntegerList[i].length; j++) {
-                tmpIntegerList[i][j] = aIntegerList[i][j];
+                tmpIntegerList[i][j] = aIntegerList[i][j] + this.atomSize1;
             }
             
         }
@@ -1680,8 +1660,7 @@ public class TinkerXYZ implements Cloneable {
                     this.coordinateList1[0][i][1]), 12));
             tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
                     this.coordinateList1[0][i][2]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(
-                    Integer.toString(this.parameterList1[i]), 6));
+            tmpContent.append(MIPETUTIL.padLeft(Integer.toString(this.atomTypeList1[i]), 6));
             tmpConnectionSize = this.connectionList1[i].length;
             
             for (int j = 0; j < tmpConnectionSize; j++) {
@@ -1705,8 +1684,7 @@ public class TinkerXYZ implements Cloneable {
                     this.coordinateList2[0][0][i][1]), 12));
             tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
                     this.coordinateList2[0][0][i][2]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(
-                    Integer.toString(this.parameterList2[i]), 6));
+            tmpContent.append(MIPETUTIL.padLeft(Integer.toString(this.atomTypeList2[i]), 6));
             tmpConnectionSize = this.connectionList2[i].length;
             
             for (int j = 0; j < tmpConnectionSize; j++) {
@@ -1737,6 +1715,24 @@ public class TinkerXYZ implements Cloneable {
             tmpTinkerXYZ = (TinkerXYZ)super.clone();
             if (tmpTinkerXYZ == null) {
                 throw new InternalError("TinkerXYZ is null.");
+            }
+            tmpTinkerXYZ.header = this.header;
+            tmpTinkerXYZ.forcefieldName = this.forcefieldName;
+            tmpTinkerXYZ.particleName1 = this.particleName1;
+            tmpTinkerXYZ.atomNumber = this.atomNumber;
+            tmpTinkerXYZ.atomSize1 = this.atomSize1;
+            tmpTinkerXYZ.atomicMassList1 = this.atomicMassList1.clone();
+            tmpTinkerXYZ.coordinateList1 = this.coordinateList1.clone();
+            tmpTinkerXYZ.atomTypeList1 = this.atomTypeList1.clone();
+            tmpTinkerXYZ.connectionList1 = this.connectionList1.clone();
+            if (atomSize2 > 0) {
+                tmpTinkerXYZ.particleName2 = this.particleName2;
+                tmpTinkerXYZ.atomSize2 = this.atomSize2;
+                tmpTinkerXYZ.atomicMassList2 = this.atomicMassList2.clone();
+                tmpTinkerXYZ.coordinateList2 = this.coordinateList2.clone();
+                tmpTinkerXYZ.atomTypeList2 = this.atomTypeList2.clone();
+                tmpTinkerXYZ.connectionList2 = this.connectionList2.clone();
+                tmpTinkerXYZ.distances = this.distances.clone();
             }
             return tmpTinkerXYZ;
         } catch (final CloneNotSupportedException ex) {

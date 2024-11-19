@@ -217,7 +217,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpFactor = AVOGADRO * J_CAL * tmpChargeQ * COULOMB * 1E7; 
         tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
         tmpTinkerXYZ = this.TINKERXYZ;
-        tmpTinkerXYZMin = this.TINKERXYZ.clone();
+        tmpTinkerXYZMin = new TinkerXYZ();
         tmpForcefield = tmpTinkerXYZ.getForcefieldName();
         tmpParticle1 = this.TINKERXYZ.getParticleName1();
         tmpParticle2 = this.TINKERXYZ.getParticleName2();
@@ -265,6 +265,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkIndex = 0;
+        tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
             tmpArcFileName = this.SCRATCH_DIR
                     + FILESEPARATOR 
@@ -287,7 +288,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                                 this.ROTDATA2[j], 
                                 this.MINATOMDISTANCE);
                         if (!tmpIs2Close) {
-                            tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
                             tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
                                     ISTINKERON);
                             tmpBW.append(tmpTinkerXYZ.getFileContent());
@@ -382,7 +382,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                             this.ROTDATA2[j], 
                             this.MINATOMDISTANCE);
                     if (!tmpIs2Close) {
-                        tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
                         tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
                                 ISTINKERON);
                         tmpTinkerXYZ.setDistances();

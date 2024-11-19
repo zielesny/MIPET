@@ -981,26 +981,28 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Centre first fragment">
                 // Centre the fragments and move to the centre
                 tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
-                tmpTinkerXYZ1 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
-                tmpTinkerXYZ1.setForcefieldName(tmpForcefield);
-                tmpTinkerXYZ1.setParticleName1(tmpParticleName1);
+                tmpTinkerXYZ1 = new TinkerXYZ(tmpForcefield,
+                        tmpParticleName1,
+                        xyzContent1[tmpXyz1ID]);
                 tmpXyzData1 = tmpTinkerXYZ1.getCoordinateList1()[0];
                 tmpCentre1 = tmpTinkerXYZ1.findCentreCoordinate();
                 tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
                         tmpCentre1);
                 if (tmpIsSameParticle) {
-                    tmpTinkerXYZ2 = new TinkerXYZ(xyzContent1[tmpXyz1ID]);
-                    tmpTinkerXYZ2.setParticleName1(tmpParticleName1);
+                    //tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
+                    tmpTinkerXYZ2  = new TinkerXYZ(tmpForcefield,
+                        tmpParticleName2,
+                        xyzContent1[tmpXyz1ID]);
                 } else {
                     tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
-                    tmpTinkerXYZ2 = new TinkerXYZ(xyzContent2[tmpXyz2ID]);
-                    tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
+                    tmpTinkerXYZ2 = new TinkerXYZ(tmpForcefield,
+                            tmpParticleName2,
+                            xyzContent2[tmpXyz2ID]);
                 }
                 tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
-                tmpTinkerXYZ2.setParticleName1(tmpParticleName2);
                 tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
-                    tmpXyzData2 = tmpTinkerXYZ2
-                            .moveCoordinates(tmpXyzData2, tmpCentre2);
+                tmpXyzData2 = tmpTinkerXYZ2
+                        .moveCoordinates(tmpXyzData2, tmpCentre2);
 
                 //</editor-fold>
 
@@ -1917,14 +1919,19 @@ public class MIPET {
         
         System.out.println("Exporting parameterset...");
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
-        long tmpTotalTimeMins;
-        double tmpTotalTimeHours;
-        tmpTotalTimeMins = (System.currentTimeMillis() - tmpTotalTime) / 60000;
-        tmpTotalTimeHours = (double)tmpTotalTimeMins / 60;
+        long tmpTotalTimeSec;
+        tmpTotalTimeSec = (System.currentTimeMillis() - tmpTotalTime) / 1000;
         try {
             BFGblLog.append(LINESEPARATOR);
-            BFGblLog.append("Entire calculation Time: " + tmpTotalTimeMins 
-                    + String.format("min (%.2f h)" , tmpTotalTimeHours));
+            BFGblLog.append("Entire calculation Time: ");
+            BFGblLog.append(tmpTotalTimeSec + " s ");
+            if (tmpTotalTimeSec > 3600) {
+                BFGblLog.append("(" + decimal2
+                        .format(tmpTotalTimeSec / 3600) + " h)");
+            } else if (tmpTotalTimeSec > 60) {
+                BFGblLog.append("(" + decimal2
+                        .format(tmpTotalTimeSec / 60) + " min)");
+            }       
             BFGblLog.close();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "IOException during writing log file.", 
@@ -2567,7 +2574,9 @@ public class MIPET {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during copying .xyz file.", ex);
                     }
-                    tmpTinkerXYZ = new TinkerXYZ(tmpTargetName);
+                    tmpTinkerXYZ = new TinkerXYZ(tmpForcefield,
+                            tmpParticle,
+                            tmpTargetName);
                     tmpKeyPathName = tmpOptXyzDirName 
                             + FILESEPARATOR 
                             + tmpParticle 
@@ -2638,7 +2647,10 @@ public class MIPET {
                             tmpProcess.destroy();
                         }
                     }
-                    tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
+                    tmpTinkerXYZ0 = new TinkerXYZ(
+                            tmpForcefield,
+                            tmpParticle,
+                            tmpOptXyzDirName 
                             + FILESEPARATOR 
                             + tmpParticle 
                             + ".xyz_2");
@@ -2750,7 +2762,9 @@ public class MIPET {
                                     + FILESEPARATOR
                                     + tmpParticle 
                                     + "_0.txyz";
-                            tmpAfterScan = new TinkerXYZ(tmpOptXyzName); 
+                            tmpAfterScan = new TinkerXYZ(tmpForcefield,
+                                    tmpParticle,
+                                    tmpOptXyzName); 
                             tmpTinkerXYZ.setCoordinateList1(tmpAfterScan
                                     .getCoordinateList1(), isTinkerOn);
 
@@ -2760,7 +2774,9 @@ public class MIPET {
                                     + FILESEPARATOR
                                     + tmpParticle
                                     + "_" + j +".txyz";
-                                tmpTinkerXYZ0 = new TinkerXYZ(tmpFileTxyzName);
+                                tmpTinkerXYZ0 = new TinkerXYZ(tmpForcefield,
+                                        tmpParticle,
+                                        tmpFileTxyzName);
                                 tmpFileName = tmpOptXyzDirName 
                                     + FILESEPARATOR
                                     + tmpParticle
@@ -2823,7 +2839,9 @@ public class MIPET {
                                     tmpProcess.destroy();
                                 }
                             }
-                            tmpTinkerXYZ0 = new TinkerXYZ(tmpOptXyzDirName 
+                            tmpTinkerXYZ0 = new TinkerXYZ(tmpForcefield,
+                                    tmpParticle,
+                                    tmpOptXyzDirName 
                                     + FILESEPARATOR 
                                     + tmpParticle 
                                     + ".xyz_2");
@@ -2892,6 +2910,8 @@ public class MIPET {
         double[][][] tmpRotData2;
         String tmpPath;
         String[] tmpCmdList;
+        TinkerXYZ tmpTinkerXyz1;
+        TinkerXYZ tmpTinkerXyz2;
         TinkerXYZ tmpTinkerXYZ;
         
         tmpDistanceNumber = aDistance.length;
@@ -2912,6 +2932,8 @@ public class MIPET {
         }
         
         // Calculate intermolecular energy using TINKER analyze
+        tmpTinkerXyz1 = aTinkerXYZ1.clone();
+        tmpTinkerXyz2 = aTinkerXYZ2.clone();
         double[][] tmpEnergyDatas = new double[tmpDistanceNumber][];
         ExecutorService executor = Executors.newFixedThreadPool(cpuCoreNumber);
         ArrayList<MIPETAnalyze> tmpTaskList = new ArrayList<>(500);
@@ -2919,9 +2941,7 @@ public class MIPET {
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
-        tmpTinkerXYZ = new TinkerXYZ(aTinkerXYZ1, 
-                                aTinkerXYZ2,
-                                isTinkerOn);
+        
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);
@@ -2938,7 +2958,9 @@ public class MIPET {
                     tmpRotData2Index++;
                     if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
                             || tmpConfigIndex + 1 == tmpConfigNumber) {
-                        tmpTinkerXYZ = tmpTinkerXYZ.clone();
+                        tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, 
+                                tmpTinkerXyz2,
+                                isTinkerOn);
                         tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                         tmpRotData1 = Arrays.copyOfRange(aRotData1, 
                                 tmpPart1StartIndex,
@@ -3012,7 +3034,7 @@ public class MIPET {
                     LOGGER.log(Level.SEVERE,
                             "InterruptException during handling tmpFuture object.",
                             ex);
-                }
+                } 
             }
             
         }
