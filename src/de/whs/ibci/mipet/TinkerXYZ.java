@@ -53,7 +53,7 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Instance object of MIPETUtility
      */
-    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
+    private static final MIPETUtility MIPETUTIL = new MIPETUtility();
     
     /**
      * Logger of this class
@@ -861,6 +861,8 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @param aCoordinates1 
      *   [i, j, k] i: simulation/config. index, j: atom, k: xyz
+     * @param aTinkerOn
+     *   Flag for whether tinker is used or not.
      */
     public void setCoordinateList1(double[][][] aCoordinates1, 
             boolean aTinkerOn) {
@@ -1344,6 +1346,12 @@ public class TinkerXYZ implements Cloneable {
         }
     }
     
+    /**
+     * Correct connection list for the second particle
+     * 
+     * @param aIntegerList Old connection list
+     * @return Corrected connection list
+     */
     private int[][] correctConnectionList(int[][] aIntegerList) {
         int[][] tmpIntegerList = new int[aIntegerList.length][];
         
@@ -1623,8 +1631,9 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
+     * Make .arc file
      * 
-     * @param aFileName 
+     * @param aFileName Output file name
      */
     public void makeArcFile(String aFileName) {
         // Check parameters
@@ -1635,11 +1644,11 @@ public class TinkerXYZ implements Cloneable {
         StringBuilder tmpContent;
         int tmpIndex;
         int tmpConnectionSize;
-        DecimalFormat decimal4;
+        DecimalFormat decimal6;
         
         tmpContent = new StringBuilder();
-        decimal4 = (DecimalFormat)NumberFormat.getNumberInstance();
-        decimal4.applyPattern("#0.0000");
+        decimal6 = (DecimalFormat)NumberFormat.getNumberInstance();
+        decimal6.applyPattern("#0.000000");
         
         // Fill the content from TinkerXYZ object
         tmpContent.append(MIPETUTIL.padLeft(
@@ -1654,11 +1663,11 @@ public class TinkerXYZ implements Cloneable {
             tmpIndex ++;
             tmpContent.append("   ");
             tmpContent.append(MIPETUTIL.padRight(this.elementList1[i], 3));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList1[0][i][0]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList1[0][i][1]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList1[0][i][2]), 12));
             tmpContent.append(MIPETUTIL.padLeft(Integer.toString(this.atomTypeList1[i]), 6));
             tmpConnectionSize = this.connectionList1[i].length;
@@ -1678,11 +1687,11 @@ public class TinkerXYZ implements Cloneable {
             tmpIndex++;
             tmpContent.append("   ");
             tmpContent.append(MIPETUTIL.padRight(this.elementList2[i], 3));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList2[0][0][i][0]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList2[0][0][i][1]), 12));
-            tmpContent.append(MIPETUTIL.padLeft(decimal4.format(
+            tmpContent.append(MIPETUTIL.padLeft(decimal6.format(
                     this.coordinateList2[0][0][i][2]), 12));
             tmpContent.append(MIPETUTIL.padLeft(Integer.toString(this.atomTypeList2[i]), 6));
             tmpConnectionSize = this.connectionList2[i].length;
@@ -1711,6 +1720,7 @@ public class TinkerXYZ implements Cloneable {
     @Override
     public TinkerXYZ clone() {
         TinkerXYZ tmpTinkerXYZ;
+        
         try {
             tmpTinkerXYZ = (TinkerXYZ)super.clone();
             if (tmpTinkerXYZ == null) {

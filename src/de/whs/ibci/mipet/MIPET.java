@@ -88,28 +88,28 @@ public class MIPET {
     /**
      * Line separator
      */
-    final private static String LINESEPARATOR = System.lineSeparator();
+    private static final String LINESEPARATOR = System.lineSeparator();
     
     /**
      * File separator
      */
-    final private static String FILESEPARATOR = System
+    private static final String FILESEPARATOR = System
             .getProperty("file.separator");
     
     /**
      * Gas constant R [kcal/(mol*K)]
      */
-    final private static double GASCONST = 1.98720425864E-3;
+    private static final double GASCONST = 1.98720425864E-3;
     
     /**
      * Instance object of MIPETUtility
      */
-    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
+    private static final MIPETUtility MIPETUTIL = new MIPETUtility();
     
     /**
      * Water volume ratio
      */
-    final private static double WATERVOLUMERATIO = 30.0036 / 
+    private static final double WATERVOLUMERATIO = 30.0036 / 
             MIPETUTIL.getVdwVolume("O");
     
      /**
@@ -1909,17 +1909,18 @@ public class MIPET {
                 
         //</editor-fold>
         
-        System.out.println("Calculating coordination numbers...");
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">
+        System.out.println("Calculating coordination numbers...");
         if (!forcefield_CN.isEmpty()) {
             getCoordinationNumbers(tmpJobTaskRecordList);
         }
         
         //</editor-fold>
         
-        System.out.println("Exporting parameterset...");
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
-        long tmpTotalTimeSec;
+        System.out.println("Exporting parameterset...");
+        
+        float tmpTotalTimeSec;
         tmpTotalTimeSec = (System.currentTimeMillis() - tmpTotalTime) / 1000;
         try {
             BFGblLog.append(LINESEPARATOR);
@@ -1941,9 +1942,10 @@ public class MIPET {
         exportParticleSetForMFSim(tmpJobTaskRecordList, 
                 parameterSetTitle, 
                 parameterSetTitleAbr);
+        System.out.println("Ready.");
         
         //</editor-fold>
-        System.out.println("Ready.");
+       
     } 
     // </editor-fold>
     

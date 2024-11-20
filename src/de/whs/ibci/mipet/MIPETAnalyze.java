@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 
 /**
  * MIPET4JavaAnalyse class
- *   This class helps to process tinker's analyze.exe parallely
+ *   This class helps to process tinker's analyze.exe parallely.
  * @author Mirco Daniel
  */
 public class MIPETAnalyze implements Callable<ArrayList<Double>> {
@@ -46,7 +46,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     /**
      * Instance object of MIPETUtility
      */
-    final private static MIPETUtility MIPETUTIL = new MIPETUtility();
+    private static final MIPETUtility MIPETUTIL = new MIPETUtility();
     
     /**
      * Logger of this class
@@ -84,10 +84,10 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      */
     private final TinkerXYZ TINKERXYZ;
     private final boolean ISTINKERON;
+    private final int CHUNKSIZE;
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
     private final double[][][] ROTDATA2;
-    private final int CHUNKSIZE;
     
     /**
      * Index number (zero-based) of current distance
@@ -132,13 +132,12 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * @param aChunkIndex
      * @param anAtomNumber
      * @param aChunkSize
-     * @param aScratchDir
-     *   Scratch directory name
+     * @param aScratchDir Scratch directory name
      * @param aMinAtomDistance
-     * @param aRotData1
-     * @param aCommandList 
-     *   Command list for tinker's analyze.exe
-     * @param aRotData2
+     * @param aRotData1 Coordinates of first particle
+     * @param aCommandList Command list for tinker's analyze.exe
+     * @param aRotData2 Coordinatdes of sendond particle
+     * @param aMolecules Molecule datas
      */
     public MIPETAnalyze(
             TinkerXYZ aTinkerXYZ,

@@ -27,7 +27,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,7 +70,7 @@ public class MIPETUtility{
     /**
      * Logger of this class
      */
-    private final static Logger LOGGER = Logger
+    private static final Logger LOGGER = Logger
             .getLogger(MIPET.class.getName());
     
      /**
@@ -1160,7 +1159,6 @@ public class MIPETUtility{
         double tmpDistQX;
         double tmpDistQY;
         double tmpDistQZ;
-        BigDecimal tmpNumber;
         File tmpFile;
         
         tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes";
