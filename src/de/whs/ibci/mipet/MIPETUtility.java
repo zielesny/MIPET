@@ -1755,25 +1755,158 @@ public class MIPETUtility{
     
     /**
      * Take a String and change an atomtype number to another one
-     * @param anOld
-     * @param anNew
-     * @param aLine
+     * @param aTokens Tokens of a Line
      * @return String with changed atomtype number
      */
-    public String changeAtomType(String anOld, String anNew, 
-            String aLine) {
-        String tmpOldAtomType;
-        String tmpNewAtomType;
+    public String changeAtomType(String[] aTokens) {
         String tmpResult;
         
-        if (Integer.parseInt(anNew) < 800) {
-            return aLine;
+        tmpResult = null;
+        switch (aTokens[0]) {
+            case "atom" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                aTokens[2] = aTokens[1];
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(10),
+                        aTokens[1],
+                        " ".repeat(2),
+                        aTokens[2],
+                        " ".repeat(4),
+                        this.padLeft(aTokens[3], 2),
+                        " ".repeat(4),
+                        aTokens[4],
+                        " ".repeat(9),
+                        aTokens[5],
+                        " ".repeat(5),
+                        this.padLeft(aTokens[6], 6),
+                        " ".repeat(5),
+                        aTokens[7]);
+            }
+            case "vdw" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(9),
+                        aTokens[1],
+                        " ".repeat(11),
+                        aTokens[2],
+                        " ".repeat(3),
+                        aTokens[3]);
+            }
+            case "bond" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                aTokens[2] = String.valueOf((Integer.
+                        parseInt(aTokens[2]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(8),
+                        aTokens[1],
+                        " ".repeat(2),
+                        aTokens[2],
+                        " ".repeat(11),
+                        aTokens[3],
+                        " ".repeat(3),
+                        aTokens[4]);
+            }
+            case "angle" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                aTokens[2] = String.valueOf((Integer.
+                        parseInt(aTokens[2]) + 100));
+                aTokens[3] = String.valueOf((Integer.
+                        parseInt(aTokens[3]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(7),
+                        aTokens[1],
+                        " ".repeat(2),
+                        aTokens[2],
+                        " ".repeat(2),
+                        aTokens[3],
+                        " ".repeat(4),
+                        aTokens[4],
+                        " ".repeat(3),
+                        aTokens[5]);
+            }
+            case "torsion" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                aTokens[2] = String.valueOf((Integer.
+                        parseInt(aTokens[2]) + 100));
+                aTokens[3] = String.valueOf((Integer.
+                        parseInt(aTokens[3]) + 100));
+                aTokens[4] = String.valueOf((Integer.
+                        parseInt(aTokens[4]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(5),
+                        aTokens[1],
+                        " ".repeat(2),
+                        aTokens[2],
+                        " ".repeat(2),
+                        aTokens[3],
+                        " ".repeat(2),
+                        aTokens[4],
+                        " ".repeat(8),
+                        aTokens[5],
+                        " ".repeat(2),
+                        aTokens[6],
+                        " ".repeat(2),
+                        aTokens[7],
+                        " ".repeat(2),
+                        aTokens[8],
+                        " ".repeat(1),
+                        aTokens[9],
+                        " ".repeat(2),
+                        aTokens[10],
+                        " ".repeat(2),
+                        aTokens[11],
+                        " ".repeat(2),
+                        aTokens[12],
+                        " ".repeat(2),
+                        aTokens[13]);
+            }
+            case "imptors" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                aTokens[2] = String.valueOf((Integer.
+                        parseInt(aTokens[2]) + 100));
+                aTokens[3] = String.valueOf((Integer.
+                        parseInt(aTokens[3]) + 100));
+                aTokens[4] = String.valueOf((Integer.
+                        parseInt(aTokens[4]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(5),
+                        aTokens[1],
+                        " ".repeat(2),
+                        aTokens[2],
+                        " ".repeat(2),
+                        aTokens[3],
+                        " ".repeat(2),
+                        aTokens[4],
+                        " ".repeat(8),
+                        aTokens[5],
+                        " ".repeat(2),
+                        aTokens[6],
+                        " ".repeat(2),
+                        aTokens[7]);
+            }
+            case "charge" -> {
+                aTokens[1] = String.valueOf((Integer.
+                        parseInt(aTokens[1]) + 100));
+                tmpResult = String.join("",
+                        aTokens[0], 
+                        " ".repeat(9),
+                        aTokens[1],
+                        " ".repeat(11),
+                        aTokens[2]);
+            }
         }
-        tmpOldAtomType = " " + anOld + " ";
-        tmpNewAtomType = " " + String.valueOf(Integer
-                .parseInt(anNew) + 100) + " ";
-        
-        tmpResult = aLine.replace(tmpOldAtomType, tmpNewAtomType);
         return tmpResult; 
     }
     

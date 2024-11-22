@@ -911,11 +911,25 @@ public class MIPET {
         Path tmpOptDistFile;
         String tmpOutputName;
         String tmpLine;
+        String tmpKeyContent;
         int tmpXyz1ID;
         int tmpXyz2ID;
+        int tmpDistSize;
+        int tmpPrmID1;
+        int tmpPrmID2;
+        long tmpEnergyCalcTime;
+        double[][] tmpEnergyDatas;
+        double[][] tmpDistMinEnergyDatas;
+        double tmpMinDistance;
+        double tmpGlbMinEnergy;
+        double tmpWgtMinEnergy;
+        double tmpDistanceCandidate;
         DecimalFormat decimal2;
         DecimalFormat decimal3;
         DecimalFormat decimal4;
+        EnergyRecord[] tmpEnergyRecords;
+        LinkedList<Double> tmpAllDistances;
+        LinkedList<Double> tmpDistanceList;
         
         decimal2 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal3 = (DecimalFormat)NumberFormat.getNumberInstance();
@@ -927,7 +941,8 @@ public class MIPET {
         tmpIsExitCondition = false;
         tmpKeyFileString = keyFileStringOrigin 
                 + "DIELECTRIC\t" 
-                + dielectricConstant;
+                + dielectricConstant
+                + LINESEPARATOR;
         tmpForcefield = forcefield_IE;
         System.out.println("Calculating intermolecular energy...");
         
@@ -1039,20 +1054,11 @@ public class MIPET {
 
                 // Scans for the lowest intermolecular energy between particles
                 // Prescan
-                long tmpEnergyCalcTime = System.currentTimeMillis();
-                int tmpDistSize = (int)Math.ceil(
-                        (upperBoundary - lowerBoundary) / prescanStepSize) + 1;
-                int tmpPrmID1;
-                int tmpPrmID2;
-                LinkedList<Double> tmpAllDistances = new LinkedList<>();
-                LinkedList<Double> tmpDistanceList = new LinkedList<>();
-                double[][] tmpEnergyDatas;
-                double[][] tmpDistMinEnergyDatas;
-                double tmpMinDistance;
-                double tmpGlbMinEnergy;
-                double tmpWgtMinEnergy;
-                double tmpDistanceCandidate;
-                String tmpKeyContent;
+                tmpEnergyCalcTime = System.currentTimeMillis();
+                tmpDistSize = (int)Math.ceil((upperBoundary - lowerBoundary) 
+                        / prescanStepSize) + 1;
+                tmpAllDistances = new LinkedList<>();
+                tmpDistanceList = new LinkedList<>();
 
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {
@@ -1068,7 +1074,8 @@ public class MIPET {
                         + LINESEPARATOR
                         + "NONBONDTERM ONLY"
                         + LINESEPARATOR
-                        + "OPENMP-THREADS 1";
+                        + "OPENMP-THREADS 1"
+                        + LINESEPARATOR;
                 tmpKeyPathName = scratchDirectory
                         + FILESEPARATOR 
                         + tmpParticlePair 
@@ -1097,7 +1104,7 @@ public class MIPET {
                     tmpDistances[i] = tmpDistanceList.get(i);
                 }
 
-                EnergyRecord[] tmpEnergyRecords = new EnergyRecord[3];
+                tmpEnergyRecords = new EnergyRecord[3];
                 tmpEnergyRecords[0] = getInterMolecularEnergy(
                         tmpParticlePair,
                         tmpDistances, 
@@ -1236,7 +1243,10 @@ public class MIPET {
                 // Determining opt. Emin
                 double tmpOptMinEnergy;
                 double tmpRgdMinEnergy;
+                File tmpOptFile;
                 
+                tmpOptMinEnergy = 0.0;
+                tmpRgdMinEnergy = 0.0;
                 tmpKeyFileName = tmpParticlePair + ".key";
                 tmpKeyPathName = scratchDirectory 
                         + FILESEPARATOR 
@@ -1249,9 +1259,6 @@ public class MIPET {
                     }
                 }
                 MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
-                File tmpOptFile;
-                tmpOptMinEnergy = 0.0;
-                tmpRgdMinEnergy = 0.0;
                 
                 for (int i = 0; i < 2; i++) {
                     if (i == 0) {
@@ -1303,8 +1310,8 @@ public class MIPET {
                             tmpProcess.destroy();
                         }
                     }
-                    
                     // Use tinker's analyze.exe to determine intermolecular energy
+                    tmpProcess = null;
                     if (i == 0)  {
                         tmpOutputName = scratchDirectory
                             + FILESEPARATOR
@@ -1339,9 +1346,9 @@ public class MIPET {
                     }
                     tmpProcess.destroy();
                     tmpSourceName = scratchDirectory
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + ".xyz";
+                            + FILESEPARATOR 
+                            + tmpParticlePair
+                            + ".xyz";
                     if (i == 0) {
                         tmpTargetName = scratchDirectory
                                 + FILESEPARATOR 
@@ -1357,18 +1364,19 @@ public class MIPET {
                     }
                     try {
                         Files.move(Paths.get(tmpSourceName), 
-                            Paths.get(tmpTargetName), 
-                            StandardCopyOption.REPLACE_EXISTING);
+                                Paths.get(tmpTargetName), 
+                                StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
-                            "IOException renaming .xyz file.", ex);
+                                "IOException renaming .xyz file.", ex);
                     }
-                    
-                    // Read the intermolecular energies from .txt files
+                   // Read the intermolecular energies from .txt files
                     String tmpSearch = "Intermolecular Energy :";
                     Path tmpPath = Paths.get(tmpOutputName);
+
                     try (BufferedReader tmpBR = Files.newBufferedReader(
                             tmpPath, StandardCharsets.UTF_8)) {
+
                         while ((tmpLine = tmpBR.readLine()) != null ) {
                             if (tmpLine.contains(tmpSearch)) {
                                 if (i == 0) {
@@ -1381,6 +1389,7 @@ public class MIPET {
                                 break;
                             }
                         }
+
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during reading output0_opt.txt.",
@@ -1388,8 +1397,6 @@ public class MIPET {
                     }
                 }
 
-                
-                
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
@@ -1605,7 +1612,7 @@ public class MIPET {
                             "IOException during writing output0_opt.out "
                             + "in scratch.", ex);
                 }
-                
+
                 // Write output_rgd.out
                 tmpOriginal = Paths.get(scratchDirectory, 
                         tmpParticlePair + "_rgd.xyz");
@@ -1648,32 +1655,6 @@ public class MIPET {
                         + "output.xyz";
                 tmpTinkerXyz.writeToXyzFile(tmpFileName);
                 
-                // Generate output_opt.xyz
-                tmpOptFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_opt.0";
-                tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, tmpAtomNumber1, 
-                        tmpAtomNumber2);
-                tmpTinkerXyz.setElementList1(tmpElementList1);
-                tmpTinkerXyz.setElementList2(tmpElementList2);
-                tmpFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_opt.xyz";
-                tmpTinkerXyz.writeToXyzFile(tmpFileName);
-                
-                // Generate output_rgd.xyz
-                tmpRgdFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_rgd.0";
-                tmpTinkerXyz = new TinkerXYZ(tmpRgdFileName, 1, tmpAtomNumber1, 
-                        tmpAtomNumber2);
-                tmpTinkerXyz.setElementList1(tmpElementList1);
-                tmpTinkerXyz.setElementList2(tmpElementList2);
-                tmpFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_rgd.xyz";
-                tmpTinkerXyz.writeToXyzFile(tmpFileName);
-                
                 // Generate .pdb file of output.0
                 tmpHasH2O = tmpParticleName1.equals("H2O") || 
                         tmpParticleName2.equals("H2O");
@@ -1688,18 +1669,44 @@ public class MIPET {
                         tmpKeyFileContent, 
                         tmpHasH2O);
                 
+                // Generate output_opt.xyz
+                tmpOptFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_opt.0";
+                tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, tmpAtomNumber1, 
+                        tmpAtomNumber2);
+                tmpTinkerXyz.setElementList1(tmpElementList1);
+                tmpTinkerXyz.setElementList2(tmpElementList2);
+                tmpFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_opt.xyz";
+                tmpTinkerXyz.writeToXyzFile(tmpFileName);
+
+                // Generate output_rgd.xyz
+                tmpRgdFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_rgd.0";
+                tmpTinkerXyz = new TinkerXYZ(tmpRgdFileName, 1, tmpAtomNumber1, 
+                        tmpAtomNumber2);
+                tmpTinkerXyz.setElementList1(tmpElementList1);
+                tmpTinkerXyz.setElementList2(tmpElementList2);
+                tmpFileName = tmpIEResultDirName 
+                        + FILESEPARATOR 
+                        + "output_rgd.xyz";
+                tmpTinkerXyz.writeToXyzFile(tmpFileName);
+
                 // Generate .pdb file of output_opt.0
                 MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
                         tmpOptFileName, 
                         tmpKeyFileContent, 
                         tmpHasH2O);
-                
+
                 // Generate .pdb file of output_rgd.0
                 MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
                         tmpRgdFileName, 
                         tmpKeyFileContent, 
                         tmpHasH2O);
-
+                
                 // Further outputs
                 Path tmpOptDistDir = Paths.get(optDistDirectory 
                         + FILESEPARATOR 
@@ -1787,23 +1794,23 @@ public class MIPET {
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("""
                                          GlobalMinimumIntermolecularEnergy:
-                                         Lowest differential pair interaction energy of all dimer configurations.""");
+                                           Lowest differential pair interaction energy of all dimer configurations.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(decimal4.format(tmpOptMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("""
                                          Optimized minimumIntermolecularEnergy: 
-                                         Differential pair interaction energy from the dimer configuration
-                                         with lowest differential pair interaction energy after optimize.""");
+                                           Differential pair interaction energy from the dimer configuration
+                                           with lowest differential pair interaction energy after optimize.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
                     BWParticleDat.append(decimal4.format(tmpRgdMinEnergy));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("""
                                          Rigid-optimized minimumIntermolecularEnergy: 
-                                         Differential pair interaction energy from the dimer configuration
-                                         with lowest differential pair interaction energy after optrigid.""");
+                                           Differential pair interaction energy from the dimer configuration
+                                           with lowest differential pair interaction energy after optrigid.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
                             + tmpEnergyCalcTime
@@ -2325,6 +2332,7 @@ public class MIPET {
      * Method readPrm
      * Read .prm files for OPLSAALIGPARGEN and convert atomtype number of 
      *  second particle
+     * @param aForcefield Force field name
      */
     private static void readPrm(String aForcefield) {
         int tmpParticlesLength;
@@ -2372,18 +2380,14 @@ public class MIPET {
                 for (int j = 25; j < tmpLines.length; j++) {
                     tmpTokens = tmpLines[j].trim().split("\\s+");
                     switch (tmpTokens[0]) {
-                        case "atom", "vdw", "charge"-> {
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens[1], 
-                                    tmpTokens[1], tmpLines[j]);
-                        }
-                        case "bond" -> {
-                            tmpLines[j] = "";
-                        }
-                        case "angle" -> {
-                            tmpLines[j] = "";
-                        }
-                        case "imptors", "torsion" -> {
-                            tmpLines[j] = "";
+                        case    "atom", 
+                                "vdw", 
+                                "charge",
+                                "bond",
+                                "angle",
+                                "torsion",
+                                "imptors"-> {
+                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens);
                         }
                     }
                     if (!tmpLines[j].equals("")) {
@@ -2417,6 +2421,7 @@ public class MIPET {
         String[] tmpLines;
         String[][] tmpElements;
         
+        molecules = new LinkedList<>();
         tmpParticleNameLength = particleNames.size();
         tmpAtomNumber = new int[tmpParticleNameLength];
         tmpElements = new String[tmpParticleNameLength][];
@@ -2467,7 +2472,6 @@ public class MIPET {
                 }
             }
             
-            molecules = new LinkedList<>();
             molecules.add(new MoleculeRecord(
                     particleNames.get(i),
                     tmpAtomNumber[i],

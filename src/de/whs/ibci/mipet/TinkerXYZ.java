@@ -950,6 +950,7 @@ public class TinkerXYZ implements Cloneable {
             throw new IllegalArgumentException("Null or empty object was passed"
                     + "to the setCoordinateList2 method.");
         }
+        
         this.coordinateList2 = aCoord2;
         if (!this.forcefieldName.equals("OPLSAALIGPARGEN") || aTinkerOn) {
             DecimalFormat tmpDF = new DecimalFormat("0.000000", 
@@ -1010,7 +1011,9 @@ public class TinkerXYZ implements Cloneable {
                     + "to the setCoordinateList2 method.");
         }
         
-        double[][][][] tmpCoord2 = new double[1][1][][];
+        double[][][][] tmpCoord2;
+                
+        tmpCoord2 = new double[1][1][][];
         tmpCoord2[0][0] = aCoord2;
         setCoordinateList2(tmpCoord2, aTinkerOn);
     }

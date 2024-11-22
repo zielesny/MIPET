@@ -361,7 +361,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             tmpPartArc = MIPETUTIL.readPartArcFile(tmpArcFileName, 
                     tmpStartIndex, tmpEndIndex);
             TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
-            
 
             // Delete .arc files
             try {
