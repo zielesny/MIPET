@@ -228,11 +228,6 @@ public class MIPET {
     private static boolean isOptEmin;
     
     /**
-     * Use tinker's optrigid program
-     */
-    private static boolean isOptRigidOnly;
-    
-    /**
      * Temperature
      */
     private static int temperature;
@@ -912,9 +907,13 @@ public class MIPET {
         String tmpOutputName;
         String tmpLine;
         String tmpKeyContent;
+        byte tmpH2OPos;
         int tmpXyz1ID;
         int tmpXyz2ID;
         int tmpDistSize;
+        int tmpAtomSize;
+        int tmpAtomSize1;
+        int tmpAtomSize2;
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
@@ -959,6 +958,15 @@ public class MIPET {
                 tmpIsSameParticle = tmpParticleName1.equals(tmpParticleName2);
                 tmpIEResultDirName = tmpJobTaskRecordList.get(tmpCurrentIndex)
                         .result_IE_PathName();
+                tmpH2OPos = 0;
+                if (tmpParticleName1.equals("H2O") 
+                        ^ tmpParticleName2.equals("H2O")) {
+                    if (tmpParticleName1.equals("H2O")) {
+                        tmpH2OPos = 1;
+                    } else {
+                        tmpH2OPos = 2;
+                    }
+                }
             
                 //</editor-fold>
             
@@ -1276,41 +1284,65 @@ public class MIPET {
                             + ".0",
                             Double.toString(optimizeRmsGradient)};
                     }
+                    
+                    // Start optimize
+                    TinkerXYZ tmpTinkerXYZ;
+                    
+                    tmpAtomSize1 =tmpTinkerXYZ1.getAtomSize1();
+                    tmpAtomSize2 =tmpTinkerXYZ2.getAtomSize1();
+                    tmpAtomSize =  tmpAtomSize1 + tmpAtomSize2;
                     tmpProcess = null;
-                    if (isOptRigidOnly && i == 1 || !isOptRigidOnly) {
-                        tmpPB = new ProcessBuilder();
-                        tmpPB.redirectErrorStream(true);
-                        tmpPB.command(tmpCmdList);
-                        try {
-                            tmpProcess = tmpPB.start();
+                    tmpPB = new ProcessBuilder();
+                    tmpPB.redirectErrorStream(true);
+                    tmpPB.command(tmpCmdList);
+                    try {
+                        tmpProcess = tmpPB.start();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during process starting.",
+                                ex);
+                    }
+
+                    // This is necessary because .waitFor() will hang otherwise
+                    if (tmpProcess != null) {
+                        try (BufferedReader tmpBR = new BufferedReader(
+                                new InputStreamReader(tmpProcess
+                                        .getInputStream()))) {
+                            while (tmpBR.readLine() != null ) {}
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, 
-                                    "IOException during process starting.",
+                                    "IOException during writing .0 file in scratch.",
                                     ex);
                         }
-
-                        // This is necessary because .waitFor() will hang otherwise
-                        if (tmpProcess != null) {
-                            try (BufferedReader tmpBR = new BufferedReader(
-                                    new InputStreamReader(tmpProcess
-                                            .getInputStream()))) {
-                                while (tmpBR.readLine() != null ) {}
-                            } catch (IOException ex) {
-                                LOGGER.log(Level.SEVERE, 
-                                        "IOException during writing .0 file in scratch.",
-                                        ex);
-                            }
-                            try {
-                                tmpProcess.waitFor();
-                            } catch (InterruptedException ex) {
-                                LOGGER.log(Level.SEVERE, 
-                                        "InterruptException during processing optimize.exe",
-                                        ex);
-                            }
-                            tmpProcess.destroy();
+                        try {
+                            tmpProcess.waitFor();
+                        } catch (InterruptedException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "InterruptException during processing optimize.exe",
+                                    ex);
                         }
+                        tmpProcess.destroy();
                     }
-                    // Use tinker's analyze.exe to determine intermolecular energy
+                    
+                    // Fix .xyz file if there is H2O 
+                    //  this is necessary because of a bug in tinker's optimize
+                    if (forcefield_IE.equals("OPLSAALIGPARGEN") 
+                            && tmpH2OPos > 0) {
+                        tmpFileName = scratchDirectory
+                            + FILESEPARATOR
+                            + tmpParticleName1 
+                            + "_"
+                            + tmpParticleName2
+                            + ".xyz";
+                        if (tmpParticleName1.equals("H2O")) {
+                            tmpIndex = 1;
+                        } else {
+                            tmpIndex = tmpAtomSize1 + 1;
+                        }
+                        MIPETUTIL.fixTinkerXYZ_H2O(tmpFileName, tmpIndex);
+                    }
+                    
+                    // Use tinker's analyze to determine intermolecular energy
                     tmpProcess = null;
                     if (i == 0)  {
                         tmpOutputName = scratchDirectory
@@ -1370,6 +1402,7 @@ public class MIPET {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException renaming .xyz file.", ex);
                     }
+                    
                    // Read the intermolecular energies from .txt files
                     String tmpSearch = "Intermolecular Energy :";
                     Path tmpPath = Paths.get(tmpOutputName);
@@ -1560,9 +1593,9 @@ public class MIPET {
                 //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Copy results">
+                boolean tmpHasH2O;
                 Path tmpOriginal;
                 Path tmpTarget;
-                Boolean tmpHasH2O;
                 
                 // Write ouput.0 file
                 tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
@@ -1759,9 +1792,6 @@ public class MIPET {
                     if (isOptEmin) {
                         BWParticleDat.append("Optimize sampled E(min) configuration: "
                                 + isOptEmin);
-                        BWParticleDat.append(LINESEPARATOR);
-                        BWParticleDat.append("Tinker's 'optrigid' used: "
-                                + isOptRigidOnly);        
                         BWParticleDat.append(LINESEPARATOR);
                     }
                     BWParticleDat.append("Weighted (Emin = optMin) MinimumIntermolecularEnergy [kcal/mole]: ");
@@ -2077,8 +2107,6 @@ public class MIPET {
                 .equals("true");
         tmpIsOptEmin = MIPETUTIL.getResourceString("MIPETOptEmin");
         isOptEmin = tmpIsOptEmin.equals("true");
-        tmpIsOptRigid = MIPETUTIL.getResourceString("MIPETOptRigid");
-        isOptRigidOnly = tmpIsOptRigid.equals("true");
         isConformationalAnalysis = MIPETUTIL
                 .getResourceString("MIPETConformationalAnalysis")
                 .equals("true");
@@ -2304,8 +2332,7 @@ public class MIPET {
             
             // Change atomtype number of 2. particle to avoid redundancy
             tmpXyz2.setLength(0);
-            if (aForcefield.equals("OPLSAALIGPARGEN") && !tmpParticleName
-                    .equals("H2O")) {
+            if (aForcefield.equals("OPLSAALIGPARGEN")) {
                 tmpLines = xyzContent1[i].split(LINESEPARATOR);
                 tmpXyz2.append(tmpLines[0]);
 
@@ -2409,7 +2436,7 @@ public class MIPET {
      *  (only for OPLSAALIGPARGEN)
      */
     private static void makeMoleculeRecord() {
-        int tmpParticleNameLength;
+        int tmpParticleSize;
         int tmpSigmaIndex;
         int tmpChargeIndex;
         int[] tmpAtomNumber;
@@ -2422,16 +2449,16 @@ public class MIPET {
         String[][] tmpElements;
         
         molecules = new LinkedList<>();
-        tmpParticleNameLength = particleNames.size();
-        tmpAtomNumber = new int[tmpParticleNameLength];
-        tmpElements = new String[tmpParticleNameLength][];
-        tmpAtomTypes = new int[tmpParticleNameLength][];
-        tmpSigmas = new double[tmpParticleNameLength][];
-        tmpEpsilsons = new double[tmpParticleNameLength][];
-        tmpCharges = new double[tmpParticleNameLength][];
+        tmpParticleSize = particleNames.size();
+        tmpAtomNumber = new int[tmpParticleSize];
+        tmpElements = new String[tmpParticleSize][];
+        tmpAtomTypes = new int[tmpParticleSize][];
+        tmpSigmas = new double[tmpParticleSize][];
+        tmpEpsilsons = new double[tmpParticleSize][];
+        tmpCharges = new double[tmpParticleSize][];
         
         // Read elements and atomTypes
-        for (int i = 0; i < tmpParticleNameLength; i++) {
+        for (int i = 0; i < tmpParticleSize; i++) {
             tmpLines = xyzContent1[i].split(LINESEPARATOR);
             tmpLine = tmpLines[0].substring(0, 6).trim();
             tmpAtomNumber[i] = Integer.parseInt(tmpLine);
@@ -2448,7 +2475,7 @@ public class MIPET {
         }
         
         // Read epsilons, sigmas and charges
-        for (int i = 0; i < tmpParticleNameLength; i++) {
+        for (int i = 0; i < tmpParticleSize; i++) {
             tmpSigmaIndex = 0;
             tmpChargeIndex = 0;
             tmpLines = prmContent1[i].split(LINESEPARATOR);
@@ -2912,13 +2939,16 @@ public class MIPET {
         int tmpConfigIndex;
         int tmpRotData1Index;
         int tmpRotData2Index;
+        double[][] tmpEnergyDatas;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
         String[] tmpCmdList;
+        ArrayList<MIPETAnalyze> tmpTaskList;
         TinkerXYZ tmpTinkerXyz1;
         TinkerXYZ tmpTinkerXyz2;
         TinkerXYZ tmpTinkerXYZ;
+        ExecutorService executor;
         
         tmpDistanceNumber = aDistance.length;
         tmpChunkNumber = cpuCoreNumber;
@@ -2940,14 +2970,13 @@ public class MIPET {
         // Calculate intermolecular energy using TINKER analyze
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
-        double[][] tmpEnergyDatas = new double[tmpDistanceNumber][];
-        ExecutorService executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        ArrayList<MIPETAnalyze> tmpTaskList = new ArrayList<>(500);
+        tmpEnergyDatas = new double[tmpDistanceNumber][];
+        executor = Executors.newFixedThreadPool(cpuCoreNumber);
+        tmpTaskList = new ArrayList<>(500);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
-        
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);

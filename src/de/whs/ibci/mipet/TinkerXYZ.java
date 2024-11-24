@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
@@ -247,7 +248,7 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
-     * Constructor TinkerXYZ
+     * Constructor TinkerXYZ for getCoordinationNumber only
      * 
      * @param aTxyzFileName Tinker xyz filename
      * @param anIterationSize Number of iterations
@@ -719,6 +720,20 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
+     * Set the name of force field
+     * @param aParticleName Name of force field
+     */
+    public void setForcefieldName(String aParticleName) {
+        // Check parameters
+        if(aParticleName == null) {
+            throw new IllegalArgumentException("Null was passed to the " 
+                    + "setForcefieldName method.");
+        }
+        
+        this.forcefieldName = aParticleName;
+    }
+    
+    /**
      * Set the name of particle1
      * @param aParticleName Name of particle1
      */
@@ -744,20 +759,6 @@ public class TinkerXYZ implements Cloneable {
         }
         
         this.particleName2 = aParticleName;
-    }
-    
-    /**
-     * Set the name of force field
-     * @param aParticleName Name of force field
-     */
-    public void setForcefieldName(String aParticleName) {
-        // Check parameters
-        if(aParticleName == null) {
-            throw new IllegalArgumentException("Null was passed to the " 
-                    + "setForcefieldName method.");
-        }
-        
-        this.forcefieldName = aParticleName;
     }
     
     /**
@@ -1016,6 +1017,23 @@ public class TinkerXYZ implements Cloneable {
         tmpCoord2 = new double[1][1][][];
         tmpCoord2[0][0] = aCoord2;
         setCoordinateList2(tmpCoord2, aTinkerOn);
+    }
+    
+    /**
+     * 
+     */
+    public void setAtomTypeList1() {
+        int tmpAtomSize1;
+        int[] tmpAtomTypes;
+        
+        tmpAtomSize1 = this.atomSize1;
+        tmpAtomTypes = new int[tmpAtomSize1];
+        
+        for (int i = 0; i < tmpAtomSize1; i++) {
+            tmpAtomTypes[i] = this.atomTypeList1[i] + 100;
+        }
+        
+        this.atomTypeList1 = tmpAtomTypes;
     }
     
     public void setDistances() {
@@ -1303,6 +1321,7 @@ public class TinkerXYZ implements Cloneable {
         this.atomicMassList2 = tmpTinkerXyz2.getAtomicMassList2().clone();
         this.atomTypeList1 = tmpTinkerXyz1.getAtomTypeList1().clone();
         this.atomTypeList2 = tmpTinkerXyz2.getAtomTypeList1().clone();
+        
         this.connectionList1 = tmpTinkerXyz1.getConnectionList1().clone();
         this.connectionList2 = tmpTinkerXyz2.getConnectionList1().clone();
         this.connectionList2 = this.correctConnectionList(this.connectionList2);
@@ -1356,18 +1375,18 @@ public class TinkerXYZ implements Cloneable {
      * @return Corrected connection list
      */
     private int[][] correctConnectionList(int[][] aIntegerList) {
-        int[][] tmpIntegerList = new int[aIntegerList.length][];
+        int[][] tmpResult = new int[aIntegerList.length][];
         
         for (int i = 0; i < aIntegerList.length; i++) {
-            tmpIntegerList[i] = new int[aIntegerList[i].length];
+            tmpResult[i] = new int[aIntegerList[i].length];
             
             for (int j = 0; j < aIntegerList[i].length; j++) {
-                tmpIntegerList[i][j] = aIntegerList[i][j] + this.atomSize1;
+                tmpResult[i][j] = aIntegerList[i][j] + this.atomSize1;
             }
             
         }
         
-        return tmpIntegerList;
+        return tmpResult;
     }
     
     // </editor-fold>

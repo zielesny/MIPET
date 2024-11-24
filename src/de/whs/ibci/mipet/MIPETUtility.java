@@ -27,6 +27,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +45,7 @@ import java.util.logging.Logger;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import org.apache.commons.lang3.StringUtils;
 import org.openscience.cdk.silent.Atom;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -171,6 +173,10 @@ public class MIPETUtility{
      */
     public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
         double atomicMass = 0;
+        
+        if (aSmilesString.trim().toLowerCase().equals("lp")) {
+            return 0;
+        }
         try {
             IAtomContainer particle;
             if (anIsSmiles) {
@@ -1969,6 +1975,63 @@ public class MIPETUtility{
         }
         
         return tmpSb.toString();
+    }
+    
+    public void fixTinkerXYZ_H2O(String aFileName, int aStartIndex) {
+        String tmpLine;
+        String tmpNewLine;
+        StringBuilder tmpStringBuilder;
+        int tmpStartIndex;
+        int tmpIndex;
+        Path tmpPath;
+        File tmpFile;
+        
+        tmpStringBuilder = new StringBuilder(5000);
+        tmpStartIndex = aStartIndex;
+        tmpIndex = 0;
+        tmpPath = Paths.get(aFileName);
+        
+        try (BufferedReader tmpBR = Files.newBufferedReader(
+                            tmpPath, StandardCharsets.UTF_8)) {
+            
+            while ((tmpLine = tmpBR.readLine()) != null ) {
+                if (tmpIndex == tmpStartIndex) {
+                    tmpNewLine = tmpLine.substring(0, 8)
+                            + " O"
+                            + tmpLine.substring(11);
+                    tmpLine = tmpNewLine;
+                } else if (tmpIndex == tmpStartIndex + 1 
+                        || tmpIndex == tmpStartIndex + 2) {
+                    tmpNewLine = tmpLine.substring(0, 8)
+                            + " H"
+                            + tmpLine.substring(11);
+                    tmpLine = tmpNewLine;
+                } else if (tmpIndex == tmpStartIndex + 3 
+                        || tmpIndex == tmpStartIndex + 4) {
+                    tmpNewLine = tmpLine.substring(0, 8)
+                            + "Lp"
+                            + tmpLine.substring(11);
+                    tmpLine = tmpNewLine;
+                }
+                tmpStringBuilder.append(tmpLine);
+                tmpStringBuilder.append(LINESEPARATOR);
+                tmpIndex++;
+            }
+            
+        }catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during reading .xyz file in fixTinerXYZ_H2O",
+                    ex);
+        }
+        tmpPath.toFile().delete();
+        tmpFile = new File (aFileName);
+        try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(tmpFile))) {
+            tmpBW.append(tmpStringBuilder);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during writing .xyz file in fixTinkerXYZ_H2O."
+                            , ex);
+        }
     }
     
     // </editor-fold>
