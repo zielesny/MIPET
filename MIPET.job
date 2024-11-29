@@ -14,11 +14,11 @@ $
 #--------------------------
 # Test particles
 #--------------------------
-H2O
+#H2O
 #Me
 MeOH
-Et
-Me2O
+#Et
+#Me2O
 
 # -------------------------
 # Particles
@@ -26,7 +26,7 @@ Me2O
 #AcNH2
 #Bu
 #CisButene
-#DMP
+DMP
 #Et
 #Et2O
 #Ethene
@@ -51,8 +51,8 @@ Me2O
 #MeNH2
 #MeOH
 #MeSH
-#MP
-#Ph
+MP
+Ph
 #PhNH2
 #PhOH
 #Pr
