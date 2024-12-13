@@ -1391,7 +1391,7 @@ public class MIPETUtility{
      */
     public void writeZij_Table(ArrayList<JobTaskRecord> aJobTaskRecords,
             int[][] aCNs,
-            int aTemperature) {
+            double aTemperature) {
         
         int tmpJobTaskLength;
         int tmpIndex;
@@ -1417,7 +1417,7 @@ public class MIPETUtility{
                 try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(
                         tmpZij_TableFileName, true))) {
                     tmpBW.append("temperature [K]: ");
-                    tmpBW.append(Integer.toString(aTemperature));
+                    tmpBW.append(Double.toString(aTemperature));
                     tmpBW.append(LINESEPARATOR);
                     tmpBW.append(Integer.toString(aCNs[tmpIndex][0]));
 

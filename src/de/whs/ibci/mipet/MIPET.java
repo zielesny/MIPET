@@ -230,7 +230,7 @@ public class MIPET {
     /**
      * Temperature
      */
-    private static int temperature;
+    private static double temperature;
     
     /**
      * Sphere node number
@@ -1571,7 +1571,7 @@ public class MIPET {
                     BWParticleLog.append(Double.toString(boltzmannFraction));
                     BWParticleLog.append("    ");
                     BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.append(Integer.toString(temperature));
+                    BWParticleLog.append(Double.toString(temperature));
                     BWParticleLog.append("    ");
                     BWParticleLog.append(decimal4.format(tmpWgtMinEnergy));
                     BWParticleLog.append("    ");
@@ -1784,7 +1784,7 @@ public class MIPET {
                             + Integer.toString(rotationNumber)
                             + LINESEPARATOR);
                     BWParticleDat.append("Temperature [K]: ");
-                    BWParticleDat.append(Integer.toString(temperature));
+                    BWParticleDat.append(Double.toString(temperature));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
                     BWParticleDat.append(Double.toString(boltzmannFraction));
@@ -2092,7 +2092,6 @@ public class MIPET {
     private static void setParameters() {
         String tmpIsFibonacciSphereAlgorithm;
         String tmpIsOptEmin;
-        String tmpIsOptRigid;
         
         isTinker9 = MIPETUTIL.getResourceString("MIPET.Tinker9").toLowerCase()
                 .equals("true");
@@ -2110,7 +2109,7 @@ public class MIPET {
         isConformationalAnalysis = MIPETUTIL
                 .getResourceString("MIPETConformationalAnalysis")
                 .equals("true");
-        temperature = Integer.parseInt(MIPETUTIL.getResourceString(
+        temperature = Double.parseDouble(MIPETUTIL.getResourceString(
                 "MIPETTemperature"));
         boltzmannFraction = Double.parseDouble(MIPETUTIL.getResourceString(
                 "MIPETBoltzmannFraction"));
@@ -3637,7 +3636,7 @@ public class MIPET {
                         Double.toString(warmUpTimeStep),
                         Double.toString(warmUpPrintInterval),
                         Integer.toString(simulationType),
-                        Integer.toString(temperature)};
+                        Double.toString(temperature)};
                 } else {
                     tmpCmdList = new String[] {tinkerDynamic,
                         tmpCurrentDir + tmpParticlePair + ".xyz",
@@ -3645,7 +3644,7 @@ public class MIPET {
                         Double.toString(warmUpTimeStep),
                         Double.toString(warmUpPrintInterval),
                         Integer.toString(simulationType),
-                        Integer.toString(temperature)};
+                        Double.toString(temperature)};
                 }
                 tmpTaskList.add(new MIPETCN(tmpCmdList,
                         aJobTaskRecordList.get(i),
@@ -3699,7 +3698,7 @@ public class MIPET {
                         Double.toString(timeStep),
                         Double.toString(printInterval),
                         Integer.toString(simulationType),
-                        Integer.toString(temperature)};
+                        Double.toString(temperature)};
                 } else {
                     tmpCmdList = new String[] {tinkerDynamic,
                         tmpCurrentDir + tmpParticlePair + ".xyz",
@@ -3707,7 +3706,7 @@ public class MIPET {
                         Double.toString(timeStep),
                         Double.toString(printInterval),
                         Integer.toString(simulationType),
-                        Integer.toString(temperature)};
+                        Double.toString(temperature)};
                 }
                 tmpCNTaskList.add(new MIPETCN(tmpCmdList,
                         aJobTaskRecordList.get(i),
@@ -4141,7 +4140,7 @@ public class MIPET {
                     tmpBW.append(Integer.toString(cpuCoreNumber));
                     tmpBW.append(LINESEPARATOR);
                     tmpBW.append("# Temperature: ");
-                    tmpBW.append(Integer.toString(temperature));
+                    tmpBW.append(Double.toString(temperature));
                     tmpBW.append(LINESEPARATOR);
                     tmpBW.append("# Sphere nodes calculated with Fibonacci algorithm: ");
                     tmpBW.append(Boolean.toString(isFibonacciSphereAlgorithm));
