@@ -233,10 +233,25 @@ public class MIPET {
     private static double temperature;
     
     /**
-     * Sphere node number
+     * General sphere node number 
      */
-    private static int sphereNodeNumber;
+    private static int generalSphereNodeNumber;
 
+    /**
+     * Special sphere node number 
+     */
+    private static int specialSphereNodeNumber;
+    
+    /**
+     * General rotation configuration number
+     */
+    private static int generalRotationNumber;
+    
+    /**
+     * General rotation configuration number
+     */
+    private static int specialRotationNumber;
+    
     /**
      * Force field names for calculation of intermolecular interaction energy
      */
@@ -261,11 +276,6 @@ public class MIPET {
      * ConfigurationNumber of particle 2
      */
     private static int confNumber2;
-    
-    /**
-     * Rotation configuration number
-     */
-    private static int rotationNumber;
     
     /**
      * Minimum atom distance to prevent tinker error output
@@ -691,12 +701,12 @@ public class MIPET {
            J. Fliege and U. Maier
 	   http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
         long tmpRotCalcTime = System.currentTimeMillis();
-        confNumber1 = sphereNodeNumber;
-	confNumber2 = sphereNodeNumber * rotationNumber;
+        confNumber1 = generalSphereNodeNumber;
+	confNumber2 = generalSphereNodeNumber * generalRotationNumber;
         // Development version
         String tmpFileNameSphereNode = 
                 "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                + sphereNodeNumber + ".txt";
+                + generalSphereNodeNumber + ".txt";
         
         // Distribution version
 //        String tmpFileNameSphereNode = 
@@ -707,7 +717,7 @@ public class MIPET {
         //   the particle/atom coordinates
         if (isFibonacciSphereAlgorithm) {
             tmpSphereNodeCoord = FibonacciSphere
-                    .getSphereNodes(sphereNodeNumber);
+                    .getSphereNodes(generalSphereNodeNumber);
         } else {
             tmpSphereNodeCoord = RotationUtil
                 .readSphereNodes (tmpFileNameSphereNode);
@@ -717,7 +727,7 @@ public class MIPET {
                         new double[] {1., 0., 0.});
         tmpRotMatrices2 = RotationUtil.
                 getRotationMatrices2 (tmpSphereNodeCoord, 
-                        new double[] {-1.0, 0.0, 0.0}, rotationNumber);
+                        new double[] {-1.0, 0.0, 0.0}, generalRotationNumber);
         try {
             BFGblLog.append ("Time for calculation of rotation matrices: " 
                 + (System.currentTimeMillis() - tmpRotCalcTime)
@@ -911,9 +921,7 @@ public class MIPET {
         int tmpXyz1ID;
         int tmpXyz2ID;
         int tmpDistSize;
-        int tmpAtomSize;
         int tmpAtomSize1;
-        int tmpAtomSize2;
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
@@ -1012,7 +1020,6 @@ public class MIPET {
                 tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
                         tmpCentre1);
                 if (tmpIsSameParticle) {
-                    //tmpTinkerXYZ2 = tmpTinkerXYZ1.clone();
                     tmpTinkerXYZ2  = new TinkerXYZ(tmpForcefield,
                         tmpParticleName2,
                         xyzContent1[tmpXyz1ID]);
@@ -1040,7 +1047,7 @@ public class MIPET {
                 for (int i = 0; i < confNumber1; i++) {
 
                     for (int j = 0; j < tmpXyzData1.length; j++) {
-                            tmpXyzRotData1[i][j] = 
+                        tmpXyzRotData1[i][j] = 
                                 MatrixUtil.multiply(tmpRotMatrices1.get(i),
                                         tmpXyzData1[j]);
                     }
@@ -1056,6 +1063,7 @@ public class MIPET {
                     }
 
                 }
+                
                 //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
@@ -1067,7 +1075,6 @@ public class MIPET {
                         / prescanStepSize) + 1;
                 tmpAllDistances = new LinkedList<>();
                 tmpDistanceList = new LinkedList<>();
-
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {
                     tmpPrmID2 = tmpPrmID1;
@@ -1130,8 +1137,8 @@ public class MIPET {
 
                 for (int i = 0; i < tmpDistSize; i++) {
                     tmpDistanceCandidate = tmpMinDistance - 0.4 + i * 0.1;
-                    if(!MIPETUTIL
-                            .contains(tmpAllDistances, tmpDistanceCandidate)) {
+                    if(!MIPETUTIL.contains(tmpAllDistances, 
+                            tmpDistanceCandidate)) {
                         tmpDistanceList.add(tmpDistanceCandidate);
                     }
                 }
@@ -1233,8 +1240,49 @@ public class MIPET {
 
                 //</editor-fold>
 
-                //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
+                
+                //<editor-fold defaultstate="collapsed" desc="Calculate special rotated coordinates">
+                // Calculates the rotated atom coordinates 
+                //   using the rotation matrices
+                confNumber1 = specialSphereNodeNumber;
+                confNumber2 = specialSphereNodeNumber * specialRotationNumber;
+                tmpXyzRotData1 = 
+                        new double[confNumber1][tmpXyzData1.length][3];
+                tmpXyzRotData2 = 
+                        new double[confNumber2][tmpXyzData2.length][3];
 
+                for (int i = 0; i < confNumber1; i++) {
+
+                    for (int j = 0; j < tmpXyzData1.length; j++) {
+                        tmpXyzRotData1[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
+                                        tmpXyzData1[j]);
+                    }
+
+                }
+
+                for (int i = 0; i < confNumber2; i++) {
+
+                    for (int j = 0; j < tmpXyzData2.length; j++) {
+                        tmpXyzRotData2[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
+                                        tmpXyzData2[j]);
+                    }
+
+                }
+                
+                //</editor-fold>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
                 // Delete old .key file and make new one
                 tmpKeyFile = Paths.get(scratchDirectory 
                         + FILESEPARATOR
@@ -1286,11 +1334,7 @@ public class MIPET {
                     }
                     
                     // Start optimize
-                    TinkerXYZ tmpTinkerXYZ;
-                    
                     tmpAtomSize1 =tmpTinkerXYZ1.getAtomSize1();
-                    tmpAtomSize2 =tmpTinkerXYZ2.getAtomSize1();
-                    tmpAtomSize =  tmpAtomSize1 + tmpAtomSize2;
                     tmpProcess = null;
                     tmpPB = new ProcessBuilder();
                     tmpPB.redirectErrorStream(true);
@@ -1777,11 +1821,17 @@ public class MIPET {
                             + tmpEnergyCalcTime);        
                     BWParticleLog.append(LINESEPARATOR); 
                     BWParticleLog.close();
-                    BWParticleDat.append("SphereNodeNumber: "
-                            + Integer.toString(sphereNodeNumber)
+                    BWParticleDat.append("GeneralSphereNodeNumber: "
+                            + Integer.toString(generalSphereNodeNumber)
                             + LINESEPARATOR);
-                    BWParticleDat.append("CircularRotationNumber: "
-                            + Integer.toString(rotationNumber)
+                    BWParticleDat.append("GeneralRotationNumber: "
+                            + Integer.toString(generalRotationNumber)
+                            + LINESEPARATOR);
+                    BWParticleDat.append("SpecialSphereNodeNumber: "
+                            + Integer.toString(specialSphereNodeNumber)
+                            + LINESEPARATOR);
+                    BWParticleDat.append("SpecialRotationNumber: "
+                            + Integer.toString(specialRotationNumber)
                             + LINESEPARATOR);
                     BWParticleDat.append("Temperature [K]: ");
                     BWParticleDat.append(Double.toString(temperature));
@@ -2113,10 +2163,14 @@ public class MIPET {
                 "MIPETTemperature"));
         boltzmannFraction = Double.parseDouble(MIPETUTIL.getResourceString(
                 "MIPETBoltzmannFraction"));
-        sphereNodeNumber = Integer.parseInt(MIPETUTIL.getResourceString(
-                "MIPETSphereNodeNumber"));
-        rotationNumber = Integer.parseInt(MIPETUTIL.getResourceString(
-                "MIPETRotationNumber"));
+        generalSphereNodeNumber = Integer.parseInt(MIPETUTIL.getResourceString(
+                "MIPETGeneralSphereNodeNumber"));
+        specialSphereNodeNumber = Integer.parseInt(MIPETUTIL.getResourceString(
+                "MIPETSpecialSphereNodeNumber"));
+        generalRotationNumber = Integer.parseInt(MIPETUTIL.getResourceString(
+                "MIPETGeneralRotationNumber"));
+        specialRotationNumber = Integer.parseInt(MIPETUTIL.getResourceString(
+                "MIPETSpecialRotationNumber"));
         minAtomDistance = Double.parseDouble(MIPETUTIL.getResourceString(
                 "MIPETMinAtomDistance"));
         nSearchDirection = MIPETUTIL.getResourceString(
@@ -4145,11 +4199,17 @@ public class MIPET {
                     tmpBW.append("# Sphere nodes calculated with Fibonacci algorithm: ");
                     tmpBW.append(Boolean.toString(isFibonacciSphereAlgorithm));
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere node number: ");
-                    tmpBW.append(Integer.toString(sphereNodeNumber));
+                    tmpBW.append("# General Sphere node number: ");
+                    tmpBW.append(Integer.toString(generalSphereNodeNumber));
                     tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere rotation number: ");
-                    tmpBW.append(Integer.toString(rotationNumber));
+                    tmpBW.append("# General rotation number: ");
+                    tmpBW.append(Integer.toString(generalRotationNumber));
+                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append("# Special Sphere node number: ");
+                    tmpBW.append(Integer.toString(specialSphereNodeNumber));
+                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append("# Special rotation number: ");
+                    tmpBW.append(Integer.toString(specialRotationNumber));
                     tmpBW.append(LINESEPARATOR);
                     tmpBW.append("# Conformational analysis: ");
                     tmpBW.append(Boolean.toString(isConformationalAnalysis));
