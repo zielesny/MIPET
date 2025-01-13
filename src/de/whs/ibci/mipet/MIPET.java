@@ -1119,7 +1119,7 @@ public class MIPET {
                     tmpDistances[i] = tmpDistanceList.get(i);
                 }
 
-                tmpEnergyRecords = new EnergyRecord[3];
+                tmpEnergyRecords = new EnergyRecord[4];
                 tmpEnergyRecords[0] = getInterMolecularEnergy(
                         tmpParticlePair,
                         tmpDistances, 
@@ -1198,7 +1198,75 @@ public class MIPET {
                 tmpEnergyDatas = ArrayUtils.addAll(tmpEnergyDatas,
                         tmpEnergyRecords[2].energyDatas());
                 
-                // Copy distance and minenergy datas
+                //<editor-fold defaultstate="collapsed" desc="Calculate special rotated coordinates">
+                // Determine rotation matrices used to rotate 
+                //   the particle/atom coordinates
+                if (isFibonacciSphereAlgorithm) {
+                    tmpSphereNodeCoord = FibonacciSphere
+                            .getSphereNodes(specialSphereNodeNumber);
+                }
+                tmpRotMatrices1 = RotationUtil
+                        .getRotationMatrices1 (tmpSphereNodeCoord, 
+                                new double[] {1., 0., 0.});
+                tmpRotMatrices2 = RotationUtil.
+                        getRotationMatrices2 (tmpSphereNodeCoord, 
+                                new double[] {-1.0, 0.0, 0.0}, generalRotationNumber);
+                
+                // Calculates the rotated atom coordinates 
+                //   using the rotation matrices
+                confNumber1 = specialSphereNodeNumber;
+                confNumber2 = specialSphereNodeNumber * specialRotationNumber;
+                tmpXyzRotData1 = 
+                        new double[confNumber1][tmpXyzData1.length][3];
+                tmpXyzRotData2 = 
+                        new double[confNumber2][tmpXyzData2.length][3];
+
+                for (int i = 0; i < confNumber1; i++) {
+
+                    for (int j = 0; j < tmpXyzData1.length; j++) {
+                        tmpXyzRotData1[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
+                                        tmpXyzData1[j]);
+                    }
+
+                }
+
+                for (int i = 0; i < confNumber2; i++) {
+
+                    for (int j = 0; j < tmpXyzData2.length; j++) {
+                        tmpXyzRotData2[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
+                                        tmpXyzData2[j]);
+                    }
+
+                }
+                
+                //</editor-fold>
+                
+                // Last scan
+                tmpDistances = new double[1];
+                tmpDistances[0] = tmpMinDistance; 
+                tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
+                        tmpDistances, 
+                        tmpTinkerXYZ1, 
+                        tmpTinkerXYZ2, 
+                        tmpXyzRotData1, 
+                        tmpXyzRotData2,
+                        tmpGlbMinEnergy);
+                if (tmpEnergyRecords[3].minEnergy() < tmpGlbMinEnergy) {
+                    tmpGlbMinEnergy = tmpEnergyRecords[3].minEnergy();
+                    tmpMinDistance = tmpEnergyRecords[3].minDistance();
+                }
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                // Copy distance and minEnergy datas
                 tmpDistSize = tmpAllDistances.size();
                 tmpDistMinEnergyDatas = new double[tmpDistSize][3];
                 int tmpIteration;
@@ -1241,37 +1309,7 @@ public class MIPET {
                 //</editor-fold>
 
                 
-                //<editor-fold defaultstate="collapsed" desc="Calculate special rotated coordinates">
-                // Calculates the rotated atom coordinates 
-                //   using the rotation matrices
-                confNumber1 = specialSphereNodeNumber;
-                confNumber2 = specialSphereNodeNumber * specialRotationNumber;
-                tmpXyzRotData1 = 
-                        new double[confNumber1][tmpXyzData1.length][3];
-                tmpXyzRotData2 = 
-                        new double[confNumber2][tmpXyzData2.length][3];
-
-                for (int i = 0; i < confNumber1; i++) {
-
-                    for (int j = 0; j < tmpXyzData1.length; j++) {
-                        tmpXyzRotData1[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
-                                        tmpXyzData1[j]);
-                    }
-
-                }
-
-                for (int i = 0; i < confNumber2; i++) {
-
-                    for (int j = 0; j < tmpXyzData2.length; j++) {
-                        tmpXyzRotData2[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
-                                        tmpXyzData2[j]);
-                    }
-
-                }
                 
-                //</editor-fold>
                 
                 
                 
