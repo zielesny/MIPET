@@ -1209,8 +1209,9 @@ public class MIPET {
                         .getRotationMatrices1 (tmpSphereNodeCoord, 
                                 new double[] {1., 0., 0.});
                 tmpRotMatrices2 = RotationUtil.
-                        getRotationMatrices2 (tmpSphereNodeCoord, 
-                                new double[] {-1.0, 0.0, 0.0}, generalRotationNumber);
+                        getRotationMatrices2 (tmpSphereNodeCoord,
+                                new double[] {-1.0, 0.0, 0.0}, 
+                                specialRotationNumber);
                 
                 // Calculates the rotated atom coordinates 
                 //   using the rotation matrices
@@ -1244,6 +1245,7 @@ public class MIPET {
                 //</editor-fold>
                 
                 // Last scan
+                boolean tmpIsNewMin = false;
                 tmpDistances = new double[1];
                 tmpDistances[0] = tmpMinDistance; 
                 tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
@@ -1254,23 +1256,17 @@ public class MIPET {
                         tmpXyzRotData2,
                         tmpGlbMinEnergy);
                 if (tmpEnergyRecords[3].minEnergy() < tmpGlbMinEnergy) {
+                    tmpIsNewMin = true;
                     tmpGlbMinEnergy = tmpEnergyRecords[3].minEnergy();
                     tmpMinDistance = tmpEnergyRecords[3].minDistance();
                 }
-                
-                
-                
-                
-                
-                
-                
-                
                 
                 // Copy distance and minEnergy datas
                 tmpDistSize = tmpAllDistances.size();
                 tmpDistMinEnergyDatas = new double[tmpDistSize][3];
                 int tmpIteration;
                 int tmpIndex = 0;
+                
                
                 for (int i = 0; i < 3; i++) {
                     tmpIteration = tmpEnergyRecords[i].distances().length;
@@ -1288,6 +1284,18 @@ public class MIPET {
                 Arrays.sort(tmpDistMinEnergyDatas, 
                         (a, b) -> Double.compare(a[0], b[0]));
                 
+                // Overwrite tmpDistMinEnergyDatas
+                if (tmpIsNewMin) {
+                    tmpIteration = tmpDistMinEnergyDatas.length;
+                
+                    for (int i = 0; i < tmpIteration; i++) {
+                        if (tmpDistMinEnergyDatas[i][0] == tmpMinDistance) {
+                            tmpDistMinEnergyDatas[i][1] = tmpGlbMinEnergy;
+                        }
+                    }
+                    
+                }
+                
                 //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Sort datas">
@@ -1303,23 +1311,20 @@ public class MIPET {
 
                 for (int i = 0; i < tmpDistSize; i++) {
                   tmpIndex = tmpDistanceIndices[i];
-                  tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
+                  if (tmpIsNewMin && 
+                          tmpDistMinEnergyDatas[i][0] == tmpMinDistance) {
+                      tmpEnergySorted[i] = ArrayUtils.addAll(
+                              tmpEnergyRecords[3].energyDatas()[0],
+                              tmpEnergyDatas[tmpIndex]);
+                      Arrays.sort(tmpEnergySorted[i]);
+                  } else {
+                      tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
+                  }
+                  
                 }
 
                 //</editor-fold>
 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
                 // Delete old .key file and make new one
                 tmpKeyFile = Paths.get(scratchDirectory 
@@ -3055,6 +3060,9 @@ public class MIPET {
             if(tmpChunkSize % aRotData2.length != 0) {
                 int tmpResidual = Math.floorMod(tmpChunkSize, aRotData2.length);
                 tmpChunkSize += (aRotData2.length - tmpResidual);
+            }
+            if (tmpConfigNumber/tmpChunkSize < cpuCoreNumber) {
+                tmpChunkNumber = tmpConfigNumber/tmpChunkSize;
             }
         }
         
