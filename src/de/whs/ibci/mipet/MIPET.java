@@ -701,8 +701,7 @@ public class MIPET {
            J. Fliege and U. Maier
 	   http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
         long tmpRotCalcTime = System.currentTimeMillis();
-        confNumber1 = generalSphereNodeNumber;
-	confNumber2 = generalSphereNodeNumber * generalRotationNumber;
+        
         // Development version
         String tmpFileNameSphereNode = 
                 "de/whs/ibci/mipet/sphereNodes/SphereNodes"
@@ -1039,6 +1038,8 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
                 // Calculates the rotated atom coordinates 
                 //   using the rotation matrices
+                confNumber1 = generalSphereNodeNumber;
+                confNumber2 = generalSphereNodeNumber * generalRotationNumber;
                 tmpXyzRotData1 = 
                         new double[confNumber1][tmpXyzData1.length][3];
                 tmpXyzRotData2 = 
