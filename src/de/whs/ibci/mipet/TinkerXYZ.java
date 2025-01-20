@@ -239,11 +239,11 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Constructor TinkerXYZ
      * 
-     * @param aTxyzFileName Tinker xyz filename
+     * @param aTxyzContent Tinker xyz filename
      * @param atomSize Atom number of particle
      */
-    public TinkerXYZ(String aTxyzFileName, int atomSize) {
-        this.initialize(aTxyzFileName, 1, atomSize, 0);
+    public TinkerXYZ(String aTxyzContent, int atomSize) {
+        this.initialize(aTxyzContent, 1, atomSize, 0);
     }
     
     /**
@@ -1079,7 +1079,7 @@ public class TinkerXYZ implements Cloneable {
      * initialize mothod
      * 
      * @param aTinkerXyz
-     *   Tinker xyz filename
+     *   Tinker xyz content
      * @param itrerationSize
      *   number of iteration
      * @param anAtomSize1

@@ -1314,9 +1314,7 @@ public class MIPET {
                   tmpIndex = tmpDistanceIndices[i];
                   if (tmpIsNewMin && 
                           tmpDistMinEnergyDatas[i][0] == tmpMinDistance) {
-                      tmpEnergySorted[i] = ArrayUtils.addAll(
-                              tmpEnergyRecords[3].energyDatas()[0],
-                              tmpEnergyDatas[tmpIndex]);
+                      tmpEnergySorted[i] = tmpEnergyRecords[3].energyDatas()[0];
                       Arrays.sort(tmpEnergySorted[i]);
                   } else {
                       tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();

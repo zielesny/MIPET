@@ -850,6 +850,78 @@ public class MIPETUtility{
     }
     
     /**
+     * Determine (widest) molecular diameter 
+     * 
+     * @param aTinkerXYZ TinkerXYZ object
+     * @return (Widest) molecular diameter
+     */
+    public double getMolecularDiameter(TinkerXYZ aTinkerXYZ) {
+        int tmpAtomSize;
+        int tmpAtomicNumber1;
+        int tmpAtomicNumber2;
+        int tmpIndex1;
+        int tmpIndex2;
+        double tmpVdW1;
+        double tmpVdW2;
+        double tmpDeltaX;
+        double tmpDeltaY;
+        double tmpDeltaZ;
+        double tmpMaxDistanceQ;
+        double tmpMaxDistanceQCandidate;
+        double tmpReturn;
+        double[][] tmpCoordinates;
+        String[] tmpElements;
+        
+        tmpAtomSize = aTinkerXYZ.getAtomSize1();
+        tmpElements = aTinkerXYZ.getElementList1();
+        tmpCoordinates = aTinkerXYZ.getCoordinateList1()[0];
+        tmpMaxDistanceQ = 0.0;
+        tmpIndex1 = 0;
+        tmpIndex2 = 0;
+        
+        for (int i = 0; i < tmpAtomSize; i++) {
+            
+            for (int j = i + 1; j < tmpAtomSize; j++) {
+                tmpDeltaX = tmpCoordinates[i][0] - tmpCoordinates[j][0];
+                tmpDeltaY = tmpCoordinates[i][1] - tmpCoordinates[j][1];
+                tmpDeltaZ = tmpCoordinates[i][2] - tmpCoordinates[j][2];
+                tmpMaxDistanceQCandidate = tmpDeltaX * tmpDeltaX + 
+                        tmpDeltaY * tmpDeltaY +
+                        tmpDeltaZ * tmpDeltaZ;
+                if (tmpMaxDistanceQCandidate > tmpMaxDistanceQ) {
+                    tmpMaxDistanceQ = tmpMaxDistanceQCandidate;
+                    tmpIndex1 = i;
+                    tmpIndex2 = j;
+                }
+            }
+            
+        }
+        
+        tmpReturn = Math.sqrt(tmpMaxDistanceQ);
+        tmpAtomicNumber1 = PeriodicTable
+                .getAtomicNumber(tmpElements[tmpIndex1]);
+        tmpAtomicNumber2 = PeriodicTable
+                .getAtomicNumber(tmpElements[tmpIndex2]);
+        tmpVdW1 = this.getVdWRadii()[tmpAtomicNumber1];
+        tmpVdW2 = this.getVdWRadii()[tmpAtomicNumber2];
+        tmpReturn += tmpVdW1 + tmpVdW2;
+        return tmpReturn;
+    }
+    
+    
+    
+    public int getNeighborMoleculeNumber(double aDiameter1, double aDiameter2) {
+        
+        
+        
+        return 0;
+    }
+    
+    
+    
+    
+    
+    /**
      * Write the last part of .arc file to .xyz file
      * @param anArcFileName
      *   File name of the .arc file

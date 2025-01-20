@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.exception.CDKException;
 import de.whs.ibci.mipet.MIPETUtility;
+import de.whs.ibci.mipet.TinkerXYZ;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -374,4 +375,21 @@ public class TestMIPET4JavaUtility {
         Assert.assertTrue(tmpNeighborIndices.contains(212));
         Assert.assertTrue(tmpNeighborIndices.contains(213));
     }
+    
+    @Test
+    public void testGetMolecularDiameter() {
+        double tmpResult;
+        String tmpForceField;
+        String tmpParticle;
+        String tmpFileName;
+        TinkerXYZ tmpTinkerXYZ;
+        
+        tmpForceField = "MMFF";
+        tmpParticle = "Me";
+        tmpFileName = "testdata/Me.txyz";
+        tmpTinkerXYZ = new TinkerXYZ(tmpForceField, tmpParticle, tmpFileName);
+        tmpResult = mipetUtil.getMolecularDiameter(tmpTinkerXYZ);
+        Assert.assertEquals(4.148, tmpResult, 0.001);
+    }
+    
 }
