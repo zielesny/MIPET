@@ -1588,6 +1588,15 @@ public class MIPET {
 
                 //</editor-fold>
                 
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
                 tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
                         .result_IE_PathName()
@@ -3220,6 +3229,50 @@ public class MIPET {
                                 ex);
             }
         }
+        
+        //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
+                // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
+                // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
+                // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
+                // the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
+                // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
+                // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
+                // "Boltzmann average" calculation only
+                int tmpFractionToMax;
+                double tmpMinEnergy;
+                double[] tmpWeights;
+                double[] tmpEnergyDataFraction;
+                
+                // Find tmpMinEnergy
+                tmpMinEnergy = tmpEnergySorted[0];
+
+                for (int j = 0; j < tmpDistanceNumber; j++) {
+                    tmpFractionToMax = (int)(tmpEnergySorted[j].length
+                            * boltzmannFraction);
+                    tmpEnergyDataFraction = new double[tmpFractionToMax];
+                    tmpWeights = new double[tmpFractionToMax];
+
+                    for (int k = 0; k < tmpFractionToMax; k++) {
+                        tmpEnergyDataFraction[k] = tmpEnergySorted[j][k];
+                        tmpWeights[k] = Math.exp(-(tmpEnergySorted[j][k] 
+                                - tmpMinEnergy) 
+                                / (temperature * GASCONST));
+                    }
+
+                    tmpDistMinEnergyDatas[j][2] = MIPETUTIL
+                            .productSum(tmpWeights, tmpEnergyDataFraction) 
+                            / MIPETUTIL.sum(tmpWeights);
+
+                    // Find weight minimum energy
+                    if(tmpDistMinEnergyDatas[j][2] < tmpWgtMinEnergy) {
+                        tmpWgtMinEnergy = tmpDistMinEnergyDatas[j][2];
+                    }
+                }
+
+                //</editor-fold>
+        
+        
+        
         
         return new EnergyRecord(aDistance,
                 tmpEnergyDatas, 
