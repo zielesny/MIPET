@@ -923,8 +923,8 @@ public class MIPET {
         long tmpEnergyCalcTime;
         double[][] tmpEnergyDatas;
         double[][] tmpDistMinEnergyDatas;
-        double tmpMinDistance;
-        double tmpGlbMinEnergy;
+        double tmpEqDist;
+        double tmpGlbEmin;
         double tmpWgtMinEnergy;
         double tmpDistanceCandidate;
         DecimalFormat decimal2;
@@ -1126,15 +1126,15 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         1E10);
-                tmpGlbMinEnergy = tmpEnergyRecords[0].minEnergy();
-                tmpMinDistance = tmpEnergyRecords[0].minDistance();
+                tmpGlbEmin = tmpEnergyRecords[0].wgtEmin();
+                tmpEqDist = tmpEnergyRecords[0].eqDistance();
 
                 // Precise scan
                 tmpDistanceList = new LinkedList<>();
                 tmpDistSize = 9;
 
                 for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = tmpMinDistance - 0.4 + i * 0.1;
+                    tmpDistanceCandidate = tmpEqDist - 0.4 + i * 0.1;
                     if(!MIPETUTIL.contains(tmpAllDistances, 
                             tmpDistanceCandidate)) {
                         tmpDistanceList.add(tmpDistanceCandidate);
@@ -1154,10 +1154,10 @@ public class MIPET {
                         tmpTinkerXYZ2, 
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
-                        tmpGlbMinEnergy);
-                if (tmpEnergyRecords[1].minEnergy() < tmpGlbMinEnergy) {
-                    tmpGlbMinEnergy = tmpEnergyRecords[1].minEnergy();
-                    tmpMinDistance = tmpEnergyRecords[1].minDistance();
+                        tmpGlbEmin);
+                if (tmpEnergyRecords[1].wgtEmin() < tmpGlbEmin) {
+                    tmpGlbEmin = tmpEnergyRecords[1].wgtEmin();
+                    tmpEqDist = tmpEnergyRecords[1].eqDistance();
                 }
 
                 // More precise scan
@@ -1165,7 +1165,7 @@ public class MIPET {
                 tmpDistSize = 19;
 
                 for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = tmpMinDistance - 0.09 + i * 0.01;
+                    tmpDistanceCandidate = tmpEqDist - 0.09 + i * 0.01;
                     if(!MIPETUTIL
                             .contains(tmpAllDistances, tmpDistanceCandidate)) {
                         tmpDistanceList.add(tmpDistanceCandidate);
@@ -1185,16 +1185,11 @@ public class MIPET {
                         tmpTinkerXYZ2, 
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
-                        tmpGlbMinEnergy);
-                if (tmpEnergyRecords[2].minEnergy() < tmpGlbMinEnergy) {
-                    tmpGlbMinEnergy = tmpEnergyRecords[2].minEnergy();
-                    tmpMinDistance = tmpEnergyRecords[2].minDistance();
+                        tmpGlbEmin);
+                if (tmpEnergyRecords[2].wgtEmin() < tmpGlbEmin) {
+                    tmpGlbEmin = tmpEnergyRecords[2].wgtEmin();
+                    tmpEqDist = tmpEnergyRecords[2].eqDistance();
                 }
-                tmpEnergyDatas = ArrayUtils
-                        .addAll(tmpEnergyRecords[0].energyDatas(),
-                                tmpEnergyRecords[1].energyDatas());
-                tmpEnergyDatas = ArrayUtils.addAll(tmpEnergyDatas,
-                        tmpEnergyRecords[2].energyDatas());
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate special rotated coordinates">
                 // Determine rotation matrices used to rotate 
@@ -1245,18 +1240,18 @@ public class MIPET {
                 // Last scan
                 boolean tmpIsNewMin = false;
                 tmpDistances = new double[1];
-                tmpDistances[0] = tmpMinDistance; 
+                tmpDistances[0] = tmpEqDist; 
                 tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
                         tmpDistances, 
                         tmpTinkerXYZ1, 
                         tmpTinkerXYZ2, 
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
-                        tmpGlbMinEnergy);
-                if (tmpEnergyRecords[3].minEnergy() < tmpGlbMinEnergy) {
+                        tmpGlbEmin);
+                if (tmpEnergyRecords[3].wgtEmin() < tmpGlbEmin) {
                     tmpIsNewMin = true;
-                    tmpGlbMinEnergy = tmpEnergyRecords[3].minEnergy();
-                    tmpMinDistance = tmpEnergyRecords[3].minDistance();
+                    tmpGlbEmin = tmpEnergyRecords[3].wgtEmin();
+                    tmpEqDist = tmpEnergyRecords[3].eqDistance();
                 }
                 
                 // Copy distance and minEnergy datas
@@ -1266,18 +1261,18 @@ public class MIPET {
                 int tmpIndex = 0;
                 
                
-                for (int i = 0; i < 3; i++) {
-                    tmpIteration = tmpEnergyRecords[i].distances().length;
-
-                    for (int j = 0; j < tmpIteration; j++) {
-                        tmpDistMinEnergyDatas[tmpIndex][0] = 
-                                tmpEnergyRecords[i].distances()[j];
-                        tmpDistMinEnergyDatas[tmpIndex][1] = 
-                                tmpEnergyRecords[i].energyDatas()[j][0];
-                        tmpIndex++;
-                    }
-                    
-                }
+//                for (int i = 0; i < 3; i++) {
+//                    tmpIteration = tmpEnergyRecords[i].distances().length;
+//
+//                    for (int j = 0; j < tmpIteration; j++) {
+//                        tmpDistMinEnergyDatas[tmpIndex][0] = 
+//                                tmpEnergyRecords[i].distances()[j];
+//                        tmpDistMinEnergyDatas[tmpIndex][1] = 
+//                                tmpEnergyRecords[i].energyDatas()[j][0];
+//                        tmpIndex++;
+//                    }
+//                    
+//                }
                 
                 Arrays.sort(tmpDistMinEnergyDatas, 
                         (a, b) -> Double.compare(a[0], b[0]));
@@ -1287,8 +1282,8 @@ public class MIPET {
                     tmpIteration = tmpDistMinEnergyDatas.length;
                 
                     for (int i = 0; i < tmpIteration; i++) {
-                        if (tmpDistMinEnergyDatas[i][0] == tmpMinDistance) {
-                            tmpDistMinEnergyDatas[i][1] = tmpGlbMinEnergy;
+                        if (tmpDistMinEnergyDatas[i][0] == tmpEqDist) {
+                            tmpDistMinEnergyDatas[i][1] = tmpGlbEmin;
                         }
                     }
                     
@@ -1307,17 +1302,17 @@ public class MIPET {
                 Arrays.sort(tmpDistanceIndices, tmpComparator);
                 tmpEnergySorted = new double[tmpDistSize][];
 
-                for (int i = 0; i < tmpDistSize; i++) {
-                  tmpIndex = tmpDistanceIndices[i];
-                  if (tmpIsNewMin && 
-                          tmpDistMinEnergyDatas[i][0] == tmpMinDistance) {
-                      tmpEnergySorted[i] = tmpEnergyRecords[3].energyDatas()[0];
-                      Arrays.sort(tmpEnergySorted[i]);
-                  } else {
-                      tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
-                  }
-                  
-                }
+//                for (int i = 0; i < tmpDistSize; i++) {
+//                  tmpIndex = tmpDistanceIndices[i];
+//                  if (tmpIsNewMin && 
+//                          tmpDistMinEnergyDatas[i][0] == tmpEqDist) {
+//                      tmpEnergySorted[i] = tmpEnergyRecords[3].energyDatas()[0];
+//                      Arrays.sort(tmpEnergySorted[i]);
+//                  } else {
+//                      tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
+//                  }
+//                  
+//                }
 
                 //</editor-fold>
 
@@ -1541,7 +1536,7 @@ public class MIPET {
                     switch (i) {
                         case 0 -> tmpMinEnergy = tmpOptMinEnergy;
                         case 1 -> tmpMinEnergy = tmpRgdMinEnergy;
-                        case 2 -> tmpMinEnergy = tmpGlbMinEnergy;
+                        case 2 -> tmpMinEnergy = tmpGlbEmin;
                     }
                     
                     tmpWgtMinEnergy= 100.0;
@@ -1584,7 +1579,7 @@ public class MIPET {
                         tmpWgt_Opt0_MinEnergy,
                         tmpOptMinEnergy,
                         tmpRgdMinEnergy,
-                        tmpGlbMinEnergy));
+                        tmpGlbEmin));
 
                 //</editor-fold>
                 
@@ -1674,7 +1669,7 @@ public class MIPET {
                     BWParticleDat.append("Conformational analysis: " + isConformationalAnalysis);
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("equilibriumDistances [" + ANGSTROM + "] = "); 
-                    BWParticleDat.append(decimal2.format(tmpMinDistance));
+                    BWParticleDat.append(decimal2.format(tmpEqDist));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.flush();
                 } catch (IOException ex) {
@@ -1700,7 +1695,7 @@ public class MIPET {
                             "IOException during copying output.0", ex);
                 }
                 String tmpOutput0 = "Intermolecular Energy: " 
-                        + tmpEnergyRecords[2].minEnergy() + " kcal/mol";
+                        + tmpEnergyRecords[3].wgtEmin() + " kcal/mol";
                 String tmpTargetDir = tmpIEResultDirName 
                         + FILESEPARATOR 
                         + "output0.out";        
@@ -1855,7 +1850,7 @@ public class MIPET {
                 if (tmpIsSameParticle && !Files.exists(tmpOptDistFile)) {
                     try (BufferedWriter tmpBW = new BufferedWriter(
                             new FileWriter(tmpFileName))) {
-                        tmpBW.append(decimal4.format(tmpMinDistance));
+                        tmpBW.append(decimal4.format(tmpEqDist));
                     } catch(IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                             "IOException during writing file in OptDist directory.", 
@@ -1930,7 +1925,7 @@ public class MIPET {
                                           Emin = lowest differential pair interaction energy.""");
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpGlbMinEnergy));
+                    BWParticleDat.append(decimal4.format(tmpGlbEmin));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("""
                                          GlobalMinimumIntermolecularEnergy:
@@ -3033,7 +3028,7 @@ public class MIPET {
      * Calculate the intermolecular energies for different distances.
      * 
      * @param aParticlePair Names of both particles
-     * @param aDistance Distances of both particles (centre to centre)
+     * @param aDistances Distances of both particles (centre to centre)
      * @param aTinkerXYZ1 Coordinate data of first particle
      * @param aTinkerXYZ2 Coordinate data of second particle
      * @param aRotData1 Coordinates of first particle after rotations
@@ -3044,7 +3039,7 @@ public class MIPET {
      */
     private static EnergyRecord getInterMolecularEnergy(
             String aParticlePair,
-            double[] aDistance,
+            double[] aDistances,
             TinkerXYZ aTinkerXYZ1, 
             TinkerXYZ aTinkerXYZ2,
             double[][][] aRotData1,
@@ -3071,7 +3066,8 @@ public class MIPET {
         TinkerXYZ tmpTinkerXYZ;
         ExecutorService executor;
         
-        tmpDistanceNumber = aDistance.length;
+        // Calculate chunk size
+        tmpDistanceNumber = aDistances.length;
         tmpChunkNumber = cpuCoreNumber;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
         if (tmpDistanceNumber >= tmpChunkNumber || tmpConfigNumber < 1000) {
@@ -3103,7 +3099,7 @@ public class MIPET {
                 + ".arc";
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
-            tmpRotData2 = VectorUtil.moveX(aRotData2, aDistance[i]);
+            tmpRotData2 = VectorUtil.moveX(aRotData2, aDistances[i]);
             tmpChunkIndex = 0;
             tmpConfigIndex = 0;
             tmpRotData1Index = -1;
@@ -3176,7 +3172,6 @@ public class MIPET {
                 tmpFuture = tmpFutures.get(tmpTaskIndex);
                 try {
                     tmpDistEnergies.addAll(tmpFuture.get());
-                    tmpDistEnergies.sort(Comparator.naturalOrder());   
                     tmpDistMinEnergy = tmpDistEnergies.get(0);
                     if (tmpDistMinEnergy < tmpPartMinEnergy) {
                         tmpPartMinEnergy = tmpDistMinEnergy;
@@ -3231,54 +3226,57 @@ public class MIPET {
         }
         
         //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
-                // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
-                // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
-                // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
-                // the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
-                // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
-                // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
-                // "Boltzmann average" calculation only
-                int tmpFractionToMax;
-                double tmpMinEnergy;
-                double[] tmpWeights;
-                double[] tmpEnergyDataFraction;
-                
-                // Find tmpMinEnergy
-                tmpMinEnergy = tmpEnergySorted[0];
+        // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
+        // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
+        // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
+        // the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
+        // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
+        // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
+        // "Boltzmann average" calculation only
+        int tmpFractionToMax;
+        double tmpEmin;
+        double tmpTempGasconst;
+        double tmpWgtEmin;
+        double[] tmpWeights;
+        double[] tmpEnergyDataFraction;
+        double[] tmpEmins;
+        double[] tmpWgtEmins;
 
-                for (int j = 0; j < tmpDistanceNumber; j++) {
-                    tmpFractionToMax = (int)(tmpEnergySorted[j].length
-                            * boltzmannFraction);
-                    tmpEnergyDataFraction = new double[tmpFractionToMax];
-                    tmpWeights = new double[tmpFractionToMax];
+        // Find tmpMinEnergy
+        tmpEmins = new double[tmpDistanceNumber];
+        tmpWgtEmins = new double[tmpDistanceNumber];
+        tmpTempGasconst = temperature * GASCONST;
+        tmpEmin = tmpPartMinEnergy;
+        tmpWgtEmin = 100.;
 
-                    for (int k = 0; k < tmpFractionToMax; k++) {
-                        tmpEnergyDataFraction[k] = tmpEnergySorted[j][k];
-                        tmpWeights[k] = Math.exp(-(tmpEnergySorted[j][k] 
-                                - tmpMinEnergy) 
-                                / (temperature * GASCONST));
-                    }
+        for (int i = 0; i < tmpDistanceNumber; i++) {
+            tmpEmins[i] = tmpEnergyDatas[i][0];
+            tmpFractionToMax = (int)(tmpEnergyDatas[i].length 
+                    * boltzmannFraction);
+            tmpEnergyDataFraction = new double[tmpFractionToMax];
+            tmpWeights = new double[tmpFractionToMax];
 
-                    tmpDistMinEnergyDatas[j][2] = MIPETUTIL
-                            .productSum(tmpWeights, tmpEnergyDataFraction) 
-                            / MIPETUTIL.sum(tmpWeights);
+            for (int j = 0; j < tmpFractionToMax; j++) {
+                tmpEnergyDataFraction[j] = tmpEnergyDatas[i][j];
+                tmpWeights[j] = Math.exp(-(tmpEnergyDatas[i][j] - tmpEmin)
+                        / tmpTempGasconst);
+            }
 
-                    // Find weight minimum energy
-                    if(tmpDistMinEnergyDatas[j][2] < tmpWgtMinEnergy) {
-                        tmpWgtMinEnergy = tmpDistMinEnergyDatas[j][2];
-                    }
-                }
+            tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
+                    tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
+            if (tmpWgtEmin > tmpWgtEmins[i]) {
+                tmpWgtEmin = tmpWgtEmins[i];
+            }
+        }
 
-                //</editor-fold>
+        //</editor-fold>
         
-        
-        
-        
-        return new EnergyRecord(aDistance,
-                tmpEnergyDatas, 
-                aDistance[tmpDistMinIndex], 
-                tmpDistMinIndex, 
-                tmpPartMinEnergy);
+        return new EnergyRecord(aDistances,
+                tmpEmins,
+                tmpWgtEmins, 
+                aDistances[tmpDistMinIndex],
+                tmpEmin,
+                tmpWgtEmin);
     }
     
     /**

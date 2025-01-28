@@ -29,20 +29,22 @@ package de.whs.ibci.mipet;
  * Energy record
  * @param distances 
  *   Distances of particle centre i and particle centre j
- * @param energyDatas
- *   sorted energy values of all configurations
- *   [i][j]: i distance index, j configuration index
- * @param minDistance 
- *   equilibrium distance in Angstrom 
- * @param minDistanceIndex 
- *   index of equilibrium distance array
- * @param minEnergy 
- *   minimum of intermolecular energy
+ * @param Eminsintermolecular energies of all configurations
+ *   [i]: i distance index
+ *   Minimum of 
+ * @param wgtEmins
+ *   Minimum of weighted intermolecular energies of all configurations
+ *   [i]: i distance index
+ * @param eqDistance 
+ *   Equilibrium distance in Angstrom with wgtEmin
+ * @param wgtEmin 
+ *   Minimum of weighted intermolecular energy
  */
 public record EnergyRecord(
         double[] distances,
-        double[][] energyDatas,
-        double minDistance,
-        int minDistanceIndex,
-        double minEnergy) {
+        double[] Emins,
+        double[] wgtEmins,
+        double eqDistance,
+        double Emin,
+        double wgtEmin) {
 }
