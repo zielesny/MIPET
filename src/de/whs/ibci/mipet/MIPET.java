@@ -921,7 +921,6 @@ public class MIPET {
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
-        double[][] tmpEnergyDatas;
         double[][] tmpDistMinEnergyDatas;
         double tmpEqDist;
         double tmpGlbEmin;
@@ -933,6 +932,7 @@ public class MIPET {
         EnergyRecord[] tmpEnergyRecords;
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
+        LinkedList<Distance_EminRecord> tmpDistWgtEmins;
         
         decimal2 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal3 = (DecimalFormat)NumberFormat.getNumberInstance();
@@ -1066,13 +1066,13 @@ public class MIPET {
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
 
-                // Scans for the lowest intermolecular energy between particles
-                // Prescan
+                //<editor-fold defaultstate="collapsed" desc="Prescan">
                 tmpEnergyCalcTime = System.currentTimeMillis();
                 tmpDistSize = (int)Math.ceil((upperBoundary - lowerBoundary) 
                         / prescanStepSize) + 1;
                 tmpAllDistances = new LinkedList<>();
                 tmpDistanceList = new LinkedList<>();
+                tmpDistWgtEmins = new LinkedList<>();
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {
                     tmpPrmID2 = tmpPrmID1;
@@ -1126,19 +1126,70 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         1E10);
-                tmpGlbEmin = tmpEnergyRecords[0].wgtEmin();
+                tmpGlbEmin = tmpEnergyRecords[0].Emin();
                 tmpEqDist = tmpEnergyRecords[0].eqDistance();
+                
+                for (int i = 0; i < tmpDistances.length; i++) {
+                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                            tmpEnergyRecords[0].distances()[i], 
+                            tmpEnergyRecords[0].wgtEmins()[i]));
+                }
+                
+                //</editor-fold>
+                
+                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                // Determine rotation matrices used to rotate 
+                //   the particle/atom coordinates
+                if (isFibonacciSphereAlgorithm) {
+                    tmpSphereNodeCoord = FibonacciSphere
+                            .getSphereNodes(sphereNodeNumber2);
+                }
+                tmpRotMatrices1 = RotationUtil
+                        .getRotationMatrices1 (tmpSphereNodeCoord, 
+                                new double[] {1., 0., 0.});
+                tmpRotMatrices2 = RotationUtil.
+                        getRotationMatrices2 (tmpSphereNodeCoord,
+                                new double[] {-1.0, 0.0, 0.0}, 
+                                rotationNumber2);
+                
+                // Calculates the rotated atom coordinates 
+                //   using the rotation matrices
+                confNumber1 = sphereNodeNumber2;
+                confNumber2 = sphereNodeNumber2 * rotationNumber2;
+                tmpXyzRotData1 = 
+                        new double[confNumber1][tmpXyzData1.length][3];
+                tmpXyzRotData2 = 
+                        new double[confNumber2][tmpXyzData2.length][3];
 
-                // Precise scan
+                for (int i = 0; i < confNumber1; i++) {
+
+                    for (int j = 0; j < tmpXyzData1.length; j++) {
+                        tmpXyzRotData1[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
+                                        tmpXyzData1[j]);
+                    }
+
+                }
+
+                for (int i = 0; i < confNumber2; i++) {
+
+                    for (int j = 0; j < tmpXyzData2.length; j++) {
+                        tmpXyzRotData2[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
+                                        tmpXyzData2[j]);
+                    }
+
+                }
+                
+                //</editor-fold>
+
+                //<editor-fold defaultstate="collapsed" desc="Precise scan">
                 tmpDistanceList = new LinkedList<>();
                 tmpDistSize = 9;
 
                 for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = tmpEqDist - 0.4 + i * 0.1;
-                    if(!MIPETUTIL.contains(tmpAllDistances, 
-                            tmpDistanceCandidate)) {
-                        tmpDistanceList.add(tmpDistanceCandidate);
-                    }
+                    tmpDistanceCandidate = (10 * tmpEqDist - 4 + i) / 10;
+                    tmpDistanceList.add(tmpDistanceCandidate);
                 }
 
                 tmpAllDistances.addAll(tmpDistanceList);
@@ -1155,21 +1206,72 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         tmpGlbEmin);
-                if (tmpEnergyRecords[1].wgtEmin() < tmpGlbEmin) {
-                    tmpGlbEmin = tmpEnergyRecords[1].wgtEmin();
+                if (tmpEnergyRecords[1].Emin() < tmpGlbEmin) {
+                    tmpGlbEmin = tmpEnergyRecords[1].Emin();
                     tmpEqDist = tmpEnergyRecords[1].eqDistance();
                 }
+                
+                for (int i = 0; i < tmpDistances.length; i++) {
+                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                            tmpEnergyRecords[1].distances()[i], 
+                            tmpEnergyRecords[1].wgtEmins()[i]));
+                }
+                
+                //</editor-fold>
+                
+                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                // Determine rotation matrices used to rotate 
+                //   the particle/atom coordinates
+                if (isFibonacciSphereAlgorithm) {
+                    tmpSphereNodeCoord = FibonacciSphere
+                            .getSphereNodes(sphereNodeNumber3);
+                }
+                tmpRotMatrices1 = RotationUtil
+                        .getRotationMatrices1 (tmpSphereNodeCoord, 
+                                new double[] {1., 0., 0.});
+                tmpRotMatrices2 = RotationUtil.
+                        getRotationMatrices2 (tmpSphereNodeCoord,
+                                new double[] {-1.0, 0.0, 0.0}, 
+                                rotationNumber3);
+                
+                // Calculates the rotated atom coordinates 
+                //   using the rotation matrices
+                confNumber1 = sphereNodeNumber3;
+                confNumber2 = sphereNodeNumber3 * rotationNumber3;
+                tmpXyzRotData1 = 
+                        new double[confNumber1][tmpXyzData1.length][3];
+                tmpXyzRotData2 = 
+                        new double[confNumber2][tmpXyzData2.length][3];
 
-                // More precise scan
+                for (int i = 0; i < confNumber1; i++) {
+
+                    for (int j = 0; j < tmpXyzData1.length; j++) {
+                        tmpXyzRotData1[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
+                                        tmpXyzData1[j]);
+                    }
+
+                }
+
+                for (int i = 0; i < confNumber2; i++) {
+
+                    for (int j = 0; j < tmpXyzData2.length; j++) {
+                        tmpXyzRotData2[i][j] = 
+                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
+                                        tmpXyzData2[j]);
+                    }
+
+                }
+                
+                //</editor-fold>
+
+                //<editor-fold defaultstate="collapsed" desc="More precise scan">
                 tmpDistanceList = new LinkedList<>();
                 tmpDistSize = 19;
 
                 for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = tmpEqDist - 0.09 + i * 0.01;
-                    if(!MIPETUTIL
-                            .contains(tmpAllDistances, tmpDistanceCandidate)) {
-                        tmpDistanceList.add(tmpDistanceCandidate);
-                    }
+                    tmpDistanceCandidate = (100 * tmpEqDist - 9 + i) / 100;
+                    tmpDistanceList.add(tmpDistanceCandidate);
                 }
 
                 tmpAllDistances.addAll(tmpDistanceList);
@@ -1186,17 +1288,25 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         tmpGlbEmin);
-                if (tmpEnergyRecords[2].wgtEmin() < tmpGlbEmin) {
-                    tmpGlbEmin = tmpEnergyRecords[2].wgtEmin();
+                if (tmpEnergyRecords[2].Emin() < tmpGlbEmin) {
+                    tmpGlbEmin = tmpEnergyRecords[2].Emin();
                     tmpEqDist = tmpEnergyRecords[2].eqDistance();
                 }
                 
-                //<editor-fold defaultstate="collapsed" desc="Calculate special rotated coordinates">
+                for (int i = 0; i < tmpDistances.length; i++) {
+                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                            tmpEnergyRecords[2].distances()[i], 
+                            tmpEnergyRecords[2].wgtEmins()[i]));
+                }
+                
+                //</editor-fold>
+                
+                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
                 // Determine rotation matrices used to rotate 
                 //   the particle/atom coordinates
                 if (isFibonacciSphereAlgorithm) {
                     tmpSphereNodeCoord = FibonacciSphere
-                            .getSphereNodes(sphereNodeNumber1);
+                            .getSphereNodes(sphereNodeNumber4);
                 }
                 tmpRotMatrices1 = RotationUtil
                         .getRotationMatrices1 (tmpSphereNodeCoord, 
@@ -1204,12 +1314,12 @@ public class MIPET {
                 tmpRotMatrices2 = RotationUtil.
                         getRotationMatrices2 (tmpSphereNodeCoord,
                                 new double[] {-1.0, 0.0, 0.0}, 
-                                rotationNumber1);
+                                rotationNumber4);
                 
                 // Calculates the rotated atom coordinates 
                 //   using the rotation matrices
-                confNumber1 = sphereNodeNumber1;
-                confNumber2 = sphereNodeNumber1 * rotationNumber1;
+                confNumber1 = sphereNodeNumber4;
+                confNumber2 = sphereNodeNumber4 * rotationNumber4;
                 tmpXyzRotData1 = 
                         new double[confNumber1][tmpXyzData1.length][3];
                 tmpXyzRotData2 = 
@@ -1237,7 +1347,9 @@ public class MIPET {
                 
                 //</editor-fold>
                 
-                // Last scan
+                //<editor-fold defaultstate="collapsed" desc="Last scan">
+                tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
+                
                 boolean tmpIsNewMin = false;
                 tmpDistances = new double[1];
                 tmpDistances[0] = tmpEqDist; 
@@ -1248,11 +1360,19 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         tmpGlbEmin);
-                if (tmpEnergyRecords[3].wgtEmin() < tmpGlbEmin) {
+                if (tmpEnergyRecords[3].Emin() < tmpGlbEmin) {
                     tmpIsNewMin = true;
-                    tmpGlbEmin = tmpEnergyRecords[3].wgtEmin();
+                    tmpGlbEmin = tmpEnergyRecords[3].Emin();
                     tmpEqDist = tmpEnergyRecords[3].eqDistance();
                 }
+                
+                for (int i = 0; i < tmpDistances.length; i++) {
+                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                            tmpEnergyRecords[3].distances()[i], 
+                            tmpEnergyRecords[3].wgtEmins()[i]));
+                }
+                
+                //</editor-fold>
                 
                 // Copy distance and minEnergy datas
                 tmpDistSize = tmpAllDistances.size();
@@ -3070,20 +3190,26 @@ public class MIPET {
         tmpDistanceNumber = aDistances.length;
         tmpChunkNumber = cpuCoreNumber;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
-        if (tmpDistanceNumber >= tmpChunkNumber || tmpConfigNumber < 1000) {
-            tmpChunkNumber = 1;
-            tmpChunkSize = tmpConfigNumber;
-        } else {
-            tmpChunkNumber = (int)Math.ceil((double)tmpChunkNumber / 
-                    tmpDistanceNumber);
+        if (tmpDistanceNumber == 1 && tmpConfigNumber > 1000) {
             tmpChunkSize = (int)Math.ceil((double)tmpConfigNumber 
                     / tmpChunkNumber);
-            if(tmpChunkSize % aRotData2.length != 0) {
-                int tmpResidual = Math.floorMod(tmpChunkSize, aRotData2.length);
-                tmpChunkSize += (aRotData2.length - tmpResidual);
-            }
-            if (tmpConfigNumber/tmpChunkSize < cpuCoreNumber) {
-                tmpChunkNumber = tmpConfigNumber/tmpChunkSize;
+        } else {
+            if (tmpDistanceNumber >= tmpChunkNumber || tmpConfigNumber < 1000) {
+                tmpChunkNumber = 1;
+                tmpChunkSize = tmpConfigNumber;
+            } else {
+                tmpChunkNumber = (int)Math.ceil((double)tmpChunkNumber / 
+                        tmpDistanceNumber);
+                tmpChunkSize = (int)Math.ceil((double)tmpConfigNumber 
+                        / tmpChunkNumber);
+                if(tmpChunkSize % aRotData2.length != 0) {
+                    int tmpResidual = Math
+                            .floorMod(tmpChunkSize, aRotData2.length);
+                    tmpChunkSize += (aRotData2.length - tmpResidual);
+                }
+                if (tmpConfigNumber / tmpChunkSize < cpuCoreNumber) {
+                    tmpChunkNumber = tmpConfigNumber / tmpChunkSize;
+                }
             }
         }
         
