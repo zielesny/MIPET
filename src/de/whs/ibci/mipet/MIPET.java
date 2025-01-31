@@ -3170,14 +3170,14 @@ public class MIPET {
         int tmpConfigNumber;
         int tmpChunkNumber;
         int tmpChunkSize;
+        int tmpChunkRemainder;
         int tmpChunkIndex;
-        int tmpPart1StartIndex;
-        int tmpConfigIndex;
-        int tmpRotData1Index;
-        int tmpRotData2Index;
+        int tmpRot2StartIndex;
+        int tmpRot2EndIndex;
         double[][] tmpEnergyDatas;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
+        double[][][] tmpRotPart2;
         String tmpPath;
         String[] tmpCmdList;
         ArrayList<MIPETAnalyze> tmpTaskList;
@@ -3188,34 +3188,21 @@ public class MIPET {
         
         // Calculate chunk size
         tmpDistanceNumber = aDistances.length;
-        tmpChunkNumber = cpuCoreNumber;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
-        if (tmpDistanceNumber == 1 && tmpConfigNumber > 1000) {
-            tmpChunkSize = (int)Math.ceil((double)tmpConfigNumber 
-                    / tmpChunkNumber);
+        if (tmpConfigNumber < 1000) {
+            tmpChunkNumber = 1;
+            tmpChunkSize = tmpConfigNumber;
+            tmpChunkRemainder = 0;
         } else {
-            if (tmpDistanceNumber >= tmpChunkNumber || tmpConfigNumber < 1000) {
-                tmpChunkNumber = 1;
-                tmpChunkSize = tmpConfigNumber;
-            } else {
-                tmpChunkNumber = (int)Math.ceil((double)tmpChunkNumber / 
-                        tmpDistanceNumber);
-                tmpChunkSize = (int)Math.ceil((double)tmpConfigNumber 
-                        / tmpChunkNumber);
-                if(tmpChunkSize % aRotData2.length != 0) {
-                    int tmpResidual = Math
-                            .floorMod(tmpChunkSize, aRotData2.length);
-                    tmpChunkSize += (aRotData2.length - tmpResidual);
-                }
-                if (tmpConfigNumber / tmpChunkSize < cpuCoreNumber) {
-                    tmpChunkNumber = tmpConfigNumber / tmpChunkSize;
-                }
-            }
+            tmpChunkNumber = cpuCoreNumber;
+            tmpChunkSize = (int)Math.ceil(aRotData2.length / tmpChunkNumber);
+            tmpChunkRemainder = aRotData2.length % tmpChunkSize;
         }
-        
+
         // Calculate intermolecular energy using TINKER analyze
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
+        tmpRotData1 = aRotData1;
         tmpEnergyDatas = new double[tmpDistanceNumber][];
         executor = Executors.newFixedThreadPool(cpuCoreNumber);
         tmpTaskList = new ArrayList<>(500);
@@ -3227,46 +3214,37 @@ public class MIPET {
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistances[i]);
             tmpChunkIndex = 0;
-            tmpConfigIndex = 0;
-            tmpRotData1Index = -1;
-            tmpPart1StartIndex = 0;
+            tmpRot2StartIndex = 0;
             
-            while (tmpRotData1Index < aRotData1.length - 1) {
-                tmpRotData1Index++;
-                tmpRotData2Index = -1;
-                
-                while (tmpRotData2Index < aRotData2.length - 1) {
-                    tmpRotData2Index++;
-                    if ((tmpConfigIndex + 1) % tmpChunkSize == 0 
-                            || tmpConfigIndex + 1 == tmpConfigNumber) {
-                        tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, 
-                                tmpTinkerXyz2,
-                                isTinkerOn);
-                        tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
-                        tmpRotData1 = Arrays.copyOfRange(aRotData1, 
-                                tmpPart1StartIndex,
-                                tmpRotData1Index + 1);
-                        tmpCmdList = new String[]{tinkerAnalyze, 
-                            tmpPath + i + "_"+ tmpChunkIndex, "E"};
-                        tmpTaskList.add(new MIPETAnalyze(
-                                tmpTinkerXYZ,
-                                isTinkerOn,
-                                i,
-                                tmpChunkIndex,
-                                tmpAtomNumber,
-                                tmpChunkSize,
-                                minAtomDistance,
-                                tmpRotData1,
-                                tmpRotData2,
-                                scratchDirectory,
-                                tmpCmdList,
-                                molecules));
-                        tmpPart1StartIndex = tmpRotData1Index + 1;
-                        tmpChunkIndex++;
-                    }
-                    tmpConfigIndex++;
-                }
-                
+            while (tmpChunkIndex < tmpChunkNumber) {
+                tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, 
+                        tmpTinkerXyz2,
+                        isTinkerOn);
+                tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
+                tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
+                if (tmpChunkIndex == tmpChunkNumber - 1) {
+                    tmpRot2EndIndex += tmpChunkRemainder;
+                } 
+                tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
+                        tmpRot2StartIndex,
+                        tmpRot2EndIndex);
+                tmpCmdList = new String[]{tinkerAnalyze, 
+                    tmpPath + i + "_"+ tmpChunkIndex, "E"};
+                tmpTaskList.add(new MIPETAnalyze(
+                        tmpTinkerXYZ,
+                        isTinkerOn,
+                        i,
+                        tmpChunkIndex,
+                        tmpAtomNumber,
+                        tmpChunkSize,
+                        minAtomDistance,
+                        tmpRotData1,
+                        tmpRotPart2,
+                        scratchDirectory,
+                        tmpCmdList,
+                        molecules));
+                tmpChunkIndex++;
+                tmpRot2StartIndex = tmpRot2EndIndex;
             }
             
         }
