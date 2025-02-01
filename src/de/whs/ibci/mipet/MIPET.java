@@ -3177,7 +3177,6 @@ public class MIPET {
         double[][] tmpEnergyDatas;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
-        double[][][] tmpRotPart2;
         String tmpPath;
         String[] tmpCmdList;
         ArrayList<MIPETAnalyze> tmpTaskList;
@@ -3225,6 +3224,7 @@ public class MIPET {
                 if (tmpChunkIndex == tmpChunkNumber - 1) {
                     tmpRot2EndIndex += tmpChunkRemainder;
                 } 
+                double[][][] tmpRotPart2;
                 tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
                         tmpRot2StartIndex,
                         tmpRot2EndIndex);
@@ -3236,7 +3236,6 @@ public class MIPET {
                         i,
                         tmpChunkIndex,
                         tmpAtomNumber,
-                        tmpChunkSize,
                         minAtomDistance,
                         tmpRotData1,
                         tmpRotPart2,
@@ -3276,16 +3275,19 @@ public class MIPET {
                 tmpFuture = tmpFutures.get(tmpTaskIndex);
                 try {
                     tmpDistEnergies.addAll(tmpFuture.get());
-                    tmpDistMinEnergy = tmpDistEnergies.get(0);
+                    tmpDistMinEnergy = tmpFuture.get().get(0);
                     if (tmpDistMinEnergy < tmpPartMinEnergy) {
                         tmpPartMinEnergy = tmpDistMinEnergy;
                         tmpDistMinIndex = i;
                         tmpChunkMinIndex = j;
                     }
                     tmpTaskIndex++;
+                    
+                    // Store all energies at same distance to tmpEnergyDatas[i]
                     if (j == tmpChunkNumber - 1) {
                         tmpEnergyDatas[i] = MIPETUTIL
                                 .toPrimitive(tmpDistEnergies);
+                        Arrays.sort(tmpEnergyDatas[i]);
                         tmpDistEnergies.clear();
                     }
                 } catch (InterruptedException | ExecutionException ex) {
@@ -3298,27 +3300,26 @@ public class MIPET {
         }
         
         // Export .xyz file with lowest intermolecular energy
-        String tmpSourceFileName;
-        String tmpExportFileName;
-        Path tmpSource;
-        Path tmpTarget;
-        
-        tmpSourceFileName = scratchDirectory
-                + FILESEPARATOR
-                + aParticlePair
-                + "_"
-                + tmpDistMinIndex
-                + "_"
-                + tmpChunkMinIndex
-                + ".0";
-        tmpExportFileName = scratchDirectory 
-                + FILESEPARATOR 
-                + aParticlePair
-                + ".0";
-        tmpSource = Paths.get(tmpSourceFileName);
-        tmpTarget = Paths.get(tmpExportFileName);
-        
         if (tmpPartMinEnergy < aMinEnergy) {
+            String tmpSourceFileName;
+            String tmpExportFileName;
+            Path tmpSource;
+            Path tmpTarget;
+
+            tmpSourceFileName = scratchDirectory
+                    + FILESEPARATOR
+                    + aParticlePair
+                    + "_"
+                    + tmpDistMinIndex
+                    + "_"
+                    + tmpChunkMinIndex
+                    + ".0";
+            tmpExportFileName = scratchDirectory 
+                    + FILESEPARATOR 
+                    + aParticlePair
+                    + ".0";
+            tmpSource = Paths.get(tmpSourceFileName);
+            tmpTarget = Paths.get(tmpExportFileName);
             try {
                 Files.copy(tmpSource, tmpTarget, 
                         StandardCopyOption.REPLACE_EXISTING);

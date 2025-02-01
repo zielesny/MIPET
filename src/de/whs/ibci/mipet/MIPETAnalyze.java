@@ -84,7 +84,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      */
     private final TinkerXYZ TINKERXYZ;
     private final boolean ISTINKERON;
-    private final int CHUNKSIZE;
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
     private final double[][][] ROTDATA2;
@@ -131,7 +130,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * @param aDistanceIndex
      * @param aChunkIndex
      * @param anAtomNumber
-     * @param aChunkSize
      * @param aScratchDir Scratch directory name
      * @param aMinAtomDistance
      * @param aRotData1 Coordinates of first particle
@@ -145,7 +143,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             int aDistanceIndex,
             int aChunkIndex,
             int anAtomNumber,
-            int aChunkSize,
             double aMinAtomDistance,
             double[][][] aRotData1,
             double[][][] aRotData2,
@@ -155,7 +152,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         this.ISTINKERON = aTinkerOn;
         this.ROTDATA1 = aRotData1;
         this.ROTDATA2 = aRotData2;
-        this.CHUNKSIZE = aChunkSize;
         this.MINATOMDISTANCE = aMinAtomDistance;
         this.TINKERXYZ = aTinkerXYZ;
         this.DISTANCEINDEX = aDistanceIndex;
@@ -175,6 +171,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         boolean tmpIs2Close;
         int tmpRot1Size;
         int tmpRot2Size;
+        int tmpChunkSize;
         int tmpChunkIndex;
         int tmpAtomSize1;
         int tmpAtomSize2;
@@ -214,7 +211,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         
         tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
         tmpFactor = AVOGADRO * J_CAL * tmpChargeQ * COULOMB * 1E7; 
-        tmpEnergyList = new ArrayList<>(this.CHUNKSIZE);
         tmpTinkerXYZ = this.TINKERXYZ;
         tmpTinkerXYZMin = new TinkerXYZ();
         tmpForcefield = tmpTinkerXYZ.getForcefieldName();
@@ -263,6 +259,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         // Save .arc file in scratch directory
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
+        tmpChunkSize = tmpRot1Size * tmpRot2Size;
+        tmpEnergyList = new ArrayList<>(tmpChunkSize);
         tmpChunkIndex = 0;
         tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
@@ -290,11 +288,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                             tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
                                     ISTINKERON);
                             tmpBW.append(tmpTinkerXYZ.getFileContent());
-                        }
+                        } 
                         tmpChunkIndex++;
-                        if (tmpChunkIndex >= this.CHUNKSIZE) {
-                            break;
-                        }
                     }
 
                 }
@@ -415,9 +410,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                         }
                     }
                     tmpChunkIndex++;
-                    if (tmpChunkIndex >= this.CHUNKSIZE) {
-                        break;
-                    }
                 }
 
             }
