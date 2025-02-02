@@ -55,7 +55,6 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Class MIPET
@@ -921,9 +920,9 @@ public class MIPET {
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
-        double[][] tmpDistMinEnergyDatas;
         double tmpEqDist;
         double tmpGlbEmin;
+        double tmpGlbWgtEmin;
         double tmpWgtMinEnergy;
         double tmpDistanceCandidate;
         DecimalFormat decimal2;
@@ -932,7 +931,8 @@ public class MIPET {
         EnergyRecord[] tmpEnergyRecords;
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
-        LinkedList<Distance_EminRecord> tmpDistWgtEmins;
+        LinkedList<Distance_EnergyRecord> tmpDistWgtEmins;
+        LinkedList<Distance_EnergyRecord> tmpDistEmins;
         
         decimal2 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal3 = (DecimalFormat)NumberFormat.getNumberInstance();
@@ -1073,6 +1073,7 @@ public class MIPET {
                 tmpAllDistances = new LinkedList<>();
                 tmpDistanceList = new LinkedList<>();
                 tmpDistWgtEmins = new LinkedList<>();
+                tmpDistEmins = new LinkedList<>();
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {
                     tmpPrmID2 = tmpPrmID1;
@@ -1126,11 +1127,15 @@ public class MIPET {
                         tmpXyzRotData1, 
                         tmpXyzRotData2,
                         1E10);
-                tmpGlbEmin = tmpEnergyRecords[0].Emin();
                 tmpEqDist = tmpEnergyRecords[0].eqDistance();
+                tmpGlbEmin = tmpEnergyRecords[0].Emin();
+                tmpGlbWgtEmin = tmpEnergyRecords[0].wgtEmin();
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                    tmpDistEmins.add(new Distance_EnergyRecord(
+                            tmpEnergyRecords[0].distances()[i], 
+                            tmpEnergyRecords[0].Emins()[i]));
+                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[0].distances()[i], 
                             tmpEnergyRecords[0].wgtEmins()[i]));
                 }
@@ -1207,12 +1212,18 @@ public class MIPET {
                         tmpXyzRotData2,
                         tmpGlbEmin);
                 if (tmpEnergyRecords[1].Emin() < tmpGlbEmin) {
-                    tmpGlbEmin = tmpEnergyRecords[1].Emin();
                     tmpEqDist = tmpEnergyRecords[1].eqDistance();
+                    tmpGlbEmin = tmpEnergyRecords[1].Emin();
+                }
+                if (tmpEnergyRecords[1].wgtEmin() < tmpGlbWgtEmin) {
+                    tmpGlbWgtEmin = tmpEnergyRecords[1].wgtEmin();
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                    tmpDistEmins.add(new Distance_EnergyRecord(
+                            tmpEnergyRecords[1].distances()[i], 
+                            tmpEnergyRecords[1].Emins()[i]));
+                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[1].distances()[i], 
                             tmpEnergyRecords[1].wgtEmins()[i]));
                 }
@@ -1289,12 +1300,18 @@ public class MIPET {
                         tmpXyzRotData2,
                         tmpGlbEmin);
                 if (tmpEnergyRecords[2].Emin() < tmpGlbEmin) {
-                    tmpGlbEmin = tmpEnergyRecords[2].Emin();
                     tmpEqDist = tmpEnergyRecords[2].eqDistance();
+                    tmpGlbEmin = tmpEnergyRecords[2].Emin();
+                }
+                if (tmpEnergyRecords[2].wgtEmin() < tmpGlbWgtEmin) {
+                    tmpGlbWgtEmin = tmpEnergyRecords[2].wgtEmin();
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                    tmpDistEmins.add(new Distance_EnergyRecord(
+                            tmpEnergyRecords[2].distances()[i], 
+                            tmpEnergyRecords[2].Emins()[i]));
+                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[2].distances()[i], 
                             tmpEnergyRecords[2].wgtEmins()[i]));
                 }
@@ -1350,7 +1367,6 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Last scan">
                 tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
                 
-                boolean tmpIsNewMin = false;
                 tmpDistances = new double[1];
                 tmpDistances[0] = tmpEqDist; 
                 tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
@@ -1361,13 +1377,18 @@ public class MIPET {
                         tmpXyzRotData2,
                         tmpGlbEmin);
                 if (tmpEnergyRecords[3].Emin() < tmpGlbEmin) {
-                    tmpIsNewMin = true;
-                    tmpGlbEmin = tmpEnergyRecords[3].Emin();
                     tmpEqDist = tmpEnergyRecords[3].eqDistance();
+                    tmpGlbEmin = tmpEnergyRecords[3].Emin();
+                }
+                if (tmpEnergyRecords[3].wgtEmin() < tmpGlbWgtEmin) {
+                    tmpGlbWgtEmin = tmpEnergyRecords[3].wgtEmin();
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistWgtEmins.add(new Distance_EminRecord(
+                    tmpDistEmins.add(new Distance_EnergyRecord(
+                            tmpEnergyRecords[3].distances()[i], 
+                            tmpEnergyRecords[3].Emins()[i]));
+                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[3].distances()[i], 
                             tmpEnergyRecords[3].wgtEmins()[i]));
                 }
@@ -1375,39 +1396,38 @@ public class MIPET {
                 //</editor-fold>
                 
                 // Copy distance and minEnergy datas
-                tmpDistSize = tmpAllDistances.size();
-                tmpDistMinEnergyDatas = new double[tmpDistSize][3];
-                int tmpIteration;
-                int tmpIndex = 0;
+//                tmpDistSize = tmpAllDistances.size();
+//                tmpDistEmins = new double[tmpDistSize][3];
+//                int tmpIteration;
+//                int tmpIndex = 0;
                 
                
-//                for (int i = 0; i < 3; i++) {
-//                    tmpIteration = tmpEnergyRecords[i].distances().length;
-//
-//                    for (int j = 0; j < tmpIteration; j++) {
-//                        tmpDistMinEnergyDatas[tmpIndex][0] = 
-//                                tmpEnergyRecords[i].distances()[j];
-//                        tmpDistMinEnergyDatas[tmpIndex][1] = 
-//                                tmpEnergyRecords[i].energyDatas()[j][0];
-//                        tmpIndex++;
-//                    }
-//                    
+
+//                for (int j = 0; j < tmpDistSize; j++) {
+//                    tmpDistEmins[tmpIndex][0] = 
+//                            tmpEnergyRecords[i].distances()[j];
+//                    tmpDistEmins[tmpIndex][1] = 
+//                            tmpEnergyRecords[i].Emin();
+//                    tmpDistEmins[tmpIndex][2] = 
+//                            tmpEnergyRecords[i].wgtEmin();
+//                    tmpIndex++;
 //                }
+                    
                 
-                Arrays.sort(tmpDistMinEnergyDatas, 
+                Arrays.sort(tmpDistEmins, 
                         (a, b) -> Double.compare(a[0], b[0]));
                 
                 // Overwrite tmpDistMinEnergyDatas
-                if (tmpIsNewMin) {
-                    tmpIteration = tmpDistMinEnergyDatas.length;
-                
-                    for (int i = 0; i < tmpIteration; i++) {
-                        if (tmpDistMinEnergyDatas[i][0] == tmpEqDist) {
-                            tmpDistMinEnergyDatas[i][1] = tmpGlbEmin;
-                        }
-                    }
-                    
-                }
+//                if (tmpIsNewMin) {
+//                    tmpIteration = tmpDistEmins.length;
+//                
+//                    for (int i = 0; i < tmpIteration; i++) {
+//                        if (tmpDistEmins[i][0] == tmpEqDist) {
+//                            tmpDistEmins[i][1] = tmpGlbEmin;
+//                        }
+//                    }
+//                    
+//                }
                 
                 //</editor-fold>
 
@@ -1638,79 +1658,68 @@ public class MIPET {
                 // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
                 // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
                 // "Boltzmann average" calculation only
-                int tmpFractionToMax;
-                double tmpMinEnergy;
-                double tmpWgt_Opt_MinEnergy;
-                double tmpWgt_Rgd_MinEnergy;
-                double tmpWgt_Opt0_MinEnergy;
-                double[] tmpWeights;
-                double[] tmpEnergyDataFraction;
-                
-                tmpWgt_Opt_MinEnergy = 0.;
-                tmpWgt_Rgd_MinEnergy = 0.;
-                tmpWgt_Opt0_MinEnergy = 0.;
-                tmpMinEnergy = 0.;
-                tmpWgtMinEnergy= 0.;
-
-                for (int i = 0; i < 3; i++) {
-                    switch (i) {
-                        case 0 -> tmpMinEnergy = tmpOptMinEnergy;
-                        case 1 -> tmpMinEnergy = tmpRgdMinEnergy;
-                        case 2 -> tmpMinEnergy = tmpGlbEmin;
-                    }
-                    
-                    tmpWgtMinEnergy= 100.0;
-                    
-                    for (int j = 0; j < tmpDistSize; j++) {
-                        tmpFractionToMax = (int)(tmpEnergySorted[j].length
-                                * boltzmannFraction);
-                        tmpEnergyDataFraction = new double[tmpFractionToMax];
-                        tmpWeights = new double[tmpFractionToMax];
-
-                        for (int k = 0; k < tmpFractionToMax; k++) {
-                            tmpEnergyDataFraction[k] = tmpEnergySorted[j][k];
-                            tmpWeights[k] = Math.exp(-(tmpEnergySorted[j][k] 
-                                    - tmpMinEnergy) 
-                                    / (temperature * GASCONST));
-                        }
-
-                        tmpDistMinEnergyDatas[j][2] = MIPETUTIL
-                                .productSum(tmpWeights, tmpEnergyDataFraction) 
-                                / MIPETUTIL.sum(tmpWeights);
-                        
-                        // Find weight minimum energy
-                        if(tmpDistMinEnergyDatas[j][2] < tmpWgtMinEnergy) {
-                            tmpWgtMinEnergy = tmpDistMinEnergyDatas[j][2];
-                        }
-                    }
-                    
-                    switch (i) {
-                        case 0 -> tmpWgt_Opt_MinEnergy = tmpWgtMinEnergy;
-                        case 1 -> tmpWgt_Rgd_MinEnergy = tmpWgtMinEnergy;
-                        case 2 -> tmpWgt_Opt0_MinEnergy = tmpWgtMinEnergy;
-                    }
-                }
+//                int tmpFractionToMax;
+//                double tmpMinEnergy;
+//                double tmpWgt_Opt_MinEnergy;
+//                double tmpWgt_Rgd_MinEnergy;
+//                double tmpWgt_Opt0_MinEnergy;
+//                double[] tmpWeights;
+//                double[] tmpEnergyDataFraction;
+//                
+//                tmpWgt_Opt_MinEnergy = 0.;
+//                tmpWgt_Rgd_MinEnergy = 0.;
+//                tmpWgt_Opt0_MinEnergy = 0.;
+//                tmpMinEnergy = 0.;
+//                tmpWgtMinEnergy= 0.;
+//
+//                for (int i = 0; i < 3; i++) {
+//                    switch (i) {
+//                        case 0 -> tmpMinEnergy = tmpOptMinEnergy;
+//                        case 1 -> tmpMinEnergy = tmpRgdMinEnergy;
+//                        case 2 -> tmpMinEnergy = tmpGlbEmin;
+//                    }
+//                    
+//                    tmpWgtMinEnergy= 100.0;
+//                    
+//                    for (int j = 0; j < tmpDistSize; j++) {
+//                        tmpFractionToMax = (int)(tmpEnergySorted[j].length
+//                                * boltzmannFraction);
+//                        tmpEnergyDataFraction = new double[tmpFractionToMax];
+//                        tmpWeights = new double[tmpFractionToMax];
+//
+//                        for (int k = 0; k < tmpFractionToMax; k++) {
+//                            tmpEnergyDataFraction[k] = tmpEnergySorted[j][k];
+//                            tmpWeights[k] = Math.exp(-(tmpEnergySorted[j][k] 
+//                                    - tmpMinEnergy) 
+//                                    / (temperature * GASCONST));
+//                        }
+//
+//                        tmpDistEmins[j][2] = MIPETUTIL
+//                                .productSum(tmpWeights, tmpEnergyDataFraction) 
+//                                / MIPETUTIL.sum(tmpWeights);
+//                        
+//                        // Find weight minimum energy
+//                        if(tmpDistEmins[j][2] < tmpWgtMinEnergy) {
+//                            tmpWgtMinEnergy = tmpDistEmins[j][2];
+//                        }
+//                    }
+//                    
+//                    switch (i) {
+//                        case 0 -> tmpWgt_Opt_MinEnergy = tmpWgtMinEnergy;
+//                        case 1 -> tmpWgt_Rgd_MinEnergy = tmpWgtMinEnergy;
+//                        case 2 -> tmpWgt_Opt0_MinEnergy = tmpWgtMinEnergy;
+//                    }
+//                }
                 
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
-                        tmpWgt_Opt_MinEnergy,
-                        tmpWgt_Rgd_MinEnergy,
-                        tmpWgt_Opt0_MinEnergy,
+                        tmpWgtEmin,
                         tmpOptMinEnergy,
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
 
                 //</editor-fold>
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 
                 //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
                 tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
@@ -1725,11 +1734,11 @@ public class MIPET {
                     
                     for (int i = 0; i < tmpDistSize; i++) {
                         tmpBW.append(MIPETUTIL.padLeft(decimal2.format(
-                                tmpDistMinEnergyDatas[i][0]), 8));
+                                tmpDistEmins[i][0]), 8));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistMinEnergyDatas[i][1]), 20));
+                                tmpDistEmins[i][1]), 20));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistMinEnergyDatas[i][2]), 20));
+                                tmpDistEmins[i][2]), 20));
                         tmpBW.append(LINESEPARATOR);
                     }
                     
@@ -3204,7 +3213,7 @@ public class MIPET {
         tmpRotData1 = aRotData1;
         tmpEnergyDatas = new double[tmpDistanceNumber][];
         executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        tmpTaskList = new ArrayList<>(500);
+        tmpTaskList = new ArrayList<>(2000);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair 
@@ -3228,8 +3237,8 @@ public class MIPET {
                 tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
                         tmpRot2StartIndex,
                         tmpRot2EndIndex);
-                tmpCmdList = new String[]{tinkerAnalyze, 
-                    tmpPath + i + "_"+ tmpChunkIndex, "E"};
+                tmpCmdList = new String[]{tinkerAnalyze, tmpPath + i + "_"
+                        + tmpChunkIndex, "E"};
                 tmpTaskList.add(new MIPETAnalyze(
                         tmpTinkerXYZ,
                         isTinkerOn,
@@ -3325,8 +3334,7 @@ public class MIPET {
                         StandardCopyOption.REPLACE_EXISTING);
             } catch(IOException ex) {
                 LOGGER.log(Level.SEVERE,
-                                "IOException during copying .0 file.",
-                                ex);
+                        "IOException during copying .0 file.", ex);
             }
         }
         

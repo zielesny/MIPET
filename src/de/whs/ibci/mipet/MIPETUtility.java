@@ -45,8 +45,6 @@ import java.util.logging.Logger;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
-import org.apache.commons.lang3.StringUtils;
-import org.openscience.cdk.silent.Atom;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -907,19 +905,6 @@ public class MIPETUtility{
         tmpReturn += tmpVdW1 + tmpVdW2;
         return tmpReturn;
     }
-    
-    
-    
-    public int getNeighborMoleculeNumber(double aDiameter1, double aDiameter2) {
-        
-        
-        
-        return 0;
-    }
-    
-    
-    
-    
     
     /**
      * Write the last part of .arc file to .xyz file

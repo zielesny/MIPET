@@ -24,7 +24,7 @@ package de.whs.ibci.mipet;
  * 
  * @author Daniel
  */
-public record Distance_EminRecord(
+public record Distance_EnergyRecord(
         double distance,
-        double wgtEmin) {
+        double wgtEnergy) {
 }
