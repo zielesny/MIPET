@@ -569,13 +569,7 @@ public class MIPET {
      * @param args
      */
     public static void main(String[] args) {
-        // Please set Your IDE output to UTF-8, otherwise it will cause issue due to symbol like Angstrom
         //<editor-fold defaultstate="collapsed" desc="Variables declaration">
-        ArrayList<String> tmpParticlePairs = new ArrayList<>(500);
-        ArrayList<JobTaskRecord> tmpJobTaskRecordList = new ArrayList<>(500);
-        List<double[]> tmpSphereNodeCoord;
-        List<double[][]> tmpRotMatrices1;
-        List<double[][]> tmpRotMatrices2;
         boolean tmpIsExitCondition;
         boolean tmpIsSameParticle;
         boolean tmpHasEnergieJob;
@@ -587,26 +581,27 @@ public class MIPET {
         String tmpKeyPathName;
         String tmpIEResultDirName;
         String tmpCNResultDirName;
-        String tmpParticleLogFileName;
         String tmpParticleDatFileName;
-        Path tmpParticleLogFile;
         Path tmpParticleDatFile;
         String tmpParticleName1;
         String tmpParticleName2;
-        String[] tmpElementList1;
-        String[] tmpElementList2;
-        TinkerXYZ tmpTinkerXYZ1;
-        TinkerXYZ tmpTinkerXYZ2;
-        Process tmpProcess;
-        ProcessBuilder tmpPB;
-        String[] tmpCmdList;
-        ArrayIndexComparator tmpComparator;
         double[][] tmpXyzData1; // coordination of 1. fragment atoms
         double[][] tmpXyzData2; // coordination of 2. fragment atoms
         double[] tmpCentre1;
         double[] tmpCentre2;
         double[][][] tmpXyzRotData1; // i: configuration, j: atom, k: xyz
         double[][][] tmpXyzRotData2; // i: configuration, j: atom, k: xyz
+        String[] tmpElementList1;
+        String[] tmpElementList2;
+        String[] tmpCmdList;
+        TinkerXYZ tmpTinkerXYZ1;
+        TinkerXYZ tmpTinkerXYZ2;
+        Process tmpProcess;
+        ProcessBuilder tmpPB;
+        ArrayIndexComparator tmpComparator;
+        ArrayList<String> tmpParticlePairs = new ArrayList<>(500);
+        ArrayList<JobTaskRecord> tmpJobTaskRecordList = new ArrayList<>(500);
+        List<double[]> tmpSphereNodeCoord;
 
         //</editor-fold>
         
@@ -721,10 +716,6 @@ public class MIPET {
             tmpSphereNodeCoord = RotationUtil
                     .readSphereNodes (tmpFileNameSphereNode);
         }
-        tmpRotMatrices1 = RotationUtil.getRotationMatrices1 (tmpSphereNodeCoord, 
-                        new double[] {1., 0., 0.});
-        tmpRotMatrices2 = RotationUtil.getRotationMatrices2 (tmpSphereNodeCoord, 
-                        new double[] {-1., 0., 0.}, rotationNumber1);
         try {
             BFGblLog.append ("Time for calculation of rotation matrices: " 
                 + (System.currentTimeMillis() - tmpRotCalcTime)
@@ -923,7 +914,6 @@ public class MIPET {
         double tmpEqDist;
         double tmpGlbEmin;
         double tmpGlbWgtEmin;
-        double tmpWgtMinEnergy;
         double tmpDistanceCandidate;
         DecimalFormat decimal2;
         DecimalFormat decimal3;
@@ -932,7 +922,7 @@ public class MIPET {
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
         LinkedList<Distance_EnergyRecord> tmpDistWgtEmins;
-        LinkedList<Distance_EnergyRecord> tmpDistEmins;
+        LinkedList<Distance_EnergyRecord> tmpDistEminRecords;
         
         decimal2 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal3 = (DecimalFormat)NumberFormat.getNumberInstance();
@@ -975,24 +965,12 @@ public class MIPET {
                 //</editor-fold>
             
                 //<editor-fold defaultstate="collapsed" desc="Create log file">
-                tmpParticleLogFileName = tmpIEResultDirName
-                        + FILESEPARATOR
-                        + tmpParticlePair 
-                        + "_log.txt";
                 tmpParticleDatFileName = tmpIEResultDirName
                         + FILESEPARATOR
                         + tmpParticlePair
                         + ".dat";
-                tmpParticleLogFile = Paths.get(tmpParticleLogFileName);
                 tmpParticleDatFile = Paths.get(tmpParticleDatFileName);
                 try {
-                    BWParticleLog = new BufferedWriter(
-                            new FileWriter(tmpParticleLogFileName));
-                    if (!Files.exists(tmpParticleLogFile)) {
-                        Files.createFile(tmpParticleLogFile);
-                    } else {
-                        BWParticleLog.append(LINESEPARATOR);
-                    }
                     if (!Files.exists(tmpParticleDatFile)) {
                         Files.createFile(tmpParticleDatFile);
                     }
@@ -1031,40 +1009,21 @@ public class MIPET {
                         .moveCoordinates(tmpXyzData2, tmpCentre2);
 
                 //</editor-fold>
+                
+                //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                // Calculates the rotated atom coordinates 
-                //   using the rotation matrices
-                confNumber1 = sphereNodeNumber1;
-                confNumber2 = sphereNodeNumber1 * rotationNumber1;
-                tmpXyzRotData1 = 
-                        new double[confNumber1][tmpXyzData1.length][3];
-                tmpXyzRotData2 = 
-                        new double[confNumber2][tmpXyzData2.length][3];
+                tmpXyzRotData1 = RotationUtil
+                        .getRotationsCoords1(sphereNodeNumber1, 
+                                tmpXyzData1, 
+                                tmpSphereNodeCoord);
+                tmpXyzRotData2 = RotationUtil
+                        .getRotationsCoords2(sphereNodeNumber1, 
+                                rotationNumber1,
+                                tmpXyzData2, 
+                                tmpSphereNodeCoord);
 
-                for (int i = 0; i < confNumber1; i++) {
-
-                    for (int j = 0; j < tmpXyzData1.length; j++) {
-                        tmpXyzRotData1[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
-                                        tmpXyzData1[j]);
-                    }
-
-                }
-
-                for (int i = 0; i < confNumber2; i++) {
-
-                    for (int j = 0; j < tmpXyzData2.length; j++) {
-                        tmpXyzRotData2[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
-                                        tmpXyzData2[j]);
-                    }
-
-                }
-                
                 //</editor-fold>
-
-                //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
 
                 //<editor-fold defaultstate="collapsed" desc="Prescan">
                 tmpEnergyCalcTime = System.currentTimeMillis();
@@ -1073,7 +1032,7 @@ public class MIPET {
                 tmpAllDistances = new LinkedList<>();
                 tmpDistanceList = new LinkedList<>();
                 tmpDistWgtEmins = new LinkedList<>();
-                tmpDistEmins = new LinkedList<>();
+                tmpDistEminRecords = new LinkedList<>();
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {
                     tmpPrmID2 = tmpPrmID1;
@@ -1132,59 +1091,24 @@ public class MIPET {
                 tmpGlbWgtEmin = tmpEnergyRecords[0].wgtEmin();
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEmins.add(new Distance_EnergyRecord(
+                    tmpDistEminRecords.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[0].distances()[i], 
-                            tmpEnergyRecords[0].Emins()[i]));
-                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[0].distances()[i], 
+                            tmpEnergyRecords[0].Emins()[i],
                             tmpEnergyRecords[0].wgtEmins()[i]));
                 }
                 
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                // Determine rotation matrices used to rotate 
-                //   the particle/atom coordinates
-                if (isFibonacciSphereAlgorithm) {
-                    tmpSphereNodeCoord = FibonacciSphere
-                            .getSphereNodes(sphereNodeNumber2);
-                }
-                tmpRotMatrices1 = RotationUtil
-                        .getRotationMatrices1 (tmpSphereNodeCoord, 
-                                new double[] {1., 0., 0.});
-                tmpRotMatrices2 = RotationUtil.
-                        getRotationMatrices2 (tmpSphereNodeCoord,
-                                new double[] {-1.0, 0.0, 0.0}, 
-                                rotationNumber2);
-                
-                // Calculates the rotated atom coordinates 
-                //   using the rotation matrices
-                confNumber1 = sphereNodeNumber2;
-                confNumber2 = sphereNodeNumber2 * rotationNumber2;
-                tmpXyzRotData1 = 
-                        new double[confNumber1][tmpXyzData1.length][3];
-                tmpXyzRotData2 = 
-                        new double[confNumber2][tmpXyzData2.length][3];
-
-                for (int i = 0; i < confNumber1; i++) {
-
-                    for (int j = 0; j < tmpXyzData1.length; j++) {
-                        tmpXyzRotData1[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
-                                        tmpXyzData1[j]);
-                    }
-
-                }
-
-                for (int i = 0; i < confNumber2; i++) {
-
-                    for (int j = 0; j < tmpXyzData2.length; j++) {
-                        tmpXyzRotData2[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
-                                        tmpXyzData2[j]);
-                    }
-
-                }
+                tmpXyzRotData1 = RotationUtil
+                        .getRotationsCoords1(sphereNodeNumber2, 
+                                tmpXyzData1, 
+                                tmpSphereNodeCoord);
+                tmpXyzRotData2 = RotationUtil
+                        .getRotationsCoords2(sphereNodeNumber2, 
+                                rotationNumber2,
+                                tmpXyzData2, 
+                                tmpSphereNodeCoord);
                 
                 //</editor-fold>
 
@@ -1220,59 +1144,24 @@ public class MIPET {
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEmins.add(new Distance_EnergyRecord(
+                    tmpDistEminRecords.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[1].distances()[i], 
-                            tmpEnergyRecords[1].Emins()[i]));
-                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[1].distances()[i], 
+                            tmpEnergyRecords[1].Emins()[i],
                             tmpEnergyRecords[1].wgtEmins()[i]));
                 }
                 
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                // Determine rotation matrices used to rotate 
-                //   the particle/atom coordinates
-                if (isFibonacciSphereAlgorithm) {
-                    tmpSphereNodeCoord = FibonacciSphere
-                            .getSphereNodes(sphereNodeNumber3);
-                }
-                tmpRotMatrices1 = RotationUtil
-                        .getRotationMatrices1 (tmpSphereNodeCoord, 
-                                new double[] {1., 0., 0.});
-                tmpRotMatrices2 = RotationUtil.
-                        getRotationMatrices2 (tmpSphereNodeCoord,
-                                new double[] {-1.0, 0.0, 0.0}, 
-                                rotationNumber3);
-                
-                // Calculates the rotated atom coordinates 
-                //   using the rotation matrices
-                confNumber1 = sphereNodeNumber3;
-                confNumber2 = sphereNodeNumber3 * rotationNumber3;
-                tmpXyzRotData1 = 
-                        new double[confNumber1][tmpXyzData1.length][3];
-                tmpXyzRotData2 = 
-                        new double[confNumber2][tmpXyzData2.length][3];
-
-                for (int i = 0; i < confNumber1; i++) {
-
-                    for (int j = 0; j < tmpXyzData1.length; j++) {
-                        tmpXyzRotData1[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
-                                        tmpXyzData1[j]);
-                    }
-
-                }
-
-                for (int i = 0; i < confNumber2; i++) {
-
-                    for (int j = 0; j < tmpXyzData2.length; j++) {
-                        tmpXyzRotData2[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
-                                        tmpXyzData2[j]);
-                    }
-
-                }
+                tmpXyzRotData1 = RotationUtil
+                        .getRotationsCoords1(sphereNodeNumber3, 
+                                tmpXyzData1, 
+                                tmpSphereNodeCoord);
+                tmpXyzRotData2 = RotationUtil
+                        .getRotationsCoords2(sphereNodeNumber3, 
+                                rotationNumber3,
+                                tmpXyzData2, 
+                                tmpSphereNodeCoord);
                 
                 //</editor-fold>
 
@@ -1308,59 +1197,24 @@ public class MIPET {
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEmins.add(new Distance_EnergyRecord(
+                    tmpDistEminRecords.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[2].distances()[i], 
-                            tmpEnergyRecords[2].Emins()[i]));
-                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[2].distances()[i], 
+                            tmpEnergyRecords[2].Emins()[i],
                             tmpEnergyRecords[2].wgtEmins()[i]));
                 }
                 
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                // Determine rotation matrices used to rotate 
-                //   the particle/atom coordinates
-                if (isFibonacciSphereAlgorithm) {
-                    tmpSphereNodeCoord = FibonacciSphere
-                            .getSphereNodes(sphereNodeNumber4);
-                }
-                tmpRotMatrices1 = RotationUtil
-                        .getRotationMatrices1 (tmpSphereNodeCoord, 
-                                new double[] {1., 0., 0.});
-                tmpRotMatrices2 = RotationUtil.
-                        getRotationMatrices2 (tmpSphereNodeCoord,
-                                new double[] {-1.0, 0.0, 0.0}, 
-                                rotationNumber4);
-                
-                // Calculates the rotated atom coordinates 
-                //   using the rotation matrices
-                confNumber1 = sphereNodeNumber4;
-                confNumber2 = sphereNodeNumber4 * rotationNumber4;
-                tmpXyzRotData1 = 
-                        new double[confNumber1][tmpXyzData1.length][3];
-                tmpXyzRotData2 = 
-                        new double[confNumber2][tmpXyzData2.length][3];
-
-                for (int i = 0; i < confNumber1; i++) {
-
-                    for (int j = 0; j < tmpXyzData1.length; j++) {
-                        tmpXyzRotData1[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices1.get(i),
-                                        tmpXyzData1[j]);
-                    }
-
-                }
-
-                for (int i = 0; i < confNumber2; i++) {
-
-                    for (int j = 0; j < tmpXyzData2.length; j++) {
-                        tmpXyzRotData2[i][j] = 
-                                MatrixUtil.multiply(tmpRotMatrices2.get(i),
-                                        tmpXyzData2[j]);
-                    }
-
-                }
+                tmpXyzRotData1 = RotationUtil
+                        .getRotationsCoords1(sphereNodeNumber4, 
+                                tmpXyzData1, 
+                                tmpSphereNodeCoord);
+                tmpXyzRotData2 = RotationUtil
+                        .getRotationsCoords2(sphereNodeNumber4, 
+                                rotationNumber4,
+                                tmpXyzData2, 
+                                tmpSphereNodeCoord);
                 
                 //</editor-fold>
                 
@@ -1385,11 +1239,9 @@ public class MIPET {
                 }
                 
                 for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEmins.add(new Distance_EnergyRecord(
+                    tmpDistEminRecords.add(new Distance_EnergyRecord(
                             tmpEnergyRecords[3].distances()[i], 
-                            tmpEnergyRecords[3].Emins()[i]));
-                    tmpDistWgtEmins.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[3].distances()[i], 
+                            tmpEnergyRecords[3].Emins()[i],
                             tmpEnergyRecords[3].wgtEmins()[i]));
                 }
                 
@@ -1400,8 +1252,6 @@ public class MIPET {
 //                tmpDistEmins = new double[tmpDistSize][3];
 //                int tmpIteration;
 //                int tmpIndex = 0;
-                
-               
 
 //                for (int j = 0; j < tmpDistSize; j++) {
 //                    tmpDistEmins[tmpIndex][0] = 
@@ -1414,8 +1264,8 @@ public class MIPET {
 //                }
                     
                 
-                Arrays.sort(tmpDistEmins, 
-                        (a, b) -> Double.compare(a[0], b[0]));
+//                Arrays.sort(tmpDistEminRecords, 
+//                        (a, b) -> Double.compare(a[0], b[0]));
                 
                 // Overwrite tmpDistMinEnergyDatas
 //                if (tmpIsNewMin) {
@@ -1435,24 +1285,22 @@ public class MIPET {
                 Double[] tmpDistanceObj;
                 double[][] tmpEnergySorted;
                 Integer[] tmpDistanceIndices;
-
+                
+                tmpDistSize = tmpAllDistances.size();
                 tmpDistanceObj = tmpAllDistances.toArray(Double[]::new);
                 tmpComparator = new ArrayIndexComparator(tmpDistanceObj);
                 tmpDistanceIndices = tmpComparator.createIndexArray();
                 Arrays.sort(tmpDistanceIndices, tmpComparator);
-                tmpEnergySorted = new double[tmpDistSize][];
+                tmpEnergySorted = new double[tmpDistSize][3];
 
-//                for (int i = 0; i < tmpDistSize; i++) {
-//                  tmpIndex = tmpDistanceIndices[i];
-//                  if (tmpIsNewMin && 
-//                          tmpDistMinEnergyDatas[i][0] == tmpEqDist) {
-//                      tmpEnergySorted[i] = tmpEnergyRecords[3].energyDatas()[0];
-//                      Arrays.sort(tmpEnergySorted[i]);
-//                  } else {
-//                      tmpEnergySorted[i] = tmpEnergyDatas[tmpIndex].clone();
-//                  }
-//                  
-//                }
+                for (int i = 0; i < tmpDistSize; i++) {
+                    tmpEnergySorted[i][0] = tmpDistEminRecords
+                            .get(tmpDistanceIndices[i]).distance();
+                    tmpEnergySorted[i][1] = tmpDistEminRecords
+                            .get(tmpDistanceIndices[i]).Emin();
+                    tmpEnergySorted[i][2] = tmpDistEminRecords
+                            .get(tmpDistanceIndices[i]).wgtEmin();
+                }
 
                 //</editor-fold>
 
@@ -1552,6 +1400,7 @@ public class MIPET {
                             + "_"
                             + tmpParticleName2
                             + ".xyz";
+                        int tmpIndex;
                         if (tmpParticleName1.equals("H2O")) {
                             tmpIndex = 1;
                         } else {
@@ -1650,71 +1499,11 @@ public class MIPET {
 
                 //</editor-fold>
                 
-                //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
-                // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
-                // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
-                // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
-                // the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
-                // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
-                // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
-                // "Boltzmann average" calculation only
-//                int tmpFractionToMax;
-//                double tmpMinEnergy;
-//                double tmpWgt_Opt_MinEnergy;
-//                double tmpWgt_Rgd_MinEnergy;
-//                double tmpWgt_Opt0_MinEnergy;
-//                double[] tmpWeights;
-//                double[] tmpEnergyDataFraction;
-//                
-//                tmpWgt_Opt_MinEnergy = 0.;
-//                tmpWgt_Rgd_MinEnergy = 0.;
-//                tmpWgt_Opt0_MinEnergy = 0.;
-//                tmpMinEnergy = 0.;
-//                tmpWgtMinEnergy= 0.;
-//
-//                for (int i = 0; i < 3; i++) {
-//                    switch (i) {
-//                        case 0 -> tmpMinEnergy = tmpOptMinEnergy;
-//                        case 1 -> tmpMinEnergy = tmpRgdMinEnergy;
-//                        case 2 -> tmpMinEnergy = tmpGlbEmin;
-//                    }
-//                    
-//                    tmpWgtMinEnergy= 100.0;
-//                    
-//                    for (int j = 0; j < tmpDistSize; j++) {
-//                        tmpFractionToMax = (int)(tmpEnergySorted[j].length
-//                                * boltzmannFraction);
-//                        tmpEnergyDataFraction = new double[tmpFractionToMax];
-//                        tmpWeights = new double[tmpFractionToMax];
-//
-//                        for (int k = 0; k < tmpFractionToMax; k++) {
-//                            tmpEnergyDataFraction[k] = tmpEnergySorted[j][k];
-//                            tmpWeights[k] = Math.exp(-(tmpEnergySorted[j][k] 
-//                                    - tmpMinEnergy) 
-//                                    / (temperature * GASCONST));
-//                        }
-//
-//                        tmpDistEmins[j][2] = MIPETUTIL
-//                                .productSum(tmpWeights, tmpEnergyDataFraction) 
-//                                / MIPETUTIL.sum(tmpWeights);
-//                        
-//                        // Find weight minimum energy
-//                        if(tmpDistEmins[j][2] < tmpWgtMinEnergy) {
-//                            tmpWgtMinEnergy = tmpDistEmins[j][2];
-//                        }
-//                    }
-//                    
-//                    switch (i) {
-//                        case 0 -> tmpWgt_Opt_MinEnergy = tmpWgtMinEnergy;
-//                        case 1 -> tmpWgt_Rgd_MinEnergy = tmpWgtMinEnergy;
-//                        case 2 -> tmpWgt_Opt0_MinEnergy = tmpWgtMinEnergy;
-//                    }
-//                }
                 
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
-                        tmpWgtEmin,
+                        tmpGlbWgtEmin,
                         tmpOptMinEnergy,
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
@@ -1734,11 +1523,11 @@ public class MIPET {
                     
                     for (int i = 0; i < tmpDistSize; i++) {
                         tmpBW.append(MIPETUTIL.padLeft(decimal2.format(
-                                tmpDistEmins[i][0]), 8));
+                                tmpDistEminRecords.get(i).distance()), 8));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistEmins[i][1]), 20));
+                                tmpDistEminRecords.get(i).Emin()), 20));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistEmins[i][2]), 20));
+                                tmpDistEminRecords.get(i).wgtEmin()), 20));
                         tmpBW.append(LINESEPARATOR);
                     }
                     
@@ -1773,26 +1562,6 @@ public class MIPET {
                 try {
                     BFGblLog.append(tmpParticlePair);
                     BFGblLog.append(LINESEPARATOR);
-                    BWParticleLog.append("*** Eij ***");
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.append("Raw time for determining the intermolecular minimal energy [s]: ");
-                    BWParticleLog.append(Double.toString((System.currentTimeMillis() 
-                                    - tmpEnergyCalcTime) / 1000));
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.append("New particle pair: ");
-                    BWParticleLog.append("Minimum IntermolecularEnergy [kcal/mole] = "); 
-                    BWParticleLog.append(decimal4.format(tmpWgtMinEnergy));
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.append("Fraction of energy values used for the Boltzmann distribution: ");
-                    BWParticleLog.append(Double.toString(boltzmannFraction));
-                    BWParticleLog.append("    ");
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.append(Double.toString(temperature));
-                    BWParticleLog.append("    ");
-                    BWParticleLog.append(decimal4.format(tmpWgtMinEnergy));
-                    BWParticleLog.append("    ");
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.flush();
                     BWParticleDat.append("Force field: " + tmpForcefield);
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Conformational analysis: " + isConformationalAnalysis);
@@ -2028,25 +1797,8 @@ public class MIPET {
                                 + isOptEmin);
                         BWParticleDat.append(LINESEPARATOR);
                     }
-                    BWParticleDat.append("Weighted (Emin = optMin) MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpWgt_Opt_MinEnergy));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         Weighted (Emin = optMin) MinimumIntermolecularEnergy: 
-                                         Weighted differential pair interaction energy with
-                                         Emin = lowest differential pair interaction energy after optimization with tinker's optimize.""");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Weighted (Emin = rgdMin) MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpWgt_Rgd_MinEnergy));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         Weighted (Emin = rgdMin) MinimumIntermolecularEnergy: 
-                                         Weighted differential pair interaction energy with
-                                         Emin = lowest differential pair interaction energy after optimization with tinker's optrigid.""");
-                    BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("Weighted (Emin = glbMin) MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(
-                            tmpWgt_Opt0_MinEnergy));
+                    BWParticleDat.append(decimal4.format(tmpGlbWgtEmin));
                     BWParticleDat.append(LINESEPARATOR);
                     BWParticleDat.append("""
                                          Weighted (Emin = glbMin) MinimumIntermolecularEnergy: 
@@ -4310,18 +4062,14 @@ public class MIPET {
                 tmpParticleName2 = energyList.get(i).particleName2();
                 tmpParticlePair = tmpParticleName1 + "_" + tmpParticleName2;
                 switch (tmpOutputIteration) {
-                    case 0, 6 -> tmpEnergy = energyList.get(i)
-                            .wgt_Opt_MinEnergy();
-                    case 1, 7 -> tmpEnergy = energyList.get(i)
-                            .wgt_Rgd_MinEnergy();
-                    case 2, 8 -> tmpEnergy = energyList.get(i)
-                            .wgt_Opt0_MinEnergy();
-                    case 3, 9 -> tmpEnergy = energyList.get(i)
-                            .wgt0_Opt_MinEnergy();
-                    case 4, 10 -> tmpEnergy = energyList.get(i)
-                            .wgt0_Rgd_MinEnergy();
-                    case 5, 11 -> tmpEnergy = energyList.get(i)
-                            .wgt0_Opt0_MinEnergy();
+                    case 0, 4 -> tmpEnergy = energyList.get(i)
+                            .wgt_Emin();
+                    case 1, 5 -> tmpEnergy = energyList.get(i)
+                            .wgt0_Opt_Emin();
+                    case 2, 6 -> tmpEnergy = energyList.get(i)
+                            .wgt0_Rgd_Emin();
+                    case 3, 7 -> tmpEnergy = energyList.get(i)
+                            .wgt0_Opt0_Emin();
                 }
                 tmpEnergieMap.put(tmpParticlePair, tmpEnergy);
             }

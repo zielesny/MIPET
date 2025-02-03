@@ -177,7 +177,71 @@ public class RotationUtil {
         
         return tmpRotationMatrixList;
     }
+    
+    /**
+     * Get the coordinatates of particle1 after rotations
+     * 
+     * @param aSphereNodeNumber Sphere node number
+     * @param aXyzData Original coordinates of particle1
+     * @param aSphereNodeCoord Node coodinates of particle 1
+     * @return Coordinates of particle1 after rotations
+     */
+    public static double[][][] getRotationsCoords1(int aSphereNodeNumber,
+            double[][] aXyzData, List<double[]> aSphereNodeCoord) {
+        int tmpConfNumber;
+        double[][][] tmpXyzRotData;
+        List<double[][]> tmpRotMatrices;
+        
+        tmpConfNumber = aSphereNodeNumber;
+        tmpXyzRotData = new double[tmpConfNumber][aXyzData.length][3];
+        tmpRotMatrices = RotationUtil.getRotationMatrices1 (aSphereNodeCoord, 
+                new double[] {1., 0., 0.});
+        
+        for (int i = 0; i < tmpConfNumber; i++) {
 
+            for (int j = 0; j < aXyzData.length; j++) {
+                tmpXyzRotData[i][j] = MatrixUtil
+                        .multiply(tmpRotMatrices.get(i), aXyzData[j]);
+            }
+
+        }
+        
+        return tmpXyzRotData;
+    }
+    
+    /**
+     * Get the coordinatates of particle2 after rotations
+     * 
+     * @param aSphereNodeNumber Sphere node number
+     * @param aRotNumber Rotation node number
+     * @param aXyzData Original coordinates of particle1
+     * @param aSphereNodeCoord Node coordinates of particle 2
+     * @return Coordinates of particle2 after rotations
+     */
+    public static double[][][] getRotationsCoords2(int aSphereNodeNumber,
+            int aRotNumber, double[][] aXyzData, 
+            List<double[]> aSphereNodeCoord) {
+        int tmpConfNumber;
+        double[][][] tmpXyzRotData;
+        List<double[][]> tmpRotMatrices;
+        
+        tmpConfNumber = aSphereNodeNumber * aRotNumber;
+        tmpXyzRotData = new double[tmpConfNumber][aXyzData.length][3];
+        tmpRotMatrices = RotationUtil.getRotationMatrices2 (aSphereNodeCoord, 
+                new double[] {-1., 0., 0.}, aRotNumber);
+        
+        for (int i = 0; i < tmpConfNumber; i++) {
+
+            for (int j = 0; j < aXyzData.length; j++) {
+                tmpXyzRotData[i][j] = MatrixUtil
+                        .multiply(tmpRotMatrices.get(i), aXyzData[j]);
+            }
+
+        }
+        
+        return tmpXyzRotData;
+    }
+    
     /**
      * Gets the matrices to perform all necessary rotations. Here, the sphere additionally rotates around the input vector.
      *

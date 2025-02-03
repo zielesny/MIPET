@@ -29,18 +29,18 @@ package de.whs.ibci.mipet;
  *   Name of particle 2
  * @param wgt_Emin
  *   Weighted differential pair interaction energy (Lowest = Lowest energy configuration at same stage)
- * @param wgt0_Opt_MinEnergy
+ * @param wgt0_Opt_Emin
  *   Differential pair interaction energy from optimized configuration
- * @param wgt0_Rgd_MinEnergy
+ * @param wgt0_Rgd_Emin
  *   Differential pair interaction energy from rigid-optimized configuration
- * @param wgt0_Opt0_MinEnergy
+ * @param wgt0_Opt0_Emin
  *   Differential pair interaction energy from lowest energy from all calculated configurations
  */
 public record ResultEnergyRecord(
         String particleName1,    
         String particleName2,
         double wgt_Emin,
-        double wgt0_Opt_MinEnergy,
-        double wgt0_Rgd_MinEnergy,
-        double wgt0_Opt0_MinEnergy) {
+        double wgt0_Opt_Emin,
+        double wgt0_Rgd_Emin,
+        double wgt0_Opt0_Emin) {
 }
