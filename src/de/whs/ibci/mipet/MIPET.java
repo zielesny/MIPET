@@ -733,8 +733,6 @@ public class MIPET {
         
         //</editor-fold>
         
-        //</editor-fold>
-        
         //<editor-fold defaultstate="collapsed" desc="Make Job task record">
         String tmpIEDatFileName;
         String tmpCNDatFileName;
@@ -898,11 +896,7 @@ public class MIPET {
         
         //</editor-fold>
         
-        Path tmpKeyFile;
-        Path tmpOptDistFile;
-        String tmpOutputName;
-        String tmpLine;
-        String tmpKeyContent;
+        //<editor-fold defaultstate="collapsed" desc="Variable declarations">
         byte tmpH2OPos;
         int tmpXyz1ID;
         int tmpXyz2ID;
@@ -915,6 +909,11 @@ public class MIPET {
         double tmpGlbEmin;
         double tmpGlbWgtEmin;
         double tmpDistanceCandidate;
+        String tmpOutputName;
+        String tmpLine;
+        String tmpKeyContent;
+        Path tmpKeyFile;
+        Path tmpOptDistFile;
         DecimalFormat decimal2;
         DecimalFormat decimal3;
         DecimalFormat decimal4;
@@ -924,6 +923,9 @@ public class MIPET {
         LinkedList<Distance_EnergyRecord> tmpDistWgtEmins;
         LinkedList<Distance_EnergyRecord> tmpDistEminRecords;
         
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Variable initializations">
         decimal2 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal3 = (DecimalFormat)NumberFormat.getNumberInstance();
         decimal4 = (DecimalFormat)NumberFormat.getNumberInstance();
@@ -938,6 +940,8 @@ public class MIPET {
                 + LINESEPARATOR;
         tmpForcefield = forcefield_IE;
         System.out.println("Calculating intermolecular energy...");
+        
+        //</editor-fold>
         
         while (tmpIsExitCondition == false) {
             // Exit condition is true when all particle pair combinations
@@ -1279,8 +1283,6 @@ public class MIPET {
 //                    
 //                }
                 
-                //</editor-fold>
-
                 //<editor-fold defaultstate="collapsed" desc="Sort datas">
                 Double[] tmpDistanceObj;
                 double[][] tmpEnergySorted;
@@ -1499,7 +1501,6 @@ public class MIPET {
 
                 //</editor-fold>
                 
-                
                 energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
@@ -1523,11 +1524,11 @@ public class MIPET {
                     
                     for (int i = 0; i < tmpDistSize; i++) {
                         tmpBW.append(MIPETUTIL.padLeft(decimal2.format(
-                                tmpDistEminRecords.get(i).distance()), 8));
+                                tmpEnergySorted[i][0]), 8));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistEminRecords.get(i).Emin()), 20));
+                                tmpEnergySorted[i][1]), 20));
                         tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpDistEminRecords.get(i).wgtEmin()), 20));
+                                tmpEnergySorted[i][2]), 20));
                         tmpBW.append(LINESEPARATOR);
                     }
                     
@@ -1758,10 +1759,6 @@ public class MIPET {
                 tmpEnergyCalcTime  = (System.currentTimeMillis() 
                         - tmpEnergyCalcTime) / 1000;
                 try {
-                    BWParticleLog.append("Time to calculate minimum intermolecular energy [s]: " 
-                            + tmpEnergyCalcTime);        
-                    BWParticleLog.append(LINESEPARATOR); 
-                    BWParticleLog.close();
                     BWParticleDat.append("SphereNodeNumber1: "
                             + Integer.toString(sphereNodeNumber1)
                             + LINESEPARATOR);
@@ -1970,6 +1967,7 @@ public class MIPET {
         //</editor-fold>
        
     } 
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
@@ -3955,17 +3953,13 @@ public class MIPET {
         int tmpJobLength;
         int tmpOutputIteration;
         // 0: CN = 1, Wgt = true, Opt = true, Rgd = false
-        // 1: CN = 1, Wgt = true, Opt = true, Rgd = true
-        // 2: CN = 1, Wgt = true, Opt = false
-        // 3: CN = 1, Wgt = false, Opt = true, Rgd = false
-        // 4: CN = 1, Wgt = false, Opt = true, Rgd = true
-        // 5: CN = 1, Wgt = false, Opt = false
-        // 6: CN != 1, Wgt = true, Opt = true, Rgd = false
-        // 7: CN != 1, Wgt = true, Opt = true, Rgd = true
-        // 8: CN != 1, Wgt = true, Opt = false
-        // 9: CN != 1, Wgt = false, Opt = true, Rgd = false
-        // 10: CN != 1, Wgt = false, Opt = true, Rgd = true
-        // 11: CN != 1, Wgt = false, Opt = false
+        // 1: CN = 1, Wgt = false, Opt = true, Rgd = false
+        // 2: CN = 1, Wgt = false, Opt = true, Rgd = true
+        // 3: CN = 1, Wgt = false, Opt = false
+        // 4: CN != 1, Wgt = true, Opt = true, Rgd = false
+        // 5: CN != 1, Wgt = false, Opt = true, Rgd = false
+        // 6: CN != 1, Wgt = false, Opt = true, Rgd = true
+        // 7: CN != 1, Wgt = false, Opt = false
         String tmpParticle;
         String tmpResultsDirectory;
         
@@ -4055,7 +4049,7 @@ public class MIPET {
         tmpKeySet = new HashSet<>();
         tmpEnergy = 0.;
         
-        while (tmpOutputIteration <= 11) {
+        while (tmpOutputIteration <= 7) {
             // Read energy data
             for (int i = 0; i < tmpEnergyListLength; i++) {
                 tmpParticleName1 = energyList.get(i).particleName1();
@@ -4133,21 +4127,17 @@ public class MIPET {
                 + "_catchRadius_" 
                 + catchRadius;
             switch (tmpOutputIteration) {
-                case 0 -> tmpFileName += "_CN1_Wgt_Opt.txt";
-                case 1 -> tmpFileName += "_CN1_Wgt_Rgd.txt";
-                case 2 -> tmpFileName += "_CN1_Wgt_Opt0.txt";
-                case 3 -> tmpFileName += "_CN1_Wgt0_Opt.txt";
-                case 4 -> tmpFileName += "_CN1_Wgt0_Rgd.txt";
-                case 5 -> tmpFileName += "_CN1_Wgt0_Opt0.txt";
-                case 6 -> tmpFileName += "_CN_Wgt_Opt.txt";
-                case 7 -> tmpFileName += "_CN_Wgt_Rgd.txt";
-                case 8 -> tmpFileName += "_CN_Wgt_Opt0.txt";
-                case 9 -> tmpFileName += "_CN_Wgt0_Opt.txt";
-                case 10 -> tmpFileName += "_CN_Wgt0_Rgd.txt";
-                case 11 -> tmpFileName += "_CN_Wgt0_Opt0.txt";
+                case 0 -> tmpFileName += "_CN1_Wgt.txt";
+                case 1 -> tmpFileName += "_CN1_Wgt0_Opt.txt";
+                case 2 -> tmpFileName += "_CN1_Wgt0_Rgd.txt";
+                case 3 -> tmpFileName += "_CN1_Wgt0_Opt0.txt";
+                case 4 -> tmpFileName += "_CN_Wgt.txt";
+                case 5 -> tmpFileName += "_CN_Wgt0_Opt.txt";
+                case 6 -> tmpFileName += "_CN_Wgt0_Rgd.txt";
+                case 7 -> tmpFileName += "_CN_Wgt0_Opt0.txt";
             }
             if (!forcefield_CN.isEmpty() ||
-                    (forcefield_CN.isEmpty() && tmpOutputIteration <= 5)) {
+                    (forcefield_CN.isEmpty() && tmpOutputIteration <= 3)) {
                 try (BufferedWriter tmpBW = Files.newBufferedWriter(
                         Paths.get(tmpFileName))) {
                     tmpBW.append("# Particle set for MFSim created by MIPET\n");
@@ -4201,28 +4191,28 @@ public class MIPET {
                     tmpBW.append(Boolean.toString(isConformationalAnalysis));
                     tmpBW.append(LINESEPARATOR);
                     switch (tmpOutputIteration) {
-                        case 0, 1, 2, 6, 7, 8 -> {
+                        case 0, 4 -> {
                             tmpBW.append("# Boltzmann averaging: Yes");
                             tmpBW.append(LINESEPARATOR);}
-                        case 3, 4, 5, 9, 10, 11 -> {
+                        case 1, 2, 3, 5, 6, 7 -> {
                             tmpBW.append("# Boltzmann averaging: No");
                             tmpBW.append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
-                        case 0, 1, 3, 4, 6, 7, 9, 10 -> {
+                        case 1, 6 -> {
                             tmpBW.append("# Optimize sampled E(min) configuration: Yes");
                             tmpBW.append(LINESEPARATOR);}
-                        case 2, 5, 8, 11 -> {
+                        case 0, 2, 3, 4, 5, 7 -> {
                             tmpBW.append("# Optimize sampled E(min) configuration: No");
                             tmpBW.append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
-                        case 1, 4, 7, 10 -> {
+                        case 2, 6 -> {
                             tmpBW.append("# Tinker's 'optrigid' used: Yes");        
                             tmpBW.append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
-                        case 0, 1, 2, 3, 4, 5 -> {
+                        case 0, 1, 2, 3 -> {
                             tmpBW.append("# CN = 1 for all particle pairs");
                             tmpBW.append(LINESEPARATOR);}
                     }
@@ -4276,9 +4266,9 @@ public class MIPET {
                     tmpBW.append("Pair");
                     tmpBW.append(" " + Integer.toString((int)temperature));
                     switch (tmpOutputIteration) {
-                        case 0, 1, 2, 3, 4, 5 -> {
+                        case 0, 1, 2, 3 -> {
                             tmpKeySet = tmpAijMap1.keySet();}
-                        case 6, 7, 8, 9, 10, 11 -> {
+                        case 4, 5, 6, 7 -> {
                             tmpKeySet = tmpAijMap.keySet();}
                     }
 
@@ -4286,9 +4276,9 @@ public class MIPET {
                         tmpBW.append(LINESEPARATOR);
                         tmpBW.append(tmpKey);
                         switch (tmpOutputIteration) {
-                            case 0, 1, 2, 3, 4, 5 -> {
+                            case 0, 1, 2, 3 -> {
                                 tmpAij = tmpAijMap1.get(tmpKey);}
-                            case 6, 7, 8, 9, 10, 11 -> {
+                            case 4, 5, 6, 7 -> {
                                 tmpAij = tmpAijMap.get(tmpKey);}
                         }
                         tmpBW.append(" " +  String.format("%.2f",tmpAij));
@@ -4301,7 +4291,7 @@ public class MIPET {
 
                     // Coordination numbers
                     switch (tmpOutputIteration) {
-                        case 6, 7, 8, 9, 10, 11 -> {
+                        case 4, 5, 6, 7 -> {
                             tmpBW.append("[Coordination numbers]");
                             tmpCNListLength = cnList.size();
 

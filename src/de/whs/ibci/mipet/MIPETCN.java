@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2024  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
