@@ -692,30 +692,6 @@ public class MIPET {
 	   http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
         long tmpRotCalcTime = System.currentTimeMillis();
         
-        
-        
-        // Determine rotation matrices used to rotate 
-        //   the particle/atom coordinates
-        if (isFibonacciSphereAlgorithm) {
-            tmpSphereNodeCoord = FibonacciSphere
-                    .getSphereNodes(sphereNodeNumber1);
-        } else {
-            // Development version
-            String tmpFileNameSphereNode = 
-                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                    + sphereNodeNumber1 + ".txt";
-        
-            // Distribution version
-//          String tmpFileNameSphereNode = 
-//                  "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                  + sphereNodeNumber1 + ".txt";
-            Path tmpNodeFile = Paths.get(tmpFileNameSphereNode);
-            if (!Files.exists(tmpNodeFile)) {
-                LOGGER.log(Level.SEVERE, "No NodeFile found.");
-            } 
-            tmpSphereNodeCoord = RotationUtil
-                    .readSphereNodes (tmpFileNameSphereNode);
-        }
         try {
             BFGblLog.append ("Time for calculation of rotation matrices: " 
                 + (System.currentTimeMillis() - tmpRotCalcTime)
@@ -922,6 +898,7 @@ public class MIPET {
         LinkedList<Double> tmpDistanceList;
         LinkedList<Distance_EnergyRecord> tmpDistWgtEmins;
         LinkedList<Distance_EnergyRecord> tmpDistEminRecords;
+        LinkedList<double[][][]> tmpRotCoords;
         
         //</editor-fold>
         
@@ -1017,16 +994,15 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpXyzRotData1 = RotationUtil
-                        .getRotationsCoords1(sphereNodeNumber1, 
-                                tmpXyzData1, 
-                                tmpSphereNodeCoord);
-                tmpXyzRotData2 = RotationUtil
-                        .getRotationsCoords2(sphereNodeNumber1, 
+                tmpRotCoords = RotationUtil
+                        .getRotationsCoords(sphereNodeNumber1, 
                                 rotationNumber1,
-                                tmpXyzData2, 
-                                tmpSphereNodeCoord);
-
+                                tmpXyzData1, 
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                tmpXyzRotData1 = tmpRotCoords.get(0);
+                tmpXyzRotData2 = tmpRotCoords.get(1);
+                
                 //</editor-fold>
 
                 //<editor-fold defaultstate="collapsed" desc="Prescan">
@@ -1104,15 +1080,14 @@ public class MIPET {
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpXyzRotData1 = RotationUtil
-                        .getRotationsCoords1(sphereNodeNumber2, 
-                                tmpXyzData1, 
-                                tmpSphereNodeCoord);
-                tmpXyzRotData2 = RotationUtil
-                        .getRotationsCoords2(sphereNodeNumber2, 
+                tmpRotCoords = RotationUtil
+                        .getRotationsCoords(sphereNodeNumber2, 
                                 rotationNumber2,
-                                tmpXyzData2, 
-                                tmpSphereNodeCoord);
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                tmpXyzRotData1 = tmpRotCoords.get(0);
+                tmpXyzRotData2 = tmpRotCoords.get(1);
                 
                 //</editor-fold>
 
@@ -1157,15 +1132,14 @@ public class MIPET {
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpXyzRotData1 = RotationUtil
-                        .getRotationsCoords1(sphereNodeNumber3, 
-                                tmpXyzData1, 
-                                tmpSphereNodeCoord);
-                tmpXyzRotData2 = RotationUtil
-                        .getRotationsCoords2(sphereNodeNumber3, 
+                tmpRotCoords = RotationUtil
+                        .getRotationsCoords(sphereNodeNumber3, 
                                 rotationNumber3,
-                                tmpXyzData2, 
-                                tmpSphereNodeCoord);
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                tmpXyzRotData1 = tmpRotCoords.get(0);
+                tmpXyzRotData2 = tmpRotCoords.get(1);
                 
                 //</editor-fold>
 
@@ -1210,15 +1184,12 @@ public class MIPET {
                 //</editor-fold>
                 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpXyzRotData1 = RotationUtil
-                        .getRotationsCoords1(sphereNodeNumber4, 
-                                tmpXyzData1, 
-                                tmpSphereNodeCoord);
-                tmpXyzRotData2 = RotationUtil
-                        .getRotationsCoords2(sphereNodeNumber4, 
+                tmpRotCoords = RotationUtil
+                        .getRotationsCoords(sphereNodeNumber4, 
                                 rotationNumber4,
-                                tmpXyzData2, 
-                                tmpSphereNodeCoord);
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
                 
                 //</editor-fold>
                 
@@ -1250,38 +1221,6 @@ public class MIPET {
                 }
                 
                 //</editor-fold>
-                
-                // Copy distance and minEnergy datas
-//                tmpDistSize = tmpAllDistances.size();
-//                tmpDistEmins = new double[tmpDistSize][3];
-//                int tmpIteration;
-//                int tmpIndex = 0;
-
-//                for (int j = 0; j < tmpDistSize; j++) {
-//                    tmpDistEmins[tmpIndex][0] = 
-//                            tmpEnergyRecords[i].distances()[j];
-//                    tmpDistEmins[tmpIndex][1] = 
-//                            tmpEnergyRecords[i].Emin();
-//                    tmpDistEmins[tmpIndex][2] = 
-//                            tmpEnergyRecords[i].wgtEmin();
-//                    tmpIndex++;
-//                }
-                    
-                
-//                Arrays.sort(tmpDistEminRecords, 
-//                        (a, b) -> Double.compare(a[0], b[0]));
-                
-                // Overwrite tmpDistMinEnergyDatas
-//                if (tmpIsNewMin) {
-//                    tmpIteration = tmpDistEmins.length;
-//                
-//                    for (int i = 0; i < tmpIteration; i++) {
-//                        if (tmpDistEmins[i][0] == tmpEqDist) {
-//                            tmpDistEmins[i][1] = tmpGlbEmin;
-//                        }
-//                    }
-//                    
-//                }
                 
                 //<editor-fold defaultstate="collapsed" desc="Sort datas">
                 Double[] tmpDistanceObj;

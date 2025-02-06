@@ -20,7 +20,6 @@
 package de.whs.ibci.mipet;
 
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Class FibonacciSphere
@@ -38,7 +37,7 @@ public class FibonacciSphere {
      * @return 
      *   xyz-Coordinates of nodes
      */
-    public static List<double[]> getSphereNodes(int aNodeNumber) {
+    public static LinkedList<double[]> getSphereNodes(int aNodeNumber) {
         int tmpNodeNumber = aNodeNumber;
         double tmpPhi; // Golden angle in radians
         double tmpTheta; // Golden angle increment
@@ -46,8 +45,8 @@ public class FibonacciSphere {
         double tmpY; // y-coordinate
         double tmpZ; // z-coordinate
         double tmpRadius; // Radius at tmpY
-        List<double[]> tmpCoordsList = new LinkedList<>();
         double[] tmpCoords;
+        LinkedList<double[]> tmpCoordsList = new LinkedList<>();
         
         tmpPhi = (3.0 - Math.sqrt(5.0)) * Math.PI;
          
