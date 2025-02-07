@@ -685,25 +685,6 @@ public class MIPET {
         
         //</editor-fold>
         
-        //<editor-fold defaultstate="collapsed" desc="Load surface coordinates">
-        /* The coordinates for equidistantly distributed points on a sphere 
-           from Technical University of Dortmund are used, thanks to 
-           J. Fliege and U. Maier
-	   http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
-        long tmpRotCalcTime = System.currentTimeMillis();
-        
-        try {
-            BFGblLog.append ("Time for calculation of rotation matrices: " 
-                + (System.currentTimeMillis() - tmpRotCalcTime)
-                + LINESEPARATOR);
-            BFGblLog.flush();
-        } catch(IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during writing in log file.", ex);
-        }
-        
-        //</editor-fold>
-        
         //<editor-fold defaultstate="collapsed" desc="Prepair input">
         tmpParticlePairs = getParticlePairs();
         

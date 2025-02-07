@@ -186,7 +186,7 @@ public class RotationUtil {
      * Get the coordinatates of particle1 & particle2
      * 
      * @param aSphereNodeNumber Sphere node number
-     * @param aRotNumber
+     * @param aRotNumber Rotation node number
      * @param aXyzData1 Original coordinates of particle1
      * @param aXyzData2 Original coordinates of particle2
      * @param aIsFibonacciSphereAlgorithm
@@ -218,6 +218,13 @@ public class RotationUtil {
             tmpSphereNodeCoord = FibonacciSphere
                     .getSphereNodes(aSphereNodeNumber);
         } else {
+            //<editor-fold defaultstate="collapsed" desc="Load surface coordinates">
+            /* The coordinates for equidistantly distributed points on a sphere 
+                from Technical University of Dortmund are used, thanks to 
+                J. Fliege and U. Maier
+                http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
+        
+            
             // Development version
             String tmpFileNameSphereNode = 
                     "de/whs/ibci/mipet/sphereNodes/SphereNodes"
@@ -233,6 +240,8 @@ public class RotationUtil {
             } 
             tmpSphereNodeCoord = RotationUtil
                     .readSphereNodes (tmpFileNameSphereNode);
+            
+            //</editor-fold>
         }
         tmpRotMatrices1 = RotationUtil.getRotationMatrices1 (tmpSphereNodeCoord, 
                 new double[] {1., 0., 0.});
