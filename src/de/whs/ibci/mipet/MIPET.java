@@ -3041,7 +3041,9 @@ public class MIPET {
 
             for (int j = 0; j < tmpFractionToMax; j++) {
                 tmpEnergyDataFraction[j] = tmpEnergyDatas[i][j];
-                tmpWeights[j] = Math.exp(-(tmpEnergyDatas[i][j] - tmpEmin)
+                
+                // tmpEmin cancel out after factor out
+                tmpWeights[j] = Math.exp(-tmpEnergyDatas[i][j] 
                         / tmpTempGasconst);
             }
 
