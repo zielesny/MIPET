@@ -263,16 +263,6 @@ public class MIPET {
     private static String watermodel;
     
     /**
-     * ConfigurationNumber of particle 1
-     */
-    private static int confNumber1;
-    
-    /**
-     * ConfigurationNumber of particle 2
-     */
-    private static int confNumber2;
-    
-    /**
      * Minimum atom distance to prevent tinker error output
      */
     private static double minAtomDistance;
@@ -601,7 +591,6 @@ public class MIPET {
         ArrayIndexComparator tmpComparator;
         ArrayList<String> tmpParticlePairs = new ArrayList<>(500);
         ArrayList<JobTaskRecord> tmpJobTaskRecordList = new ArrayList<>(500);
-        List<double[]> tmpSphereNodeCoord;
 
         //</editor-fold>
         
@@ -877,7 +866,6 @@ public class MIPET {
         EnergyRecord[] tmpEnergyRecords;
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
-        LinkedList<Distance_EnergyRecord> tmpDistWgtEmins;
         LinkedList<Distance_EnergyRecord> tmpDistEminRecords;
         LinkedList<double[][][]> tmpRotCoords;
         
@@ -992,7 +980,6 @@ public class MIPET {
                         / prescanStepSize) + 1;
                 tmpAllDistances = new LinkedList<>();
                 tmpDistanceList = new LinkedList<>();
-                tmpDistWgtEmins = new LinkedList<>();
                 tmpDistEminRecords = new LinkedList<>();
                 tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
                 if (tmpIsSameParticle) {

@@ -226,14 +226,14 @@ public class RotationUtil {
         
             
             // Development version
-            String tmpFileNameSphereNode = 
-                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                    + aSphereNodeNumber + ".txt";
+//            String tmpFileNameSphereNode = 
+//                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+//                    + aSphereNodeNumber + ".txt";
         
             // Distribution version
-//          String tmpFileNameSphereNode = 
-//                  "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                  + sphereNodeNumber + ".txt";
+          String tmpFileNameSphereNode = 
+                  "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                  + aSphereNodeNumber + ".txt";
             Path tmpNodeFile = Paths.get(tmpFileNameSphereNode);
             if (!Files.exists(tmpNodeFile)) {
                 LOGGER.log(Level.SEVERE, "No NodeFile found.");
