@@ -149,14 +149,14 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             String aScratchDir,
             String[] aCommandList,
             LinkedList<MoleculeRecord> aMolecules) {
-        this.ISTINKERON = aTinkerOn;
-        this.ROTDATA1 = aRotData1;
-        this.ROTDATA2 = aRotData2;
-        this.MINATOMDISTANCE = aMinAtomDistance;
         this.TINKERXYZ = aTinkerXYZ;
+        this.ISTINKERON = aTinkerOn;
         this.DISTANCEINDEX = aDistanceIndex;
         this.CHUNKINDEX = aChunkIndex;
         this.ATOMNUMBER = anAtomNumber;
+        this.MINATOMDISTANCE = aMinAtomDistance;
+        this.ROTDATA1 = aRotData1;
+        this.ROTDATA2 = aRotData2;
         this.SCRATCH_DIR = aScratchDir;
         this.COMMAND_LIST = aCommandList;
         this.MOLECULES = aMolecules;

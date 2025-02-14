@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -127,16 +126,20 @@ public class RotationUtil {
      * @param aRotationAxis Axis to rotate around.
      * @return The rotation matrix.
      */
-    public static double[][] getRotationMatrix(double anAngle, double[] aRotationAxis) {
+    public static double[][] getRotationMatrix(double anAngle, 
+            double[] aRotationAxis) {
         try {
             double[] tmpUnitAxis = VectorUtil.normalizeVector(aRotationAxis);
             double[][] tmpDyadic = VectorUtil.dyadicProduct(tmpUnitAxis);
-            double[][] tmpSkewSymmetricMatrix = VectorUtil.generateSkewSymmetricMatrix(tmpUnitAxis);
+            double[][] tmpSkewSymmetricMatrix = VectorUtil
+                    .generateSkewSymmetricMatrix(tmpUnitAxis);
             return MatrixUtil.add(
-                    (MatrixUtil.multiplyWithScalar(Math.cos(anAngle), MatrixUtil.UNIT_MATRIX_3D)),
-                    (MatrixUtil.multiplyWithScalar((1 - Math.cos(anAngle)), tmpDyadic)),
-                    (MatrixUtil.multiplyWithScalar(Math.sin(anAngle), tmpSkewSymmetricMatrix))
-            );
+                    (MatrixUtil.multiplyWithScalar(Math.cos(anAngle), 
+                            MatrixUtil.UNIT_MATRIX_3D)),
+                    (MatrixUtil.multiplyWithScalar((1 - Math.cos(anAngle)), 
+                            tmpDyadic)),
+                    (MatrixUtil.multiplyWithScalar(Math.sin(anAngle), 
+                            tmpSkewSymmetricMatrix)));
         } catch(IllegalArgumentException anException) {
             RotationUtil.LOGGER.log(Level.SEVERE, "Matrices could not be added.", anException);
             return null;
@@ -154,8 +157,10 @@ public class RotationUtil {
         try {
             double[] tmpUnitVector1 = VectorUtil.normalizeVector(aVector1);
             double[] tmpUnitVector2 = VectorUtil.normalizeVector(aVector2);
-            double tmpAngle = Math.acos(VectorUtil.dotProduct(tmpUnitVector1, tmpUnitVector2)); //Angle between v1 and v2, only for unit vectors!
-            double[] tmpRotationAxis = VectorUtil.crossProduct(aVector1, aVector2); //Axis to rotate around (vector n is perpendicular to v1 and v2)
+            double tmpAngle = Math.acos(VectorUtil.dotProduct(tmpUnitVector1, 
+                    tmpUnitVector2)); //Angle between v1 and v2, only for unit vectors!
+            double[] tmpRotationAxis = VectorUtil
+                    .crossProduct(aVector1, aVector2); //Axis to rotate around (vector n is perpendicular to v1 and v2)
             return RotationUtil.getRotationMatrix(tmpAngle, tmpRotationAxis);
         } catch(IllegalArgumentException anException) {
             RotationUtil.LOGGER.log(Level.SEVERE, "Vectors may not have the same dimension.", anException);
