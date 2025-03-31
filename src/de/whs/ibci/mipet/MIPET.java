@@ -1975,6 +1975,24 @@ public class MIPET {
             throw new IllegalArgumentException("IOException during"
                     + "reading job file.");
         }
+        
+        // <editor-fold defaultstate="collapsed" desc="Read water model">
+        String tmpH2OFileName;
+        
+        tmpH2OFileName = sourceDirectory 
+                + FILESEPARATOR
+                + forcefield_IE
+                + FILESEPARATOR
+                + "H2O.xyz";
+        try (BufferedReader tmpBR = new BufferedReader(
+                new FileReader(tmpH2OFileName))) {
+            tmpLine = tmpBR.readLine();
+            watermodel = tmpLine.trim().split("\\s+")[1];
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("IOException during reading H2O.xyz file.");
+        }
+        
+        // </editor-fold>
     }
     
     /**
