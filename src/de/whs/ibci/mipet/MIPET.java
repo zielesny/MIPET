@@ -770,7 +770,9 @@ public class MIPET {
         //<editor-fold defaultstate="collapsed" desc="Read .xyz and .prm">
         readXyz(true, forcefield_IE);
         readPrm(forcefield_IE);
-        makeMoleculeRecord();
+        if (forcefield_IE.equals("OPLSAALIGPARGEN")) {
+            makeMoleculeRecord();
+        }
         
         //</editor-fold>
         
