@@ -219,12 +219,42 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
         tmpAtomSize1 = tmpTinkerXYZ.getAtomSize1();
         tmpAtomSize2 = tmpTinkerXYZ.getAtomSize2();
-        tmpMoleculeSize = MOLECULES.size();
         tmpID1 = 0;
         tmpID2 = 0;
         tmpMinEnergy = 1E10;
         tmpMinIndex = -1;
         tmpConfigIndex = -1;
+        tmpSigmas1 = null;
+        tmpSigmas2 = null;
+        tmpEpsilons1 = null;
+        tmpEpsilons2 = null;
+        tmpCharges1 = null;
+        tmpCharges2 = null;
+        
+        if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+            tmpMoleculeSize = MOLECULES.size();
+            
+            for (int i = 0; i < tmpMoleculeSize; i++) {
+                if (tmpParticle1.equals(MOLECULES.get(i).name())) {
+                    tmpID1 = i;
+                    break;
+                }
+            }
+        
+            for (int i = 0; i < tmpMoleculeSize; i++) {
+                if (tmpParticle2.equals(MOLECULES.get(i).name())) {
+                    tmpID2 = i;
+                    break;
+                }
+            }
+            
+            tmpSigmas1 = MOLECULES.get(tmpID1).sigmas();
+            tmpSigmas2 = MOLECULES.get(tmpID2).sigmas();
+            tmpEpsilons1 = MOLECULES.get(tmpID1).epsilons();
+            tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
+            tmpCharges1 = MOLECULES.get(tmpID1).charges();
+            tmpCharges2 = MOLECULES.get(tmpID2).charges();
+        } 
         tmpMinFileName = this.SCRATCH_DIR
                     + this.FILESEPARATOR
                     + tmpParticlePair
@@ -233,27 +263,6 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     + "_" 
                     + this.CHUNKINDEX
                     + ".0";
-        
-        for (int i = 0; i < tmpMoleculeSize; i++) {
-            if (tmpParticle1.equals(MOLECULES.get(i).name())) {
-                tmpID1 = i;
-                break;
-            }
-        }
-        
-        for (int i = 0; i < tmpMoleculeSize; i++) {
-            if (tmpParticle2.equals(MOLECULES.get(i).name())) {
-                tmpID2 = i;
-                break;
-            }
-        }
-        
-        tmpSigmas1 = MOLECULES.get(tmpID1).sigmas();
-        tmpSigmas2 = MOLECULES.get(tmpID2).sigmas();
-        tmpEpsilons1 = MOLECULES.get(tmpID1).epsilons();
-        tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
-        tmpCharges1 = MOLECULES.get(tmpID1).charges();
-        tmpCharges2 = MOLECULES.get(tmpID2).charges();
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory

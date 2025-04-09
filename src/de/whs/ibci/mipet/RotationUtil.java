@@ -205,6 +205,8 @@ public class RotationUtil {
             boolean aIsFibonacciSphereAlgorithm) {
         int tmpConfNumber1;
         int tmpConfNumber2;
+        int tmpAtomSize1;
+        int tmpAtomSize2;
         double[][][] tmpXyzRotData1;
         double[][][] tmpXyzRotData2;
         LinkedList<double[][]> tmpRotMatrices1;
@@ -212,6 +214,8 @@ public class RotationUtil {
         LinkedList<double[]> tmpSphereNodeCoord;
         LinkedList<double[][][]> tmpResult;
         
+        tmpAtomSize1 = aXyzData1.length;
+        tmpAtomSize2 = aXyzData2.length;
         tmpConfNumber1 = aSphereNodeNumber;
         tmpConfNumber2 = aSphereNodeNumber * aRotNumber;
         tmpXyzRotData1 = new double[tmpConfNumber1][aXyzData1.length][3];
@@ -228,13 +232,13 @@ public class RotationUtil {
                 from Technical University of Dortmund are used, thanks to 
                 J. Fliege and U. Maier
                 http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
-        
-            
+
+
             // Development version
 //            String tmpFileNameSphereNode = 
 //                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
 //                    + aSphereNodeNumber + ".txt";
-        
+
             // Distribution version
           String tmpFileNameSphereNode = 
                   "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
@@ -245,33 +249,46 @@ public class RotationUtil {
             } 
             tmpSphereNodeCoord = RotationUtil
                     .readSphereNodes (tmpFileNameSphereNode);
-            
+
             //</editor-fold>
         }
-        tmpRotMatrices1 = RotationUtil.getRotationMatrices1 (tmpSphereNodeCoord, 
-                new double[] {1., 0., 0.});
-        tmpRotMatrices2 = RotationUtil.getRotationMatrices2 (tmpSphereNodeCoord, 
-                new double[] {-1., 0., 0.}, aRotNumber);
-        
-        for (int i = 0; i < tmpConfNumber1; i++) {
+        if (tmpAtomSize1 == 1) {
+            tmpXyzRotData1 = new double[1][1][];
+            tmpXyzRotData1[0][0] = new double[] {0., 0., 0.};
+        } else {
+            tmpRotMatrices1 = RotationUtil
+                    .getRotationMatrices1 (tmpSphereNodeCoord, 
+                            new double[] {1., 0., 0.});
 
-            for (int j = 0; j < aXyzData1.length; j++) {
-                tmpXyzRotData1[i][j] = MatrixUtil
-                        .multiply(tmpRotMatrices1.get(i), aXyzData1[j]);
-                
+            for (int i = 0; i < tmpConfNumber1; i++) {
+
+                for (int j = 0; j < aXyzData1.length; j++) {
+                    tmpXyzRotData1[i][j] = MatrixUtil
+                            .multiply(tmpRotMatrices1.get(i), aXyzData1[j]);
+
+                }
+
             }
 
         }
-        
-        for (int i = 0; i < tmpConfNumber2; i++) {
-            
-            for (int j = 0; j < aXyzData2.length; j++) {
-                tmpXyzRotData2[i][j] = MatrixUtil
-                        .multiply(tmpRotMatrices2.get(i), aXyzData2[j]);
+        if (tmpAtomSize2 == 1) {
+            tmpXyzRotData2 = new double[1][1][];
+            tmpXyzRotData2[0][0] = new double[] {0., 0., 0.};
+        } else {
+            tmpRotMatrices2 = RotationUtil
+                    .getRotationMatrices2 (tmpSphereNodeCoord, 
+                            new double[] {-1., 0., 0.}, aRotNumber);
+
+            for (int i = 0; i < tmpConfNumber2; i++) {
+
+                for (int j = 0; j < aXyzData2.length; j++) {
+                    tmpXyzRotData2[i][j] = MatrixUtil
+                            .multiply(tmpRotMatrices2.get(i), aXyzData2[j]);
+                }
+
             }
-            
+
         }
-        
         tmpResult = new LinkedList<>();
         tmpResult.add(tmpXyzRotData1);
         tmpResult.add(tmpXyzRotData2);
