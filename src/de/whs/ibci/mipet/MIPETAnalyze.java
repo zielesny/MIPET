@@ -317,8 +317,11 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             tmpPBuilder = new ProcessBuilder();
             tmpPBuilder.redirectErrorStream(true);
             tmpPBuilder.command(this.COMMAND_LIST);
-            tmpSearch = "Intermolecular Energy";
-
+            if (tmpAtomSize1 == 1 && tmpAtomSize2 == 1) {
+                tmpSearch = "Total Potential Energy";
+            } else {
+                tmpSearch = "Intermolecular Energy";
+            }
             try {
                 tmpProcess = tmpPBuilder.start();
                 try (InputStream tmpInStream = tmpProcess.getInputStream();

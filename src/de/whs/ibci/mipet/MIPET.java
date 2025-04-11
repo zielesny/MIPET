@@ -3938,6 +3938,11 @@ public class MIPET {
                 tmpParticleDescriptions.add("-1");
                 LOGGER.log(Level.SEVERE, ex.toString());
             } 
+            if (!tmpParticleName.equals("[Na+]")) {
+                tmpParticleDescriptions.add(String.format("%.4f", 
+                    MIPETUTIL.getVdwVolume(smiles.get(tmpParticleName)) 
+                            * WATERVOLUMERATIO)); // volume [A³]
+            }
             tmpParticleDescriptions.add(String.format("%.4f", 
                     MIPETUTIL.getVdwVolume(smiles.get(tmpParticleName)) 
                             * WATERVOLUMERATIO)); // volume [A³]

@@ -147,16 +147,18 @@ public class MIPETUtility{
         }
         
         double vabcVolume = 0.0;
+        IAtomContainer particle;
         try {
-            IAtomContainer particle =smilesParser.parseSmiles(smilesString);
-            AtomContainerManipulator.
-                    percieveAtomTypesAndConfigureAtoms(particle);
-            vabcVolume = VABCVolume.calculate(particle);
+            if (!smilesString.equals("[Na+]")) {
+                particle =smilesParser.parseSmiles(smilesString);
+                AtomContainerManipulator.
+                        percieveAtomTypesAndConfigureAtoms(particle);
+                vabcVolume = VABCVolume.calculate(particle);
+            }
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE, 
                     "CDKException was thrown.", ex);
         }
-        
         return vabcVolume;
     }
     
