@@ -1026,397 +1026,409 @@ public class MIPET {
                 for (int i = 0; i < tmpDistances.length; i++) {
                     tmpDistances[i] = tmpDistanceList.get(i);
                 }
+                
+                if (tmpParticlePair.equals("Na+_Na+") || 
+                        tmpParticlePair.equals("Ac-_Ac-")) {
+                    // Check whether particle pair is Na+_Na+ or Ac-_Ac-
+                    energyList.add(new ResultEnergyRecord(
+                            tmpParticleName1, 
+                            tmpParticleName2, 
+                            0,
+                            0,
+                            0,
+                            0));
+                } else {
+                    tmpEnergyRecords = new EnergyRecord[4];
+                    tmpEnergyRecords[0] = getInterMolecularEnergy(
+                            tmpParticlePair,
+                            tmpDistances, 
+                            tmpTinkerXYZ1, 
+                            tmpTinkerXYZ2, 
+                            tmpXyzRotData1, 
+                            tmpXyzRotData2,
+                            1E10);
+                    tmpEqDist = tmpEnergyRecords[0].eqDistance();
+                    tmpGlbEmin = tmpEnergyRecords[0].Emin();
+                    tmpGlbWgtEmin = tmpEnergyRecords[0].wgtEmin();
 
-                tmpEnergyRecords = new EnergyRecord[4];
-                tmpEnergyRecords[0] = getInterMolecularEnergy(
-                        tmpParticlePair,
-                        tmpDistances, 
-                        tmpTinkerXYZ1, 
-                        tmpTinkerXYZ2, 
-                        tmpXyzRotData1, 
-                        tmpXyzRotData2,
-                        1E10);
-                tmpEqDist = tmpEnergyRecords[0].eqDistance();
-                tmpGlbEmin = tmpEnergyRecords[0].Emin();
-                tmpGlbWgtEmin = tmpEnergyRecords[0].wgtEmin();
-                
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEminRecords.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[0].distances()[i], 
-                            tmpEnergyRecords[0].Emins()[i],
-                            tmpEnergyRecords[0].wgtEmins()[i]));
-                }
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpRotCoords = RotationUtil
-                        .getRotationsCoords(sphereNodeNumber2, 
-                                rotationNumber2,
-                                tmpXyzData1,
-                                tmpXyzData2,
-                                isFibonacciSphereAlgorithm);
-                tmpXyzRotData1 = tmpRotCoords.get(0);
-                tmpXyzRotData2 = tmpRotCoords.get(1);
-                
-                //</editor-fold>
-
-                //<editor-fold defaultstate="collapsed" desc="Precise scan">
-                tmpDistanceList = new LinkedList<>();
-                tmpDistSize = 9;
-
-                for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = (10 * tmpEqDist - 4 + i) / 10;
-                    tmpDistanceList.add(tmpDistanceCandidate);
-                }
-
-                tmpAllDistances.addAll(tmpDistanceList);
-                tmpDistances = new double[tmpDistanceList.size()];
-
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistances[i] = tmpDistanceList.get(i);
-                }
-
-                tmpEnergyRecords[1] = getInterMolecularEnergy(tmpParticlePair,
-                        tmpDistances, 
-                        tmpTinkerXYZ1, 
-                        tmpTinkerXYZ2, 
-                        tmpXyzRotData1, 
-                        tmpXyzRotData2,
-                        tmpGlbEmin);
-                if (tmpEnergyRecords[1].Emin() < tmpGlbEmin) {
-                    tmpEqDist = tmpEnergyRecords[1].eqDistance();
-                    tmpGlbEmin = tmpEnergyRecords[1].Emin();
-                }
-                if (tmpEnergyRecords[1].wgtEmin() < tmpGlbWgtEmin) {
-                    tmpGlbWgtEmin = tmpEnergyRecords[1].wgtEmin();
-                }
-                
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEminRecords.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[1].distances()[i], 
-                            tmpEnergyRecords[1].Emins()[i],
-                            tmpEnergyRecords[1].wgtEmins()[i]));
-                }
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpRotCoords = RotationUtil
-                        .getRotationsCoords(sphereNodeNumber3, 
-                                rotationNumber3,
-                                tmpXyzData1,
-                                tmpXyzData2,
-                                isFibonacciSphereAlgorithm);
-                tmpXyzRotData1 = tmpRotCoords.get(0);
-                tmpXyzRotData2 = tmpRotCoords.get(1);
-                
-                //</editor-fold>
-
-                //<editor-fold defaultstate="collapsed" desc="More precise scan">
-                tmpDistanceList = new LinkedList<>();
-                tmpDistSize = 19;
-
-                for (int i = 0; i < tmpDistSize; i++) {
-                    tmpDistanceCandidate = (100 * tmpEqDist - 9 + i) / 100;
-                    tmpDistanceList.add(tmpDistanceCandidate);
-                }
-
-                tmpAllDistances.addAll(tmpDistanceList);
-                tmpDistances = new double[tmpDistanceList.size()];
-
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistances[i] = tmpDistanceList.get(i);
-                }
-
-                tmpEnergyRecords[2] = getInterMolecularEnergy(tmpParticlePair,
-                        tmpDistances, 
-                        tmpTinkerXYZ1, 
-                        tmpTinkerXYZ2, 
-                        tmpXyzRotData1, 
-                        tmpXyzRotData2,
-                        tmpGlbEmin);
-                if (tmpEnergyRecords[2].Emin() < tmpGlbEmin) {
-                    tmpEqDist = tmpEnergyRecords[2].eqDistance();
-                    tmpGlbEmin = tmpEnergyRecords[2].Emin();
-                }
-                if (tmpEnergyRecords[2].wgtEmin() < tmpGlbWgtEmin) {
-                    tmpGlbWgtEmin = tmpEnergyRecords[2].wgtEmin();
-                }
-                
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEminRecords.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[2].distances()[i], 
-                            tmpEnergyRecords[2].Emins()[i],
-                            tmpEnergyRecords[2].wgtEmins()[i]));
-                }
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpRotCoords = RotationUtil
-                        .getRotationsCoords(sphereNodeNumber4, 
-                                rotationNumber4,
-                                tmpXyzData1,
-                                tmpXyzData2,
-                                isFibonacciSphereAlgorithm);
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Last scan">
-                tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
-                
-                tmpDistances = new double[1];
-                tmpDistances[0] = tmpEqDist; 
-                tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
-                        tmpDistances, 
-                        tmpTinkerXYZ1, 
-                        tmpTinkerXYZ2, 
-                        tmpXyzRotData1, 
-                        tmpXyzRotData2,
-                        tmpGlbEmin);
-                if (tmpEnergyRecords[3].Emin() < tmpGlbEmin) {
-                    tmpEqDist = tmpEnergyRecords[3].eqDistance();
-                    tmpGlbEmin = tmpEnergyRecords[3].Emin();
-                }
-                if (tmpEnergyRecords[3].wgtEmin() < tmpGlbWgtEmin) {
-                    tmpGlbWgtEmin = tmpEnergyRecords[3].wgtEmin();
-                }
-                
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistEminRecords.add(new Distance_EnergyRecord(
-                            tmpEnergyRecords[3].distances()[i], 
-                            tmpEnergyRecords[3].Emins()[i],
-                            tmpEnergyRecords[3].wgtEmins()[i]));
-                }
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Sort datas">
-                Double[] tmpDistanceObj;
-                double[][] tmpEnergySorted;
-                Integer[] tmpDistanceIndices;
-                
-                tmpDistSize = tmpAllDistances.size();
-                tmpDistanceObj = tmpAllDistances.toArray(Double[]::new);
-                tmpComparator = new ArrayIndexComparator(tmpDistanceObj);
-                tmpDistanceIndices = tmpComparator.createIndexArray();
-                Arrays.sort(tmpDistanceIndices, tmpComparator);
-                tmpEnergySorted = new double[tmpDistSize][3];
-
-                for (int i = 0; i < tmpDistSize; i++) {
-                    tmpEnergySorted[i][0] = tmpDistEminRecords
-                            .get(tmpDistanceIndices[i]).distance();
-                    tmpEnergySorted[i][1] = tmpDistEminRecords
-                            .get(tmpDistanceIndices[i]).Emin();
-                    tmpEnergySorted[i][2] = tmpDistEminRecords
-                            .get(tmpDistanceIndices[i]).wgtEmin();
-                }
-
-                //</editor-fold>
-
-                //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
-                // Delete old .key file and make new one
-                tmpKeyFile = Paths.get(scratchDirectory 
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + ".key");
-                try {
-                    Files.deleteIfExists(tmpKeyFile);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during deleting .key file in scratch.",
-                            ex);
-                }
-                
-                // Determining opt. Emin
-                double tmpOptMinEnergy;
-                double tmpRgdMinEnergy;
-                File tmpOptFile;
-                
-                tmpOptMinEnergy = 0.0;
-                tmpRgdMinEnergy = 0.0;
-                tmpKeyFileName = tmpParticlePair + ".key";
-                tmpKeyPathName = scratchDirectory 
-                        + FILESEPARATOR 
-                        + tmpKeyFileName;
-                tmpKeyContent = tmpKeyFileString;
-                if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
-                    tmpKeyContent += prmContent1[tmpPrmID1];
-                    if (!tmpIsSameParticle) {
-                        tmpKeyContent += prmContent2[tmpPrmID2];
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistEminRecords.add(new Distance_EnergyRecord(
+                                tmpEnergyRecords[0].distances()[i], 
+                                tmpEnergyRecords[0].Emins()[i],
+                                tmpEnergyRecords[0].wgtEmins()[i]));
                     }
-                }
-                MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
-                
-                for (int i = 0; i < 2; i++) {
-                    if (i == 0) {
-                        tmpCmdList = new String[] {tinkerOptimize, 
-                            scratchDirectory 
-                            + FILESEPARATOR 
-                            + tmpParticlePair
-                            + ".0",        
-                            Double.toString(optimizeRmsGradient)};
-                    } else {
-                        tmpCmdList = new String[] {tinkerOptrigid, 
-                            scratchDirectory 
-                            + FILESEPARATOR 
-                            + tmpParticlePair
-                            + ".0",
-                            Double.toString(optimizeRmsGradient)};
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                    tmpRotCoords = RotationUtil
+                            .getRotationsCoords(sphereNodeNumber2, 
+                                    rotationNumber2,
+                                    tmpXyzData1,
+                                    tmpXyzData2,
+                                    isFibonacciSphereAlgorithm);
+                    tmpXyzRotData1 = tmpRotCoords.get(0);
+                    tmpXyzRotData2 = tmpRotCoords.get(1);
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Precise scan">
+                    tmpDistanceList = new LinkedList<>();
+                    tmpDistSize = 9;
+
+                    for (int i = 0; i < tmpDistSize; i++) {
+                        tmpDistanceCandidate = (10 * tmpEqDist - 4 + i) / 10;
+                        tmpDistanceList.add(tmpDistanceCandidate);
                     }
-                    
-                    // Start optimize
-                    tmpAtomSize1 =tmpTinkerXYZ1.getAtomSize1();
-                    tmpProcess = null;
-                    tmpPB = new ProcessBuilder();
-                    tmpPB.redirectErrorStream(true);
-                    tmpPB.command(tmpCmdList);
+
+                    tmpAllDistances.addAll(tmpDistanceList);
+                    tmpDistances = new double[tmpDistanceList.size()];
+
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistances[i] = tmpDistanceList.get(i);
+                    }
+
+                    tmpEnergyRecords[1] = getInterMolecularEnergy(tmpParticlePair,
+                            tmpDistances, 
+                            tmpTinkerXYZ1, 
+                            tmpTinkerXYZ2, 
+                            tmpXyzRotData1, 
+                            tmpXyzRotData2,
+                            tmpGlbEmin);
+                    if (tmpEnergyRecords[1].Emin() < tmpGlbEmin) {
+                        tmpEqDist = tmpEnergyRecords[1].eqDistance();
+                        tmpGlbEmin = tmpEnergyRecords[1].Emin();
+                    }
+                    if (tmpEnergyRecords[1].wgtEmin() < tmpGlbWgtEmin) {
+                        tmpGlbWgtEmin = tmpEnergyRecords[1].wgtEmin();
+                    }
+
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistEminRecords.add(new Distance_EnergyRecord(
+                                tmpEnergyRecords[1].distances()[i], 
+                                tmpEnergyRecords[1].Emins()[i],
+                                tmpEnergyRecords[1].wgtEmins()[i]));
+                    }
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                    tmpRotCoords = RotationUtil
+                            .getRotationsCoords(sphereNodeNumber3, 
+                                    rotationNumber3,
+                                    tmpXyzData1,
+                                    tmpXyzData2,
+                                    isFibonacciSphereAlgorithm);
+                    tmpXyzRotData1 = tmpRotCoords.get(0);
+                    tmpXyzRotData2 = tmpRotCoords.get(1);
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="More precise scan">
+                    tmpDistanceList = new LinkedList<>();
+                    tmpDistSize = 19;
+
+                    for (int i = 0; i < tmpDistSize; i++) {
+                        tmpDistanceCandidate = (100 * tmpEqDist - 9 + i) / 100;
+                        tmpDistanceList.add(tmpDistanceCandidate);
+                    }
+
+                    tmpAllDistances.addAll(tmpDistanceList);
+                    tmpDistances = new double[tmpDistanceList.size()];
+
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistances[i] = tmpDistanceList.get(i);
+                    }
+
+                    tmpEnergyRecords[2] = getInterMolecularEnergy(tmpParticlePair,
+                            tmpDistances, 
+                            tmpTinkerXYZ1, 
+                            tmpTinkerXYZ2, 
+                            tmpXyzRotData1, 
+                            tmpXyzRotData2,
+                            tmpGlbEmin);
+                    if (tmpEnergyRecords[2].Emin() < tmpGlbEmin) {
+                        tmpEqDist = tmpEnergyRecords[2].eqDistance();
+                        tmpGlbEmin = tmpEnergyRecords[2].Emin();
+                    }
+                    if (tmpEnergyRecords[2].wgtEmin() < tmpGlbWgtEmin) {
+                        tmpGlbWgtEmin = tmpEnergyRecords[2].wgtEmin();
+                    }
+
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistEminRecords.add(new Distance_EnergyRecord(
+                                tmpEnergyRecords[2].distances()[i], 
+                                tmpEnergyRecords[2].Emins()[i],
+                                tmpEnergyRecords[2].wgtEmins()[i]));
+                    }
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                    tmpRotCoords = RotationUtil
+                            .getRotationsCoords(sphereNodeNumber4, 
+                                    rotationNumber4,
+                                    tmpXyzData1,
+                                    tmpXyzData2,
+                                    isFibonacciSphereAlgorithm);
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Last scan">
+                    tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
+
+                    tmpDistances = new double[1];
+                    tmpDistances[0] = tmpEqDist; 
+                    tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
+                            tmpDistances, 
+                            tmpTinkerXYZ1, 
+                            tmpTinkerXYZ2, 
+                            tmpXyzRotData1, 
+                            tmpXyzRotData2,
+                            tmpGlbEmin);
+                    if (tmpEnergyRecords[3].Emin() < tmpGlbEmin) {
+                        tmpEqDist = tmpEnergyRecords[3].eqDistance();
+                        tmpGlbEmin = tmpEnergyRecords[3].Emin();
+                    }
+                    if (tmpEnergyRecords[3].wgtEmin() < tmpGlbWgtEmin) {
+                        tmpGlbWgtEmin = tmpEnergyRecords[3].wgtEmin();
+                    }
+
+                    for (int i = 0; i < tmpDistances.length; i++) {
+                        tmpDistEminRecords.add(new Distance_EnergyRecord(
+                                tmpEnergyRecords[3].distances()[i], 
+                                tmpEnergyRecords[3].Emins()[i],
+                                tmpEnergyRecords[3].wgtEmins()[i]));
+                    }
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Sort datas">
+                    Double[] tmpDistanceObj;
+                    double[][] tmpEnergySorted;
+                    Integer[] tmpDistanceIndices;
+
+                    tmpDistSize = tmpAllDistances.size();
+                    tmpDistanceObj = tmpAllDistances.toArray(Double[]::new);
+                    tmpComparator = new ArrayIndexComparator(tmpDistanceObj);
+                    tmpDistanceIndices = tmpComparator.createIndexArray();
+                    Arrays.sort(tmpDistanceIndices, tmpComparator);
+                    tmpEnergySorted = new double[tmpDistSize][3];
+
+                    for (int i = 0; i < tmpDistSize; i++) {
+                        tmpEnergySorted[i][0] = tmpDistEminRecords
+                                .get(tmpDistanceIndices[i]).distance();
+                        tmpEnergySorted[i][1] = tmpDistEminRecords
+                                .get(tmpDistanceIndices[i]).Emin();
+                        tmpEnergySorted[i][2] = tmpDistEminRecords
+                                .get(tmpDistanceIndices[i]).wgtEmin();
+                    }
+
+                    //</editor-fold>
+
+                    //<editor-fold defaultstate="collapsed" desc="Determining opt. Emin">
+                    // Delete old .key file and make new one
+                    tmpKeyFile = Paths.get(scratchDirectory 
+                            + FILESEPARATOR
+                            + tmpParticlePair
+                            + ".key");
                     try {
-                        tmpProcess = tmpPB.start();
+                        Files.deleteIfExists(tmpKeyFile);
                     } catch (IOException ex) {
-                        LOGGER.log(Level.SEVERE, 
-                                "IOException during process starting.",
+                        LOGGER.log(Level.SEVERE,
+                                "IOException during deleting .key file in scratch.",
                                 ex);
                     }
 
-                    // This is necessary because .waitFor() will hang otherwise
-                    if (tmpProcess != null) {
-                        try (BufferedReader tmpBR = new BufferedReader(
-                                new InputStreamReader(tmpProcess
-                                        .getInputStream()))) {
-                            while (tmpBR.readLine() != null ) {}
+                    // Determining opt. Emin
+                    double tmpOptMinEnergy;
+                    double tmpRgdMinEnergy;
+                    File tmpOptFile;
+
+                    tmpOptMinEnergy = 0.0;
+                    tmpRgdMinEnergy = 0.0;
+                    tmpKeyFileName = tmpParticlePair + ".key";
+                    tmpKeyPathName = scratchDirectory 
+                            + FILESEPARATOR 
+                            + tmpKeyFileName;
+                    tmpKeyContent = tmpKeyFileString;
+                    if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+                        tmpKeyContent += prmContent1[tmpPrmID1];
+                        if (!tmpIsSameParticle) {
+                            tmpKeyContent += prmContent2[tmpPrmID2];
+                        }
+                    }
+                    MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
+
+                    for (int i = 0; i < 2; i++) {
+                        if (i == 0) {
+                            tmpCmdList = new String[] {tinkerOptimize, 
+                                scratchDirectory 
+                                + FILESEPARATOR 
+                                + tmpParticlePair
+                                + ".0",        
+                                Double.toString(optimizeRmsGradient)};
+                        } else {
+                            tmpCmdList = new String[] {tinkerOptrigid, 
+                                scratchDirectory 
+                                + FILESEPARATOR 
+                                + tmpParticlePair
+                                + ".0",
+                                Double.toString(optimizeRmsGradient)};
+                        }
+
+                        // Start optimize
+                        tmpAtomSize1 =tmpTinkerXYZ1.getAtomSize1();
+                        tmpProcess = null;
+                        tmpPB = new ProcessBuilder();
+                        tmpPB.redirectErrorStream(true);
+                        tmpPB.command(tmpCmdList);
+                        try {
+                            tmpProcess = tmpPB.start();
                         } catch (IOException ex) {
                             LOGGER.log(Level.SEVERE, 
-                                    "IOException during writing .0 file in scratch.",
+                                    "IOException during process starting.",
                                     ex);
                         }
+
+                        // This is necessary because .waitFor() will hang otherwise
+                        if (tmpProcess != null) {
+                            try (BufferedReader tmpBR = new BufferedReader(
+                                    new InputStreamReader(tmpProcess
+                                            .getInputStream()))) {
+                                while (tmpBR.readLine() != null ) {}
+                            } catch (IOException ex) {
+                                LOGGER.log(Level.SEVERE, 
+                                        "IOException during writing .0 file in scratch.",
+                                        ex);
+                            }
+                            try {
+                                tmpProcess.waitFor();
+                            } catch (InterruptedException ex) {
+                                LOGGER.log(Level.SEVERE, 
+                                        "InterruptException during processing optimize.exe",
+                                        ex);
+                            }
+                            tmpProcess.destroy();
+                        }
+
+                        // Fix .xyz file if there is H2O 
+                        //  this is necessary because of a bug in tinker's optimize
+                        if (forcefield_IE.equals("OPLSAALIGPARGEN") 
+                                && tmpH2OPos > 0) {
+                            tmpFileName = scratchDirectory
+                                + FILESEPARATOR
+                                + tmpParticleName1 
+                                + "_"
+                                + tmpParticleName2
+                                + ".xyz";
+                            int tmpIndex;
+                            if (tmpParticleName1.equals("H2O")) {
+                                tmpIndex = 1;
+                            } else {
+                                tmpIndex = tmpAtomSize1 + 1;
+                            }
+                            MIPETUTIL.fixTinkerXYZ_H2O(tmpFileName, tmpIndex);
+                        }
+
+                        // Use tinker's analyze to determine intermolecular energy
+                        tmpProcess = null;
+                        if (i == 0)  {
+                            tmpOutputName = scratchDirectory
+                                + FILESEPARATOR
+                                + "output0_opt.txt";
+                        } else {
+                            tmpOutputName = scratchDirectory
+                                + FILESEPARATOR
+                                + "output0_rgd.txt";
+                        }
+                        tmpOptFile = new File(tmpOutputName);
+                        tmpCmdList = new String[] {tinkerAnalyze, 
+                            scratchDirectory
+                            + FILESEPARATOR 
+                            + tmpParticlePair
+                            + ".xyz",
+                            "E"};
+                        tmpPB = new ProcessBuilder();
+                        tmpPB.redirectErrorStream(true);
+                        tmpPB.command(tmpCmdList);
+                        tmpPB.redirectOutput(tmpOptFile);
                         try {
+                            tmpProcess = tmpPB.start();
                             tmpProcess.waitFor();
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "IOException during process start.",
+                                    ex);
                         } catch (InterruptedException ex) {
                             LOGGER.log(Level.SEVERE, 
-                                    "InterruptException during processing optimize.exe",
+                                    "InterruptException during reading output0_opt.txt",
                                     ex);
                         }
                         tmpProcess.destroy();
-                    }
-                    
-                    // Fix .xyz file if there is H2O 
-                    //  this is necessary because of a bug in tinker's optimize
-                    if (forcefield_IE.equals("OPLSAALIGPARGEN") 
-                            && tmpH2OPos > 0) {
-                        tmpFileName = scratchDirectory
-                            + FILESEPARATOR
-                            + tmpParticleName1 
-                            + "_"
-                            + tmpParticleName2
-                            + ".xyz";
-                        int tmpIndex;
-                        if (tmpParticleName1.equals("H2O")) {
-                            tmpIndex = 1;
+                        tmpSourceName = scratchDirectory
+                                + FILESEPARATOR 
+                                + tmpParticlePair
+                                + ".xyz";
+                        if (i == 0) {
+                            tmpTargetName = scratchDirectory
+                                    + FILESEPARATOR 
+                                    + tmpParticlePair
+                                    + "_opt"
+                                    + ".xyz";
                         } else {
-                            tmpIndex = tmpAtomSize1 + 1;
+                            tmpTargetName = scratchDirectory
+                                    + FILESEPARATOR 
+                                    + tmpParticlePair
+                                    + "_rgd"
+                                    + ".xyz";
                         }
-                        MIPETUTIL.fixTinkerXYZ_H2O(tmpFileName, tmpIndex);
-                    }
-                    
-                    // Use tinker's analyze to determine intermolecular energy
-                    tmpProcess = null;
-                    if (i == 0)  {
-                        tmpOutputName = scratchDirectory
-                            + FILESEPARATOR
-                            + "output0_opt.txt";
-                    } else {
-                        tmpOutputName = scratchDirectory
-                            + FILESEPARATOR
-                            + "output0_rgd.txt";
-                    }
-                    tmpOptFile = new File(tmpOutputName);
-                    tmpCmdList = new String[] {tinkerAnalyze, 
-                        scratchDirectory
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + ".xyz",
-                        "E"};
-                    tmpPB = new ProcessBuilder();
-                    tmpPB.redirectErrorStream(true);
-                    tmpPB.command(tmpCmdList);
-                    tmpPB.redirectOutput(tmpOptFile);
-                    try {
-                        tmpProcess = tmpPB.start();
-                        tmpProcess.waitFor();
-                    } catch (IOException ex) {
-                        LOGGER.log(Level.SEVERE, 
-                                "IOException during process start.",
-                                ex);
-                    } catch (InterruptedException ex) {
-                        LOGGER.log(Level.SEVERE, 
-                                "InterruptException during reading output0_opt.txt",
-                                ex);
-                    }
-                    tmpProcess.destroy();
-                    tmpSourceName = scratchDirectory
-                            + FILESEPARATOR 
-                            + tmpParticlePair
-                            + ".xyz";
-                    if (i == 0) {
-                        tmpTargetName = scratchDirectory
-                                + FILESEPARATOR 
-                                + tmpParticlePair
-                                + "_opt"
-                                + ".xyz";
-                    } else {
-                        tmpTargetName = scratchDirectory
-                                + FILESEPARATOR 
-                                + tmpParticlePair
-                                + "_rgd"
-                                + ".xyz";
-                    }
-                    try {
-                        Files.move(Paths.get(tmpSourceName), 
-                                Paths.get(tmpTargetName), 
-                                StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException ex) {
-                        LOGGER.log(Level.SEVERE, 
-                                "IOException renaming .xyz file.", ex);
-                    }
-                    
-                   // Read the intermolecular energies from .txt files
-                    String tmpSearch = "Intermolecular Energy :";
-                    Path tmpPath = Paths.get(tmpOutputName);
+                        try {
+                            Files.move(Paths.get(tmpSourceName), 
+                                    Paths.get(tmpTargetName), 
+                                    StandardCopyOption.REPLACE_EXISTING);
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "IOException renaming .xyz file.", ex);
+                        }
 
-                    try (BufferedReader tmpBR = Files.newBufferedReader(
-                            tmpPath, StandardCharsets.UTF_8)) {
+                       // Read the intermolecular energies from .txt files
+                        String tmpSearch = "Intermolecular Energy :";
+                        Path tmpPath = Paths.get(tmpOutputName);
 
-                        while ((tmpLine = tmpBR.readLine()) != null ) {
-                            if (tmpLine.contains(tmpSearch)) {
-                                if (i == 0) {
-                                    tmpOptMinEnergy = Double.parseDouble(tmpLine
-                                        .substring(25, 50));
-                                } else {
-                                    tmpRgdMinEnergy = Double.parseDouble(tmpLine
-                                        .substring(25, 50));
+                        try (BufferedReader tmpBR = Files.newBufferedReader(
+                                tmpPath, StandardCharsets.UTF_8)) {
+
+                            while ((tmpLine = tmpBR.readLine()) != null ) {
+                                if (tmpLine.contains(tmpSearch)) {
+                                    if (i == 0) {
+                                        tmpOptMinEnergy = Double.parseDouble(tmpLine
+                                            .substring(25, 50));
+                                    } else {
+                                        tmpRgdMinEnergy = Double.parseDouble(tmpLine
+                                            .substring(25, 50));
+                                    }
+                                    break;
                                 }
-                                break;
                             }
+
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                    "IOException during reading output0_opt.txt.",
+                                    ex);
                         }
-
-                    } catch (IOException ex) {
-                        LOGGER.log(Level.SEVERE, 
-                                "IOException during reading output0_opt.txt.",
-                                ex);
                     }
-                }
 
-                //</editor-fold>
-                
-                energyList.add(new ResultEnergyRecord(
+                    //</editor-fold>
+                    
+                    energyList.add(new ResultEnergyRecord(
                         tmpParticleName1, 
                         tmpParticleName2, 
                         tmpGlbWgtEmin,
                         tmpOptMinEnergy,
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
+                }
 
                 //</editor-fold>
                 
