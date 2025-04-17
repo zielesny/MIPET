@@ -1027,6 +1027,8 @@ public class MIPET {
                     tmpDistances[i] = tmpDistanceList.get(i);
                 }
                 
+                //</editor-fold>
+                
                 if (tmpParticlePair.equals("Na+_Na+") || 
                         tmpParticlePair.equals("Ac-_Ac-")) {
                     // Check whether particle pair is Na+_Na+ or Ac-_Ac-
@@ -1057,8 +1059,6 @@ public class MIPET {
                                 tmpEnergyRecords[0].Emins()[i],
                                 tmpEnergyRecords[0].wgtEmins()[i]));
                     }
-
-                    //</editor-fold>
 
                     //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
                     tmpRotCoords = RotationUtil
@@ -1428,348 +1428,350 @@ public class MIPET {
                         tmpOptMinEnergy,
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
-                }
-
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
-                tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
-                        .result_IE_PathName()
-                        + FILESEPARATOR
-                        + tmpParticlePair + "_dist_vs_energy.dat";
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpOutputName))) {
-                    tmpBW.append("distance [" + ANGSTROM 
-                            +"]  Emin(Cmin,r) [kcal/mole] <E>(r) [kcal/mole]" 
-                            + LINESEPARATOR);
                     
-                    for (int i = 0; i < tmpDistSize; i++) {
-                        tmpBW.append(MIPETUTIL.padLeft(decimal2.format(
-                                tmpEnergySorted[i][0]), 8));
-                        tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpEnergySorted[i][1]), 20));
-                        tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
-                                tmpEnergySorted[i][2]), 20));
-                        tmpBW.append(LINESEPARATOR);
-                    }
-                    
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing output0.out in scratch."
-                            , ex);
-                }
-                
-                //</editor-fold>
-                
-                //<editor-fold defaultstate="collapsed" desc="Make dist vs. energy diagram">
-                String tmpEnergyDataPathName = tmpJobTaskRecordList
-                        .get(tmpCurrentIndex).result_IE_PathName()
-                        + FILESEPARATOR
-                        + tmpParticlePair + "_dist_vs_energy.dat";
-                String tmpEnergyGraphicsPrefix = tmpJobTaskRecordList
-                        .get(tmpCurrentIndex).particleName1()
-                        + "_"
-                        + tmpJobTaskRecordList
-                                .get(tmpCurrentIndex).particleName2()
-                        + "_";
-                ChartUtil tmpChartUtil = new ChartUtil();
-                boolean tmpIsOperationSuccessful = 
-                        tmpChartUtil.createEnergyGraphics(
-                                tmpEnergyDataPathName, 
-                                tmpEnergyGraphicsPrefix);
-                
-                //</editor-fold>
+                    //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
+                    tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
+                            .result_IE_PathName()
+                            + FILESEPARATOR
+                            + tmpParticlePair + "_dist_vs_energy.dat";
+                    try (BufferedWriter tmpBW = new BufferedWriter(
+                            new FileWriter(tmpOutputName))) {
+                        tmpBW.append("distance [" + ANGSTROM 
+                                +"]  Emin(Cmin,r) [kcal/mole] <E>(r) [kcal/mole]" 
+                                + LINESEPARATOR);
 
-                //<editor-fold defaultstate="collapsed" desc="Write log file">
-                try {
-                    BFGblLog.append(tmpParticlePair);
-                    BFGblLog.append(LINESEPARATOR);
-                    BWParticleDat.append("Force field: " + tmpForcefield);
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Conformational analysis: " + isConformationalAnalysis);
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("equilibriumDistances [" + ANGSTROM + "] = "); 
-                    BWParticleDat.append(decimal2.format(tmpEqDist));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.flush();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing log file.", ex);
-                }
+                        for (int i = 0; i < tmpDistSize; i++) {
+                            tmpBW.append(MIPETUTIL.padLeft(decimal2.format(
+                                    tmpEnergySorted[i][0]), 8));
+                            tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
+                                    tmpEnergySorted[i][1]), 20));
+                            tmpBW.append(MIPETUTIL.padLeft(decimal3.format( 
+                                    tmpEnergySorted[i][2]), 20));
+                            tmpBW.append(LINESEPARATOR);
+                        }
 
-                //</editor-fold>
-
-                //<editor-fold defaultstate="collapsed" desc="Copy results">
-                boolean tmpHasH2O;
-                Path tmpOriginal;
-                Path tmpTarget;
-                
-                // Write ouput.0 file
-                tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
-                tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
-                try {
-                    Files.copy(tmpOriginal, tmpTarget,
-                        StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during copying output.0", ex);
-                }
-                String tmpOutput0 = "Intermolecular Energy: " 
-                        + tmpEnergyRecords[3].wgtEmin() + " kcal/mol";
-                String tmpTargetDir = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output0.out";        
-                try (BufferedWriter tmpBW = Files.newBufferedWriter(
-                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
-                    tmpBW.append(tmpOutput0);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing output0.out in scratch."
-                            , ex);
-                }
-                
-                // Write output_opt.out
-                tmpOriginal = Paths.get(scratchDirectory, 
-                        tmpParticlePair + "_opt.xyz");
-                tmpTarget = Paths.get(tmpIEResultDirName,"output_opt.0");
-                try {
-                    Files.copy(tmpOriginal, tmpTarget,
-                        StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during copying output.0", ex);
-                }
-                tmpOutput0 = "Intermolecular Energy: " 
-                        + tmpOptMinEnergy + " kcal/mol";
-                tmpTargetDir = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output0_opt.out";        
-                try (BufferedWriter tmpBW = Files.newBufferedWriter(
-                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
-                    tmpBW.append(tmpOutput0);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing output0_opt.out "
-                            + "in scratch.", ex);
-                }
-
-                // Write output_rgd.out
-                tmpOriginal = Paths.get(scratchDirectory, 
-                        tmpParticlePair + "_rgd.xyz");
-                tmpTarget = Paths.get(tmpIEResultDirName,"output_rgd.0");
-                try {
-                    Files.copy(tmpOriginal, tmpTarget,
-                        StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during copying output.0", ex);
-                }
-                tmpOutput0 = "Intermolecular Energy: " 
-                        + tmpRgdMinEnergy + " kcal/mol";
-                tmpTargetDir = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output0_rgd.out";        
-                try (BufferedWriter tmpBW = Files.newBufferedWriter(
-                        Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
-                    tmpBW.append(tmpOutput0);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing output0_rgd.out "
-                            + "in scratch.", ex);
-                }
-                
-                // Generate output.xyz
-                String tmpOutput0FileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output.0";
-                String tmpOptFileName;
-                String tmpRgdFileName;
-                int tmpAtomNumber1 = tmpTinkerXYZ1.getAtomSize1();
-                int tmpAtomNumber2 = tmpTinkerXYZ2.getAtomSize1();
-                tmpElementList1 = tmpTinkerXYZ1.getElementList1();
-                tmpElementList2 = tmpTinkerXYZ2.getElementList1();
-                TinkerXYZ tmpTinkerXyz = new TinkerXYZ(tmpOutput0FileName, 1, 
-                        tmpAtomNumber1, tmpAtomNumber2);
-                tmpFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output.xyz";
-                tmpTinkerXyz.writeToXyzFile(tmpFileName);
-                
-                // Generate .pdb file of output.0
-                tmpHasH2O = tmpParticleName1.equals("H2O") || 
-                        tmpParticleName2.equals("H2O");
-                String tmpKeyFileContent = "\"" 
-                        + scratchDirectory
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + ".key"
-                        + "\"";
-                MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                        tmpOutput0FileName, 
-                        tmpKeyFileContent, 
-                        tmpHasH2O);
-                
-                // Generate output_opt.xyz
-                tmpOptFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_opt.0";
-                tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, tmpAtomNumber1, 
-                        tmpAtomNumber2);
-                tmpTinkerXyz.setElementList1(tmpElementList1);
-                tmpTinkerXyz.setElementList2(tmpElementList2);
-                tmpFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_opt.xyz";
-                tmpTinkerXyz.writeToXyzFile(tmpFileName);
-
-                // Generate output_rgd.xyz
-                tmpRgdFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_rgd.0";
-                tmpTinkerXyz = new TinkerXYZ(tmpRgdFileName, 1, tmpAtomNumber1, 
-                        tmpAtomNumber2);
-                tmpTinkerXyz.setElementList1(tmpElementList1);
-                tmpTinkerXyz.setElementList2(tmpElementList2);
-                tmpFileName = tmpIEResultDirName 
-                        + FILESEPARATOR 
-                        + "output_rgd.xyz";
-                tmpTinkerXyz.writeToXyzFile(tmpFileName);
-
-                // Generate .pdb file of output_opt.0
-                MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                        tmpOptFileName, 
-                        tmpKeyFileContent, 
-                        tmpHasH2O);
-
-                // Generate .pdb file of output_rgd.0
-                MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                        tmpRgdFileName, 
-                        tmpKeyFileContent, 
-                        tmpHasH2O);
-                
-                // Further outputs
-                Path tmpOptDistDir = Paths.get(optDistDirectory 
-                        + FILESEPARATOR 
-                        + tmpForcefield);
-                if(!Files.exists(tmpOptDistDir)) {
-                    try {
-                        Files.createDirectories(tmpOptDistDir);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
-                            "IOException during creating OutDist directory.",
-                            ex);
+                                "IOException during writing output0.out in scratch."
+                                , ex);
                     }
-                }
-                tmpFileName = optDistDirectory
-                        + FILESEPARATOR
-                        + tmpForcefield
-                        + FILESEPARATOR
-                        + tmpParticleName1
-                        + ".txt";
-                tmpOptDistFile = Paths.get(tmpFileName);
-                if (tmpIsSameParticle && !Files.exists(tmpOptDistFile)) {
-                    try (BufferedWriter tmpBW = new BufferedWriter(
-                            new FileWriter(tmpFileName))) {
-                        tmpBW.append(decimal4.format(tmpEqDist));
+
+                    //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Make dist vs. energy diagram">
+                    String tmpEnergyDataPathName = tmpJobTaskRecordList
+                            .get(tmpCurrentIndex).result_IE_PathName()
+                            + FILESEPARATOR
+                            + tmpParticlePair + "_dist_vs_energy.dat";
+                    String tmpEnergyGraphicsPrefix = tmpJobTaskRecordList
+                            .get(tmpCurrentIndex).particleName1()
+                            + "_"
+                            + tmpJobTaskRecordList
+                                    .get(tmpCurrentIndex).particleName2()
+                            + "_";
+                    ChartUtil tmpChartUtil = new ChartUtil();
+                    boolean tmpIsOperationSuccessful = 
+                            tmpChartUtil.createEnergyGraphics(
+                                    tmpEnergyDataPathName, 
+                                    tmpEnergyGraphicsPrefix);
+                
+                    //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Write log file">
+                    try {
+                        BFGblLog.append(tmpParticlePair);
+                        BFGblLog.append(LINESEPARATOR);
+                        BWParticleDat.append("Force field: " + tmpForcefield);
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Conformational analysis: " + isConformationalAnalysis);
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("equilibriumDistances [" + ANGSTROM + "] = "); 
+                        BWParticleDat.append(decimal2.format(tmpEqDist));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.flush();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during writing log file.", ex);
+                    }
+
+                    //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Copy results">
+                    boolean tmpHasH2O;
+                    Path tmpOriginal;
+                    Path tmpTarget;
+
+                    // Write ouput.0 file
+                    tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
+                    tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
+                    try {
+                        Files.copy(tmpOriginal, tmpTarget,
+                            StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during copying output.0", ex);
+                    }
+                    String tmpOutput0 = "Intermolecular Energy: " 
+                            + tmpEnergyRecords[3].wgtEmin() + " kcal/mol";
+                    String tmpTargetDir = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output0.out";        
+                    try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                            Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
+                        tmpBW.append(tmpOutput0);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during writing output0.out in scratch."
+                                , ex);
+                    }
+
+                    // Write output_opt.out
+                    tmpOriginal = Paths.get(scratchDirectory, 
+                            tmpParticlePair + "_opt.xyz");
+                    tmpTarget = Paths.get(tmpIEResultDirName,"output_opt.0");
+                    try {
+                        Files.copy(tmpOriginal, tmpTarget,
+                            StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during copying output.0", ex);
+                    }
+                    tmpOutput0 = "Intermolecular Energy: " 
+                            + tmpOptMinEnergy + " kcal/mol";
+                    tmpTargetDir = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output0_opt.out";        
+                    try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                            Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
+                        tmpBW.append(tmpOutput0);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during writing output0_opt.out "
+                                + "in scratch.", ex);
+                    }
+
+                    // Write output_rgd.out
+                    tmpOriginal = Paths.get(scratchDirectory, 
+                            tmpParticlePair + "_rgd.xyz");
+                    tmpTarget = Paths.get(tmpIEResultDirName,"output_rgd.0");
+                    try {
+                        Files.copy(tmpOriginal, tmpTarget,
+                            StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during copying output.0", ex);
+                    }
+                    tmpOutput0 = "Intermolecular Energy: " 
+                            + tmpRgdMinEnergy + " kcal/mol";
+                    tmpTargetDir = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output0_rgd.out";        
+                    try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                            Paths.get(tmpTargetDir), StandardCharsets.UTF_8)) {
+                        tmpBW.append(tmpOutput0);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during writing output0_rgd.out "
+                                + "in scratch.", ex);
+                    }
+
+                    // Generate output.xyz
+                    String tmpOutput0FileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output.0";
+                    String tmpOptFileName;
+                    String tmpRgdFileName;
+                    int tmpAtomNumber1 = tmpTinkerXYZ1.getAtomSize1();
+                    int tmpAtomNumber2 = tmpTinkerXYZ2.getAtomSize1();
+                    tmpElementList1 = tmpTinkerXYZ1.getElementList1();
+                    tmpElementList2 = tmpTinkerXYZ2.getElementList1();
+                    TinkerXYZ tmpTinkerXyz = 
+                            new TinkerXYZ(tmpOutput0FileName, 1, 
+                            tmpAtomNumber1, tmpAtomNumber2);
+                    tmpFileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output.xyz";
+                    tmpTinkerXyz.writeToXyzFile(tmpFileName);
+
+                    // Generate .pdb file of output.0
+                    tmpHasH2O = tmpParticleName1.equals("H2O") || 
+                            tmpParticleName2.equals("H2O");
+                    String tmpKeyFileContent = "\"" 
+                            + scratchDirectory
+                            + FILESEPARATOR 
+                            + tmpParticlePair
+                            + ".key"
+                            + "\"";
+                    MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
+                            tmpOutput0FileName, 
+                            tmpKeyFileContent, 
+                            tmpHasH2O);
+
+                    // Generate output_opt.xyz
+                    tmpOptFileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output_opt.0";
+                    tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, 
+                            tmpAtomNumber1, 
+                            tmpAtomNumber2);
+                    tmpTinkerXyz.setElementList1(tmpElementList1);
+                    tmpTinkerXyz.setElementList2(tmpElementList2);
+                    tmpFileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output_opt.xyz";
+                    tmpTinkerXyz.writeToXyzFile(tmpFileName);
+
+                    // Generate output_rgd.xyz
+                    tmpRgdFileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output_rgd.0";
+                    tmpTinkerXyz = new TinkerXYZ(tmpRgdFileName, 1, 
+                            tmpAtomNumber1, 
+                            tmpAtomNumber2);
+                    tmpTinkerXyz.setElementList1(tmpElementList1);
+                    tmpTinkerXyz.setElementList2(tmpElementList2);
+                    tmpFileName = tmpIEResultDirName 
+                            + FILESEPARATOR 
+                            + "output_rgd.xyz";
+                    tmpTinkerXyz.writeToXyzFile(tmpFileName);
+
+                    // Generate .pdb file of output_opt.0
+                    MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
+                            tmpOptFileName, 
+                            tmpKeyFileContent, 
+                            tmpHasH2O);
+
+                    // Generate .pdb file of output_rgd.0
+                    MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
+                            tmpRgdFileName, 
+                            tmpKeyFileContent, 
+                            tmpHasH2O);
+
+                    // Further outputs
+                    Path tmpOptDistDir = Paths.get(optDistDirectory 
+                            + FILESEPARATOR 
+                            + tmpForcefield);
+                    if(!Files.exists(tmpOptDistDir)) {
+                        try {
+                            Files.createDirectories(tmpOptDistDir);
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                "IOException during creating OutDist directory.",
+                                ex);
+                        }
+                    }
+                    tmpFileName = optDistDirectory
+                            + FILESEPARATOR
+                            + tmpForcefield
+                            + FILESEPARATOR
+                            + tmpParticleName1
+                            + ".txt";
+                    tmpOptDistFile = Paths.get(tmpFileName);
+                    if (tmpIsSameParticle && !Files.exists(tmpOptDistFile)) {
+                        try (BufferedWriter tmpBW = new BufferedWriter(
+                                new FileWriter(tmpFileName))) {
+                            tmpBW.append(decimal4.format(tmpEqDist));
+                        } catch(IOException ex) {
+                            LOGGER.log(Level.SEVERE, 
+                                "IOException during writing file in OptDist directory.", 
+                                ex);
+                        }
+                    }
+                    tmpEnergyCalcTime  = (System.currentTimeMillis() 
+                            - tmpEnergyCalcTime) / 1000;
+                    try {
+                        BWParticleDat.append("SphereNodeNumber1: "
+                                + Integer.toString(sphereNodeNumber1)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("SphereNodeNumber2: "
+                                + Integer.toString(sphereNodeNumber2)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("SphereNodeNumber3: "
+                                + Integer.toString(sphereNodeNumber3)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("SphereNodeNumber4: "
+                                + Integer.toString(sphereNodeNumber4)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("RotationNumber1: "
+                                + Integer.toString(rotationNumber1)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("RotationNumber2: "
+                                + Integer.toString(rotationNumber2)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("RotationNumber3: "
+                                + Integer.toString(rotationNumber3)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("RotationNumber4: "
+                                + Integer.toString(rotationNumber4)
+                                + LINESEPARATOR);
+                        BWParticleDat.append("Temperature [K]: ");
+                        BWParticleDat.append(Double.toString(temperature));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
+                        BWParticleDat.append(Double.toString(boltzmannFraction));
+                        BWParticleDat.append(LINESEPARATOR);
+                        if (isOptEmin) {
+                            BWParticleDat.append("Optimize sampled E(min) configuration: "
+                                    + isOptEmin);
+                            BWParticleDat.append(LINESEPARATOR);
+                        }
+                        BWParticleDat.append("Weighted (Emin = glbMin) MinimumIntermolecularEnergy [kcal/mole]: ");
+                        BWParticleDat.append(decimal4.format(tmpGlbWgtEmin));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("""
+                                             Weighted (Emin = glbMin) MinimumIntermolecularEnergy: 
+                                             Weighted differential pair interaction energy with
+                                              Emin = lowest differential pair interaction energy.""");
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
+                        BWParticleDat.append(decimal4.format(tmpGlbEmin));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("""
+                                             GlobalMinimumIntermolecularEnergy:
+                                               Lowest differential pair interaction energy of all dimer configurations.""");
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
+                        BWParticleDat.append(decimal4.format(tmpOptMinEnergy));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("""
+                                             Optimized minimumIntermolecularEnergy: 
+                                               Differential pair interaction energy from the dimer configuration
+                                               with lowest differential pair interaction energy after optimize.""");
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
+                        BWParticleDat.append(decimal4.format(tmpRgdMinEnergy));
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("""
+                                             Rigid-optimized minimumIntermolecularEnergy: 
+                                               Differential pair interaction energy from the dimer configuration
+                                               with lowest differential pair interaction energy after optrigid.""");
+                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
+                                + tmpEnergyCalcTime
+                                + LINESEPARATOR);
+                        BWParticleDat.close();
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, 
+                                "IOException during writing log file.", ex);
+                    }
+
+                    //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Clean scratch directory">
+                    try (Stream<Path> tmpWalk = Files.walk(Paths
+                            .get(scratchDirectory))) {
+                        tmpWalk.sorted(Comparator.reverseOrder())
+                                .filter(Files::isRegularFile)
+                                .map(Path::toFile)
+                                .forEach(File::delete);
                     } catch(IOException ex) {
                         LOGGER.log(Level.SEVERE, 
-                            "IOException during writing file in OptDist directory.", 
-                            ex);
+                                "IOException during deleting scratch directory.", ex);
                     }
-                }
-                tmpEnergyCalcTime  = (System.currentTimeMillis() 
-                        - tmpEnergyCalcTime) / 1000;
-                try {
-                    BWParticleDat.append("SphereNodeNumber1: "
-                            + Integer.toString(sphereNodeNumber1)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("SphereNodeNumber2: "
-                            + Integer.toString(sphereNodeNumber2)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("SphereNodeNumber3: "
-                            + Integer.toString(sphereNodeNumber3)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("SphereNodeNumber4: "
-                            + Integer.toString(sphereNodeNumber4)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("RotationNumber1: "
-                            + Integer.toString(rotationNumber1)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("RotationNumber2: "
-                            + Integer.toString(rotationNumber2)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("RotationNumber3: "
-                            + Integer.toString(rotationNumber3)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("RotationNumber4: "
-                            + Integer.toString(rotationNumber4)
-                            + LINESEPARATOR);
-                    BWParticleDat.append("Temperature [K]: ");
-                    BWParticleDat.append(Double.toString(temperature));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Fraction of energy values used for the Boltzmann distribution: ");
-                    BWParticleDat.append(Double.toString(boltzmannFraction));
-                    BWParticleDat.append(LINESEPARATOR);
-                    if (isOptEmin) {
-                        BWParticleDat.append("Optimize sampled E(min) configuration: "
-                                + isOptEmin);
-                        BWParticleDat.append(LINESEPARATOR);
-                    }
-                    BWParticleDat.append("Weighted (Emin = glbMin) MinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpGlbWgtEmin));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         Weighted (Emin = glbMin) MinimumIntermolecularEnergy: 
-                                         Weighted differential pair interaction energy with
-                                          Emin = lowest differential pair interaction energy.""");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("GlobalMinimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpGlbEmin));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         GlobalMinimumIntermolecularEnergy:
-                                           Lowest differential pair interaction energy of all dimer configurations.""");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpOptMinEnergy));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         Optimized minimumIntermolecularEnergy: 
-                                           Differential pair interaction energy from the dimer configuration
-                                           with lowest differential pair interaction energy after optimize.""");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
-                    BWParticleDat.append(decimal4.format(tmpRgdMinEnergy));
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("""
-                                         Rigid-optimized minimumIntermolecularEnergy: 
-                                           Differential pair interaction energy from the dimer configuration
-                                           with lowest differential pair interaction energy after optrigid.""");
-                    BWParticleDat.append(LINESEPARATOR);
-                    BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: "
-                            + tmpEnergyCalcTime
-                            + LINESEPARATOR);
-                    BWParticleDat.close();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing log file.", ex);
+
+                    //</editor-fold>
                 }
                 
-                //</editor-fold>
-            
-                //<editor-fold defaultstate="collapsed" desc="Clean scratch directory">
-                try (Stream<Path> tmpWalk = Files.walk(Paths
-                        .get(scratchDirectory))) {
-                    tmpWalk.sorted(Comparator.reverseOrder())
-                            .filter(Files::isRegularFile)
-                            .map(Path::toFile)
-                            .forEach(File::delete);
-                } catch(IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during deleting scratch directory.", ex);
-                }
-            
-                //</editor-fold>
             }
             tmpCurrentIndex++;
             if (tmpCurrentIndex >= tmpJobTaskRecordList.size()) {
