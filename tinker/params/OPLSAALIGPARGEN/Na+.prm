@@ -1,5 +1,5 @@
 ## Source: oplsaa.prm
-## charge parameter multiplied 1.14
+## charge parameter NOT multiplied with 1.14
 
       ##############################
       ##                          ##
@@ -48,6 +48,6 @@ vdw         800           4.0700   0.0005
       ##                                    ##
       ########################################
 
-charge         800           1.1400 
+charge         800           1.0000 
 
 

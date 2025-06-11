@@ -24,12 +24,16 @@ Me2S2			CSSC
 Me3N      CN(C)C
 MeAc      CC(OC)=O
 MeAcNH    CC(=O)NC
+MeBr			CBr
+MeCl			CCl
 MeNH2     CN
 MeOH			CO
 MeSH      CS
 MP        O=P(OC)(O)O
 Na+       [Na+]
 Ph        c1ccccc1
+PhBr			c1c(Br)cccc1
+PhCl			c1c(Cl)cccc1
 PhNH2			C1=CC=C(N)C=C1
 PhOH      c1ccccc1(O)
 Pr				CCC
@@ -37,3 +41,4 @@ PrImine 	CC(=N)C
 PrOH			CCCO
 Pyridine	C1=CN=CC=C1
 Pyrrole   N1C=CC=C1
+VinylCl   ccCl

@@ -14,11 +14,13 @@ $
 #--------------------------
 # Test particles
 #--------------------------
-H2O
+#H2O
 #Me
-MeOH
-Et
-Me2O
+#MeOH
+#Et
+#Me2O
+#Na+
+#Ac-
 
 # -------------------------
 # Particles
@@ -48,14 +50,19 @@ Me2O
 #Me3N
 #MeAc
 #MeAcNH
+#MeBr
+#MeCl
 #MeNH2
 #MeOH
 #MeSH
 #MP
 #Ph
+#PhBr
+#PhCl
 #PhNH2
 #PhOH
 #Pr
 #PrImine
 #Pyridine
 #Pyrrole
+VinylCl

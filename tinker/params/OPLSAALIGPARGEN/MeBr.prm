@@ -1,0 +1,112 @@
+!---------------------------------------------
+!        Generated with LigParGen 
+!        William L. Jorgensen Lab
+!     Author: israel.cabezadevaca@yale.edu
+!    OPLS Force Field with CM1A derived Atomic Charges
+!---------------------------------------------
+#Force Field Definition
+
+forcefield              OPLS-AA
+
+vdwindex                TYPE
+vdwtype                 LENNARD-JONES
+radiusrule              GEOMETRIC
+radiustype              SIGMA
+radiussize              DIAMETER
+epsilonrule             GEOMETRIC
+torsionunit             1.0
+imptorunit              1.0
+vdw-14-scale            2.0
+chg-14-scale            2.0
+electric                332.06
+dielectric              1.0
+
+
+        #############################
+        ##                         ##
+        ##  Atom Type Definitions  ##
+        ##                         ##
+        #############################
+
+
+atom        801  801    CT    "C01"         6     12.011     4
+atom        802  802    HC    "H02"         1      1.008     1
+atom        803  803    HC    "H03"         1      1.008     1
+atom        804  804    HC    "H04"         1      1.008     1
+atom        800  800    Br    "Br0"        35     79.904     1
+
+
+        ################################
+        ##                            ##
+        ##  Van der Waals Parameters  ##
+        ##                            ##
+        ################################
+        
+        
+vdw         801           3.5000   0.0660 
+vdw         802           2.5000   0.0300 
+vdw         803           2.5000   0.0300 
+vdw         804           2.5000   0.0300 
+vdw         800           3.4700   0.4700 
+
+
+        ##################################
+        ##                              ##
+        ##  Bond Stretching Parameters  ##
+        ##                              ##
+        ##################################
+
+
+bond        801  800           245.00   1.9450 
+bond        802  801           340.00   1.0900 
+bond        803  801           340.00   1.0900 
+bond        804  801           340.00   1.0900 
+
+
+        ################################
+        ##                            ##
+        ##  Angle Bending Parameters  ##
+        ##                            ##
+        ################################
+
+
+angle       802  801  800    51.00   107.60 
+angle       803  801  800    51.00   107.60 
+angle       804  801  800    51.00   107.60 
+angle       803  801  802    33.00   107.80 
+angle       804  801  802    33.00   107.80 
+angle       804  801  803    33.00   107.80 
+
+
+        ############################
+        ##                        ##
+        ##  Torsional Parameters  ##
+        ##                        ##
+        ############################
+
+
+
+
+        #####################################
+        ##                                 ##
+        ##  Improper Torsional Parameters  ##
+        ##                                 ##
+        #####################################
+
+
+
+
+        ########################################
+        ##                                    ##
+        ##  Atomic Partial Charge Parameters  ##
+        ##                                    ##
+        ########################################
+
+
+charge         801          -0.1199 
+charge         802           0.1218 
+charge         803           0.1218 
+charge         804           0.1218 
+charge         800          -0.2456 
+
+
