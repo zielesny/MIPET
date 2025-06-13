@@ -7,6 +7,7 @@ DMP       O=P(OC)(OC)O
 Et				CC
 Et2O			CCOCC
 Ethene    C=C
+Ethyne    C#C
 EtNH2     CCN
 EtOH			CCO
 Furan			C1=COC=C1
@@ -41,4 +42,5 @@ PrImine 	CC(=N)C
 PrOH			CCCO
 Pyridine	C1=CN=CC=C1
 Pyrrole   N1C=CC=C1
+VinylBr   ccBr
 VinylCl   ccCl
