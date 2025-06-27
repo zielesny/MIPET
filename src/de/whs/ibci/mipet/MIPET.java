@@ -1948,17 +1948,15 @@ public class MIPET {
                 tmpRestString = tmpLine.trim().substring(1).trim();
                 switch (tmpFirstChar) {
                     case '#' -> {
-                        continue; // ignore comment line
+                     // ignore comment line
                     }
                     case '*' -> {
                         String[] tmpString = tmpRestString.split("\\s+");
                         forcefield_IE = tmpString[0];
-                        continue;
                     }
                     case '$' -> {
                         String[] tmpString = tmpRestString.split("\\s+");
                         forcefield_CN = tmpString[0];
-                        continue;
                     }
                     case '-' -> {
                         if (!oldParticles.contains(tmpRestString)) {
@@ -1967,7 +1965,6 @@ public class MIPET {
                         if (!particleNames.contains(tmpRestString)) {
                             particleNames.add(tmpRestString);
                         }
-                        continue;
                     }
                     default -> {
                         tmpLine = tmpLine.trim();
