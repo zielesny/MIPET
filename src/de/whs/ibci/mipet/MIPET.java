@@ -1429,6 +1429,23 @@ public class MIPET {
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
                     
+                    //<editor-fold defaultstate="collapsed" desc="Find distance by min. wgtEmin">
+                    double tmpDistWgtMin;
+                    double tmpWgtEmin;
+                    tmpDistWgtMin = tmpEnergySorted[0][0];
+                    tmpWgtEmin = tmpEnergySorted[0][2];
+                    
+                    for (int i = 1; i < tmpEnergySorted.length; i++) {
+                        if (tmpEnergySorted[i][2] < tmpWgtEmin) {
+                            tmpWgtEmin = tmpEnergySorted[i][2];
+                            tmpDistWgtMin = tmpEnergySorted[i][0];
+                        }
+                    }
+                    
+                    
+                    //</editor-fold>
+                    
+                    
                     //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
                     tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
                             .result_IE_PathName()
