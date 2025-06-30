@@ -853,9 +853,8 @@ public class MIPET {
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
-        double tmpEqDist;
+        double tmpGlbEminDist;
         double tmpGlbEmin;
-        double tmpGlbWgtEmin;
         double tmpDistanceCandidate;
         String tmpOutputName;
         String tmpLine;
@@ -1021,11 +1020,8 @@ public class MIPET {
                 }
 
                 tmpAllDistances.addAll(tmpDistanceList);
-                double[] tmpDistances = new double[tmpDistanceList.size()];
-
-                for (int i = 0; i < tmpDistances.length; i++) {
-                    tmpDistances[i] = tmpDistanceList.get(i);
-                }
+                double[] tmpDistances = tmpDistanceList.stream()
+                        .mapToDouble(d -> d).toArray();
                 
                 //</editor-fold>
                 
@@ -1040,7 +1036,7 @@ public class MIPET {
                             0,
                             0));
                 } else {
-                    tmpEnergyRecords = new EnergyRecord[4];
+                    tmpEnergyRecords = new EnergyRecord[5];
                     tmpEnergyRecords[0] = getInterMolecularEnergy(
                             tmpParticlePair,
                             tmpDistances, 
@@ -1049,9 +1045,8 @@ public class MIPET {
                             tmpXyzRotData1, 
                             tmpXyzRotData2,
                             1E10);
-                    tmpEqDist = tmpEnergyRecords[0].eqDistance();
+                    tmpGlbEminDist = tmpEnergyRecords[0].eqDistance();
                     tmpGlbEmin = tmpEnergyRecords[0].Emin();
-                    tmpGlbWgtEmin = tmpEnergyRecords[0].wgtEmin();
 
                     for (int i = 0; i < tmpDistances.length; i++) {
                         tmpDistEminRecords.add(new Distance_EnergyRecord(
@@ -1077,17 +1072,14 @@ public class MIPET {
                     tmpDistSize = 9;
 
                     for (int i = 0; i < tmpDistSize; i++) {
-                        tmpDistanceCandidate = (10 * tmpEqDist - 4 + i) / 10;
+                        tmpDistanceCandidate = (10 * tmpGlbEminDist - 4 + i) 
+                                / 10;
                         tmpDistanceList.add(tmpDistanceCandidate);
                     }
 
                     tmpAllDistances.addAll(tmpDistanceList);
-                    tmpDistances = new double[tmpDistanceList.size()];
-
-                    for (int i = 0; i < tmpDistances.length; i++) {
-                        tmpDistances[i] = tmpDistanceList.get(i);
-                    }
-
+                    tmpDistances = tmpDistanceList.stream()
+                            .mapToDouble(d -> d).toArray();
                     tmpEnergyRecords[1] = getInterMolecularEnergy(tmpParticlePair,
                             tmpDistances, 
                             tmpTinkerXYZ1, 
@@ -1096,11 +1088,8 @@ public class MIPET {
                             tmpXyzRotData2,
                             tmpGlbEmin);
                     if (tmpEnergyRecords[1].Emin() < tmpGlbEmin) {
-                        tmpEqDist = tmpEnergyRecords[1].eqDistance();
+                        tmpGlbEminDist = tmpEnergyRecords[1].eqDistance();
                         tmpGlbEmin = tmpEnergyRecords[1].Emin();
-                    }
-                    if (tmpEnergyRecords[1].wgtEmin() < tmpGlbWgtEmin) {
-                        tmpGlbWgtEmin = tmpEnergyRecords[1].wgtEmin();
                     }
 
                     for (int i = 0; i < tmpDistances.length; i++) {
@@ -1129,17 +1118,14 @@ public class MIPET {
                     tmpDistSize = 19;
 
                     for (int i = 0; i < tmpDistSize; i++) {
-                        tmpDistanceCandidate = (100 * tmpEqDist - 9 + i) / 100;
+                        tmpDistanceCandidate = (100 * tmpGlbEminDist - 9 + i) 
+                                / 100;
                         tmpDistanceList.add(tmpDistanceCandidate);
                     }
 
                     tmpAllDistances.addAll(tmpDistanceList);
-                    tmpDistances = new double[tmpDistanceList.size()];
-
-                    for (int i = 0; i < tmpDistances.length; i++) {
-                        tmpDistances[i] = tmpDistanceList.get(i);
-                    }
-
+                    tmpDistances = tmpDistanceList.stream()
+                            .mapToDouble(d -> d).toArray();
                     tmpEnergyRecords[2] = getInterMolecularEnergy(tmpParticlePair,
                             tmpDistances, 
                             tmpTinkerXYZ1, 
@@ -1148,13 +1134,10 @@ public class MIPET {
                             tmpXyzRotData2,
                             tmpGlbEmin);
                     if (tmpEnergyRecords[2].Emin() < tmpGlbEmin) {
-                        tmpEqDist = tmpEnergyRecords[2].eqDistance();
+                        tmpGlbEminDist = tmpEnergyRecords[2].eqDistance();
                         tmpGlbEmin = tmpEnergyRecords[2].Emin();
                     }
-                    if (tmpEnergyRecords[2].wgtEmin() < tmpGlbWgtEmin) {
-                        tmpGlbWgtEmin = tmpEnergyRecords[2].wgtEmin();
-                    }
-
+                    
                     for (int i = 0; i < tmpDistances.length; i++) {
                         tmpDistEminRecords.add(new Distance_EnergyRecord(
                                 tmpEnergyRecords[2].distances()[i], 
@@ -1178,8 +1161,9 @@ public class MIPET {
                     tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
 
                     tmpDistances = new double[1];
-                    tmpDistances[0] = tmpEqDist; 
-                    tmpEnergyRecords[3] = getInterMolecularEnergy(tmpParticlePair,
+                    tmpDistances[0] = tmpGlbEminDist; 
+                    tmpEnergyRecords[3] = getInterMolecularEnergy(
+                            tmpParticlePair,
                             tmpDistances, 
                             tmpTinkerXYZ1, 
                             tmpTinkerXYZ2, 
@@ -1187,11 +1171,8 @@ public class MIPET {
                             tmpXyzRotData2,
                             tmpGlbEmin);
                     if (tmpEnergyRecords[3].Emin() < tmpGlbEmin) {
-                        tmpEqDist = tmpEnergyRecords[3].eqDistance();
+                        tmpGlbEminDist = tmpEnergyRecords[3].eqDistance();
                         tmpGlbEmin = tmpEnergyRecords[3].Emin();
-                    }
-                    if (tmpEnergyRecords[3].wgtEmin() < tmpGlbWgtEmin) {
-                        tmpGlbWgtEmin = tmpEnergyRecords[3].wgtEmin();
                     }
 
                     for (int i = 0; i < tmpDistances.length; i++) {
@@ -1202,6 +1183,66 @@ public class MIPET {
                     }
 
                     //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Find distance by min. wgtEmin">
+                    int tmpDistEminRecordsSize;
+                    double tmpWgtEminDist;
+                    double tmpGlbWgtEmin;
+                    double tmpGlbWgtEminCand;
+
+                    tmpDistEminRecordsSize = tmpDistEminRecords.size();
+                    tmpWgtEminDist = tmpDistEminRecords.get(0).distance();
+                    tmpGlbWgtEmin = tmpDistEminRecords.get(0).wgtEmin();
+                    
+                    for (int i = 1; i < tmpDistEminRecordsSize; i++) {
+                        tmpGlbWgtEminCand = tmpDistEminRecords.get(i).wgtEmin();
+                        if (tmpGlbWgtEminCand < tmpGlbWgtEmin) {
+                            tmpGlbWgtEmin = tmpGlbWgtEminCand;
+                            tmpWgtEminDist = tmpDistEminRecords.get(i)
+                                    .distance();
+                        }
+                    }
+                    
+                    // If tmpWgtEminDist is too far away from tmpGlbEminDist new calculations around tmpWgtEminDist will occur
+                    // This is only for the output particle1_particle2_DistanceVsEaverage.jpg
+                    if (Math.abs(tmpWgtEminDist - tmpGlbEminDist) > 0.1) {
+                        tmpDistanceList = new LinkedList<>();
+                        tmpDistSize = 19;
+
+                        for (int i = 0; i < tmpDistSize; i++) {
+                            tmpDistanceCandidate = (100 * tmpWgtEminDist - 9 
+                                    + i) / 100;
+                            if (!MIPETUTIL.contains(tmpAllDistances, 
+                                    tmpDistanceCandidate)) {
+                                tmpDistanceList.add(tmpDistanceCandidate);
+                            }
+                        }
+
+                        tmpAllDistances.addAll(tmpDistanceList);
+                        tmpDistances = tmpDistanceList.stream()
+                                .mapToDouble(d -> d).toArray();
+                        tmpEnergyRecords[4] = getInterMolecularEnergy(
+                                tmpParticlePair,
+                                tmpDistances, 
+                                tmpTinkerXYZ1, 
+                                tmpTinkerXYZ2, 
+                                tmpXyzRotData1, 
+                                tmpXyzRotData2,
+                                tmpGlbEmin);
+                        
+                        for (int i = 0; i < tmpDistances.length; i++) {
+                            tmpDistEminRecords.add(new Distance_EnergyRecord(
+                                    tmpEnergyRecords[4].distances()[i], 
+                                    tmpEnergyRecords[4].Emins()[i],
+                                    tmpEnergyRecords[4].wgtEmins()[i]));
+                            tmpGlbWgtEminCand = tmpEnergyRecords[4]
+                                    .wgtEmins()[i];
+                            if (tmpGlbWgtEmin > tmpGlbWgtEminCand) {
+                                tmpGlbWgtEmin = tmpGlbWgtEminCand;
+                            }
+                        }
+                        
+                    }
 
                     //<editor-fold defaultstate="collapsed" desc="Sort datas">
                     Double[] tmpDistanceObj;
@@ -1429,22 +1470,7 @@ public class MIPET {
                         tmpRgdMinEnergy,
                         tmpGlbEmin));
                     
-                    //<editor-fold defaultstate="collapsed" desc="Find distance by min. wgtEmin">
-                    double tmpDistWgtMin;
-                    double tmpWgtEmin;
-                    tmpDistWgtMin = tmpEnergySorted[0][0];
-                    tmpWgtEmin = tmpEnergySorted[0][2];
-                    
-                    for (int i = 1; i < tmpEnergySorted.length; i++) {
-                        if (tmpEnergySorted[i][2] < tmpWgtEmin) {
-                            tmpWgtEmin = tmpEnergySorted[i][2];
-                            tmpDistWgtMin = tmpEnergySorted[i][0];
-                        }
-                    }
-                    
-                    
                     //</editor-fold>
-                    
                     
                     //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
                     tmpOutputName = tmpJobTaskRecordList.get(tmpCurrentIndex)
@@ -1503,7 +1529,7 @@ public class MIPET {
                         BWParticleDat.append("Conformational analysis: " + isConformationalAnalysis);
                         BWParticleDat.append(LINESEPARATOR);
                         BWParticleDat.append("equilibriumDistances [" + ANGSTROM + "] = "); 
-                        BWParticleDat.append(decimal2.format(tmpEqDist));
+                        BWParticleDat.append(decimal2.format(tmpGlbEminDist));
                         BWParticleDat.append(LINESEPARATOR);
                         BWParticleDat.flush();
                     } catch (IOException ex) {
@@ -1687,7 +1713,7 @@ public class MIPET {
                     if (tmpIsSameParticle && !Files.exists(tmpOptDistFile)) {
                         try (BufferedWriter tmpBW = new BufferedWriter(
                                 new FileWriter(tmpFileName))) {
-                            tmpBW.append(decimal4.format(tmpEqDist));
+                            tmpBW.append(decimal4.format(tmpGlbEminDist));
                         } catch(IOException ex) {
                             LOGGER.log(Level.SEVERE, 
                                 "IOException during writing file in OptDist directory.", 
