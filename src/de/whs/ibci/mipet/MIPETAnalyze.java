@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -83,6 +84,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * Tinkerxyz object
      */
     private final TinkerXYZ TINKERXYZ;
+    
     private final boolean ISTINKERON;
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
@@ -269,7 +271,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkSize = tmpRot1Size * tmpRot2Size;
-        tmpEnergyList = new ArrayList<>(tmpChunkSize);
+        tmpEnergyList = new ArrayList<Double>(tmpChunkSize);
         tmpChunkIndex = 0;
         tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {

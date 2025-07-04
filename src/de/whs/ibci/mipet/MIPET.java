@@ -845,6 +845,7 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Variable declarations">
+        boolean tmpIsFraction;
         byte tmpH2OPos;
         int tmpXyz1ID;
         int tmpXyz2ID;
@@ -886,9 +887,12 @@ public class MIPET {
                 + dielectricConstant
                 + LINESEPARATOR;
         tmpForcefield = forcefield_IE;
+        tmpIsFraction = boltzmannFraction != 1.0;
         System.out.println("Calculating intermolecular energy...");
         
         //</editor-fold>
+        
+        
         
         while (tmpIsExitCondition == false) {
             // Exit condition is true when all particle pair combinations
@@ -2905,6 +2909,8 @@ public class MIPET {
             double[][][] aRotData1,
             double[][][] aRotData2,
             double aMinEnergy) {
+        
+        //<editor-fold defaultstate="collapsed" desc="Calculate chunk size">
         int tmpAtomNumber;
         int tmpDistanceNumber;
         int tmpConfigNumber;
@@ -2914,7 +2920,6 @@ public class MIPET {
         int tmpChunkIndex;
         int tmpRot2StartIndex;
         int tmpRot2EndIndex;
-        double[][] tmpEnergyDatas;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
@@ -2925,7 +2930,6 @@ public class MIPET {
         TinkerXYZ tmpTinkerXYZ;
         ExecutorService executor;
         
-        // Calculate chunk size
         tmpDistanceNumber = aDistances.length;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
         if (tmpConfigNumber < 1000) {
@@ -2937,14 +2941,15 @@ public class MIPET {
             tmpChunkSize = (int)Math.ceil(aRotData2.length / tmpChunkNumber);
             tmpChunkRemainder = aRotData2.length % tmpChunkSize;
         }
+        
+        //</editor-fold>
 
-        // Calculate intermolecular energy using TINKER analyze
+        //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy using TINKER analyze">
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
         tmpRotData1 = aRotData1;
-        tmpEnergyDatas = new double[tmpDistanceNumber][];
         executor = Executors.newFixedThreadPool(cpuCoreNumber);
-        tmpTaskList = new ArrayList<>(2000);
+        tmpTaskList = new ArrayList<>(3000);
         tmpPath = scratchDirectory 
                 + FILESEPARATOR 
                 + aParticlePair 
@@ -2988,19 +2993,44 @@ public class MIPET {
             
         }
         
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Calculate minimum of weighted intermolecular energy">
+        /* If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
+           If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
+           0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
+           the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
+           Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
+           a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
+           "Boltzmann average" calculation only */
         int tmpDistMinIndex;
         int tmpChunkMinIndex;
         int tmpTaskIndex;
-        Double tmpDistMinEnergy;
+        int tmpFractionToMax;
+        double tmpDistMinEnergy;
         double tmpPartMinEnergy;
+        double tmpEmin;
+        double tmpRezipTempGasconst;
+        double tmpWgtEmin;
+        double[] tmpEnergyDatas;
+        double[] tmpWeights;
+        double[] tmpEnergyDataFraction;
+        double[] tmpEmins;
+        double[] tmpWgtEmins;
         
         tmpTaskIndex = 0;
         tmpDistMinIndex = 0;
         tmpChunkMinIndex = 0;
+        tmpDistMinEnergy = 1E10;
         tmpPartMinEnergy = 1E10;
         List<Future<ArrayList<Double>>> tmpFutures = null;
         Future<ArrayList<Double>> tmpFuture;
         ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
+        tmpEmins = new double[tmpDistanceNumber];
+        tmpWgtEmins = new double[tmpDistanceNumber];
+        tmpRezipTempGasconst = 1 / (temperature * GASCONST);
+        tmpEmin = tmpPartMinEnergy;
+        tmpWgtEmin = 100.;
         
         try {            
             tmpFutures = executor.invokeAll(tmpTaskList);
@@ -3008,28 +3038,25 @@ public class MIPET {
             Thread.currentThread().interrupt();       
         }
         executor.shutdown();
+        tmpFuture = null;
             
         for (int i = 0; i < tmpDistanceNumber; i++) {
             
             for (int j = 0; j < tmpChunkNumber; j++) {
-                tmpFuture = tmpFutures.get(tmpTaskIndex);
+                if (tmpFutures != null) {
+                    tmpFuture = tmpFutures.get(tmpTaskIndex);
+                }
                 try {
-                    tmpDistEnergies.addAll(tmpFuture.get());
-                    tmpDistMinEnergy = tmpFuture.get().get(0);
+                    if (tmpFuture != null) {
+                        tmpDistEnergies.addAll(tmpFuture.get());
+                        tmpDistMinEnergy = tmpFuture.get().get(0);
+                    }
                     if (tmpDistMinEnergy < tmpPartMinEnergy) {
                         tmpPartMinEnergy = tmpDistMinEnergy;
                         tmpDistMinIndex = i;
                         tmpChunkMinIndex = j;
                     }
                     tmpTaskIndex++;
-                    
-                    // Store all energies at same distance to tmpEnergyDatas[i]
-                    if (j == tmpChunkNumber - 1) {
-                        tmpEnergyDatas[i] = MIPETUTIL
-                                .toPrimitive(tmpDistEnergies);
-                        Arrays.sort(tmpEnergyDatas[i]);
-                        tmpDistEnergies.clear();
-                    }
                 } catch (InterruptedException | ExecutionException ex) {
                     LOGGER.log(Level.SEVERE,
                             "InterruptException during handling tmpFuture object.",
@@ -3037,9 +3064,37 @@ public class MIPET {
                 } 
             }
             
+            // Store all energies at same distance to tmpEnergyDatas[i]
+            tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
+            Arrays.sort(tmpEnergyDatas);
+            tmpEmins[i] = tmpEnergyDatas[0];
+            tmpDistEnergies.clear();
+            tmpFractionToMax = (int)(tmpEnergyDatas.length * boltzmannFraction);
+            tmpEnergyDataFraction = new double[tmpFractionToMax];
+            tmpWeights = new double[tmpFractionToMax];
+            
+            for (int j = 0; j < tmpFractionToMax; j++) {
+                tmpEnergyDataFraction[j] = tmpEnergyDatas[j];
+                
+                // tmpEmin cancel out after factor out
+                tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] 
+                        * tmpRezipTempGasconst);
+            }
+            
+            tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
+                    tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
+            if (tmpWgtEmin > tmpWgtEmins[i]) {
+                tmpWgtEmin = tmpWgtEmins[i];
+            }
         }
         
-        // Export .xyz file with lowest intermolecular energy
+        if (tmpFutures != null) {
+            tmpFutures.clear();
+        }
+        
+        //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Export .xyz file with lowest intermolecular energy">
         if (tmpPartMinEnergy < aMinEnergy) {
             String tmpSourceFileName;
             String tmpExportFileName;
@@ -3069,54 +3124,8 @@ public class MIPET {
             }
         }
         
-        //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy of all configurations">
-        // If boltzmannFraction == 0.0, no averaging, min energy value of each configuration is taken
-        // If fractionForAverage = 1.0 all configurational E(nonbonded) values are used for "Boltzmann average" calculation
-        // 0.0 < fractionForAverage < 1.0: All configurational E(nonbonded) values are sorted ascending and
-        // the lower "numberOfValues*fractionForAverage" E(nonbonded) values are used for "Boltzmann average" calculation
-        // Example: For 144x144x16 = 331776 E(nonbonded) values for a specific molecule distance r and
-        // a fractionForAverage of 0.25 the lowest Round(331776x0.25) = 82944 E(nonbonded) values are used for
-        // "Boltzmann average" calculation only
-        int tmpFractionToMax;
-        double tmpEmin;
-        double tmpTempGasconst;
-        double tmpWgtEmin;
-        double[] tmpWeights;
-        double[] tmpEnergyDataFraction;
-        double[] tmpEmins;
-        double[] tmpWgtEmins;
-
-        // Find tmpMinEnergy
-        tmpEmins = new double[tmpDistanceNumber];
-        tmpWgtEmins = new double[tmpDistanceNumber];
-        tmpTempGasconst = temperature * GASCONST;
-        tmpEmin = tmpPartMinEnergy;
-        tmpWgtEmin = 100.;
-
-        for (int i = 0; i < tmpDistanceNumber; i++) {
-            tmpEmins[i] = tmpEnergyDatas[i][0];
-            tmpFractionToMax = (int)(tmpEnergyDatas[i].length 
-                    * boltzmannFraction);
-            tmpEnergyDataFraction = new double[tmpFractionToMax];
-            tmpWeights = new double[tmpFractionToMax];
-
-            for (int j = 0; j < tmpFractionToMax; j++) {
-                tmpEnergyDataFraction[j] = tmpEnergyDatas[i][j];
-                
-                // tmpEmin cancel out after factor out
-                tmpWeights[j] = Math.exp(-tmpEnergyDatas[i][j] 
-                        / tmpTempGasconst);
-            }
-
-            tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
-                    tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
-            if (tmpWgtEmin > tmpWgtEmins[i]) {
-                tmpWgtEmin = tmpWgtEmins[i];
-            }
-        }
-
         //</editor-fold>
-        
+
         return new EnergyRecord(aDistances,
                 tmpEmins,
                 tmpWgtEmins, 
