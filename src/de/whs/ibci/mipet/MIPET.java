@@ -1161,7 +1161,7 @@ public class MIPET {
 
                     //</editor-fold>
 
-                    //<editor-fold defaultstate="collapsed" desc="Last scan">
+                    //<editor-fold defaultstate="collapsed" desc="Scan at equlibrium distance">
                     tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
 
                     tmpDistances = new double[1];
@@ -2911,6 +2911,7 @@ public class MIPET {
             double aMinEnergy) {
         
         //<editor-fold defaultstate="collapsed" desc="Calculate chunk size">
+        boolean tmpIsFractionOne;
         int tmpAtomNumber;
         int tmpDistanceNumber;
         int tmpConfigNumber;
@@ -2920,6 +2921,7 @@ public class MIPET {
         int tmpChunkIndex;
         int tmpRot2StartIndex;
         int tmpRot2EndIndex;
+        int tmpDivider;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
@@ -2930,16 +2932,30 @@ public class MIPET {
         TinkerXYZ tmpTinkerXYZ;
         ExecutorService executor;
         
+        //tmpIsFractionOne = boltzmannFraction == 1.0;
+        tmpIsFractionOne = false;
         tmpDistanceNumber = aDistances.length;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
+        tmpDivider = 1;
         if (tmpConfigNumber < 1000) {
             tmpChunkNumber = 1;
             tmpChunkSize = tmpConfigNumber;
             tmpChunkRemainder = 0;
         } else {
-            tmpChunkNumber = cpuCoreNumber;
-            tmpChunkSize = (int)Math.ceil(aRotData2.length / tmpChunkNumber);
-            tmpChunkRemainder = aRotData2.length % tmpChunkSize;
+            tmpChunkSize = tmpConfigNumber / cpuCoreNumber;
+            tmpChunkRemainder = tmpConfigNumber % cpuCoreNumber;
+            if (tmpChunkSize > 1000000) {
+                while (tmpChunkSize > 1000000) {
+                    tmpDivider++;
+                    tmpChunkSize = tmpConfigNumber / cpuCoreNumber / tmpDivider;
+                    tmpChunkRemainder = tmpConfigNumber % (cpuCoreNumber 
+                            * tmpDivider);
+                }
+            }
+            tmpChunkNumber = tmpConfigNumber / tmpChunkSize;
+            if (tmpChunkRemainder > 0) {
+                tmpChunkNumber++;
+            }
         }
         
         //</editor-fold>
@@ -2966,9 +2982,9 @@ public class MIPET {
                         isTinkerOn);
                 tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
                 tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
-                if (tmpChunkIndex == tmpChunkNumber - 1) {
-                    tmpRot2EndIndex += tmpChunkRemainder;
-                } 
+//                if (tmpChunkIndex == tmpChunkNumber - 1) {
+//                    tmpRot2EndIndex += tmpChunkRemainder;
+//                } 
                 double[][][] tmpRotPart2;
                 tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
                         tmpRot2StartIndex,
@@ -2986,7 +3002,9 @@ public class MIPET {
                         tmpRotPart2,
                         scratchDirectory,
                         tmpCmdList,
-                        molecules));
+                        molecules,
+                        tmpIsFractionOne,
+                        temperature));
                 tmpChunkIndex++;
                 tmpRot2StartIndex = tmpRot2EndIndex;
             }
@@ -3012,6 +3030,8 @@ public class MIPET {
         double tmpEmin;
         double tmpRezipTempGasconst;
         double tmpWgtEmin;
+        double tmpSumWgt;
+        double tmpSumWgtxE;
         double[] tmpEnergyDatas;
         double[] tmpWeights;
         double[] tmpEnergyDataFraction;
@@ -3021,10 +3041,12 @@ public class MIPET {
         tmpTaskIndex = 0;
         tmpDistMinIndex = 0;
         tmpChunkMinIndex = 0;
+        tmpSumWgt = 0;
+        tmpSumWgtxE = 0;
         tmpDistMinEnergy = 1E10;
         tmpPartMinEnergy = 1E10;
-        List<Future<ArrayList<Double>>> tmpFutures = null;
-        Future<ArrayList<Double>> tmpFuture;
+        List<Future<WgtEnergyRecord>> tmpFutures = null;
+        Future<WgtEnergyRecord> tmpFuture;
         ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
         tmpEmins = new double[tmpDistanceNumber];
         tmpWgtEmins = new double[tmpDistanceNumber];
@@ -3048,8 +3070,12 @@ public class MIPET {
                 }
                 try {
                     if (tmpFuture != null) {
-                        tmpDistEnergies.addAll(tmpFuture.get());
-                        tmpDistMinEnergy = tmpFuture.get().get(0);
+                        tmpDistEnergies.addAll(tmpFuture.get().wgtEnergys());
+                        tmpDistMinEnergy = tmpFuture.get().wgtEnergys().get(0);
+                        if (tmpIsFractionOne) {
+                            tmpSumWgt += tmpFuture.get().sumWgt();
+                            tmpSumWgtxE += tmpFuture.get().sumWgtxE();
+                        }
                     }
                     if (tmpDistMinEnergy < tmpPartMinEnergy) {
                         tmpPartMinEnergy = tmpDistMinEnergy;
@@ -3065,27 +3091,35 @@ public class MIPET {
             }
             
             // Store all energies at same distance to tmpEnergyDatas[i]
-            tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
-            Arrays.sort(tmpEnergyDatas);
-            tmpEmins[i] = tmpEnergyDatas[0];
-            tmpDistEnergies.clear();
-            tmpFractionToMax = (int)(tmpEnergyDatas.length * boltzmannFraction);
-            tmpEnergyDataFraction = new double[tmpFractionToMax];
-            tmpWeights = new double[tmpFractionToMax];
-            
-            for (int j = 0; j < tmpFractionToMax; j++) {
-                tmpEnergyDataFraction[j] = tmpEnergyDatas[j];
-                
-                // tmpEmin cancel out after factor out
-                tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] 
-                        * tmpRezipTempGasconst);
+            if (tmpIsFractionOne) {
+                tmpEnergyDatas = new double[1];
+                tmpEnergyDatas[0] = tmpPartMinEnergy;
+                tmpWgtEmins[i] = tmpSumWgtxE / tmpSumWgt;
+                tmpSumWgt = 0;
+                tmpSumWgtxE = 0;
+            } else {
+                tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
+                Arrays.sort(tmpEnergyDatas);
+                tmpEmins[i] = tmpEnergyDatas[0];
+                tmpFractionToMax = (int)(tmpEnergyDatas.length * boltzmannFraction);
+                tmpEnergyDataFraction = new double[tmpFractionToMax];
+                tmpWeights = new double[tmpFractionToMax];
+
+                for (int j = 0; j < tmpFractionToMax; j++) {
+                    tmpEnergyDataFraction[j] = tmpEnergyDatas[j];
+
+                    // tmpEmin cancel out after factor out
+                    tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] 
+                            * tmpRezipTempGasconst);
+                }
+
+                tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
+                        tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
             }
-            
-            tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
-                    tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
             if (tmpWgtEmin > tmpWgtEmins[i]) {
                 tmpWgtEmin = tmpWgtEmins[i];
             }
+            tmpDistEnergies.clear();
         }
         
         if (tmpFutures != null) {
@@ -3100,7 +3134,8 @@ public class MIPET {
             String tmpExportFileName;
             Path tmpSource;
             Path tmpTarget;
-
+            
+            tmpEmin = tmpPartMinEnergy;
             tmpSourceFileName = scratchDirectory
                     + FILESEPARATOR
                     + aParticlePair

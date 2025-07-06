@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -41,7 +40,7 @@ import java.util.logging.Logger;
  *   This class helps to process tinker's analyze.exe parallely.
  * @author Mirco Daniel
  */
-public class MIPETAnalyze implements Callable<ArrayList<Double>> {
+public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     
     // <editor-fold defaultstate="collapsed" desc="Final Class variables">
     /**
@@ -86,6 +85,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     private final TinkerXYZ TINKERXYZ;
     
     private final boolean ISTINKERON;
+    private final boolean ISFRACTIONONE;
     private final double MINATOMDISTANCE;
     private final double[][][] ROTDATA1;
     private final double[][][] ROTDATA2;
@@ -120,6 +120,13 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      */
     private final LinkedList<MoleculeRecord> MOLECULES;
     
+    private final double TEMP;
+    
+    /**
+     * Gas constant R [kcal/(mol*K)]
+     */
+    private final double GASCONST = 1.98720425864E-3;
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
@@ -138,6 +145,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
      * @param aCommandList Command list for tinker's analyze.exe
      * @param aRotData2 Coordinatdes of sendond particle
      * @param aMolecules Molecule datas
+     * @param aIsFractionOne Whether Boltzmann fraction = 1.0 (true) or not (false)
+     * @param aTemperature Temperature
      */
     public MIPETAnalyze(
             TinkerXYZ aTinkerXYZ,
@@ -150,7 +159,9 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
             double[][][] aRotData2,
             String aScratchDir,
             String[] aCommandList,
-            LinkedList<MoleculeRecord> aMolecules) {
+            LinkedList<MoleculeRecord> aMolecules,
+            boolean aIsFractionOne,
+            double aTemperature) {
         this.TINKERXYZ = aTinkerXYZ;
         this.ISTINKERON = aTinkerOn;
         this.DISTANCEINDEX = aDistanceIndex;
@@ -162,6 +173,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         this.SCRATCH_DIR = aScratchDir;
         this.COMMAND_LIST = aCommandList;
         this.MOLECULES = aMolecules;
+        this.ISFRACTIONONE = aIsFractionOne;
+        this.TEMP = aTemperature;
     }
     
     // </editor-fold>
@@ -169,7 +182,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     
     @Override
-    public ArrayList<Double> call() {
+    public WgtEnergyRecord call() {
+        final double REZIPTEMPGASCONST = 1 / (this.TEMP * this.GASCONST);
         boolean tmpIs2Close;
         int tmpRot1Size;
         int tmpRot2Size;
@@ -200,6 +214,11 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         double tmpRatio6; // tmpRatio^6
         double tmpValue;
         double tmpMinEnergy; // in kcal/mole
+        double tmpWgt;
+        double tmpWgtxE;
+        double tmpSumWgt;
+        double tmpSumWgtxE;
+        
         ArrayList<Double> tmpEnergyList;
         String tmpForcefield;
         String tmpParticlePair;
@@ -232,6 +251,8 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpEpsilons2 = null;
         tmpCharges1 = null;
         tmpCharges2 = null;
+        tmpSumWgt = 0;
+        tmpSumWgtxE = 0;
         
         if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
             tmpMoleculeSize = MOLECULES.size();
@@ -242,7 +263,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                     break;
                 }
             }
-        
+            
             for (int i = 0; i < tmpMoleculeSize; i++) {
                 if (tmpParticle2.equals(MOLECULES.get(i).name())) {
                     tmpID2 = i;
@@ -271,7 +292,7 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkSize = tmpRot1Size * tmpRot2Size;
-        tmpEnergyList = new ArrayList<Double>(tmpChunkSize);
+        tmpEnergyList = new ArrayList<>(tmpChunkSize);
         tmpChunkIndex = 0;
         tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
@@ -334,8 +355,17 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                         if (tmpLine.contains(tmpSearch)) {
                             tmpValueCandidate = tmpLine.substring(25, 50);
                             if (!tmpValueCandidate.contains("D")) {
-                                tmpValue = Double.parseDouble(tmpValueCandidate);
-                                tmpEnergyList.add(tmpValue);
+                                tmpValue = Double
+                                       .parseDouble(tmpValueCandidate);
+                                if (ISFRACTIONONE) {
+                                    tmpWgt = Math.exp(-tmpValue * 
+                                            REZIPTEMPGASCONST);
+                                    tmpWgtxE = tmpWgt * tmpValue;
+                                    tmpSumWgt += tmpWgt;
+                                    tmpSumWgtxE += tmpWgtxE;
+                                } else {
+                                    tmpEnergyList.add(tmpValue);
+                                }
                                 tmpConfigIndex++;
                                 if (tmpValue < tmpMinEnergy) {
                                     tmpMinEnergy = tmpValue;
@@ -417,7 +447,14 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                                 
                         }
                         
-                        tmpEnergyList.add(tmpValue);
+                        if (ISFRACTIONONE) {
+                            tmpWgt = Math.exp(-tmpValue * REZIPTEMPGASCONST);
+                            tmpWgtxE = tmpWgt * tmpValue;
+                            tmpSumWgt += tmpWgt;
+                            tmpSumWgtxE += tmpWgtxE;
+                        } else {
+                            tmpEnergyList.add(tmpValue);
+                        }
                         if (tmpValue < tmpMinEnergy) {
                             tmpMinEnergy = tmpValue;
                             tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
@@ -427,11 +464,16 @@ public class MIPETAnalyze implements Callable<ArrayList<Double>> {
                 }
 
             }
-            tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
             
+            tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
         }
-        tmpEnergyList.sort(Comparator.naturalOrder());
-        return tmpEnergyList;
+        if (ISFRACTIONONE) {
+            tmpEnergyList.add(tmpMinEnergy);
+            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE);
+        } else {
+            tmpEnergyList.sort(Comparator.naturalOrder());
+            return new WgtEnergyRecord(tmpEnergyList, 0, 0);
+        }
     }
     
     // </editor-fold>
