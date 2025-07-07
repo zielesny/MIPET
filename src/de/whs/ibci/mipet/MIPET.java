@@ -892,8 +892,6 @@ public class MIPET {
         
         //</editor-fold>
         
-        
-        
         while (tmpIsExitCondition == false) {
             // Exit condition is true when all particle pair combinations
             //   were calculated.
@@ -1947,7 +1945,7 @@ public class MIPET {
     private static void initialize() {
         setParameters();
         
-        // <editor-fold defaultstate="collapsed" desc="Check and creat directories">
+        // <editor-fold defaultstate="collapsed" desc="Check and create directories">
         if (!Files.exists(Paths.get(scratchDirectory))) {
             try {
                 Files.createDirectories(Paths.get(scratchDirectory));
@@ -2915,9 +2913,9 @@ public class MIPET {
         int tmpAtomNumber;
         int tmpDistanceNumber;
         int tmpConfigNumber;
-        int tmpChunkNumber;
-        int tmpChunkSize;
-        int tmpChunkRemainder;
+        int tmpChunkNumber; // Number of chunks
+        int tmpChunkSize; // Number of aRotData2 configurations
+        int tmpChunkRemainder; // Number of aRotData2 configuration in the last chunk (only when there is a remainder)
         int tmpChunkIndex;
         int tmpRot2StartIndex;
         int tmpRot2EndIndex;
@@ -2932,8 +2930,7 @@ public class MIPET {
         TinkerXYZ tmpTinkerXYZ;
         ExecutorService executor;
         
-        //tmpIsFractionOne = boltzmannFraction == 1.0;
-        tmpIsFractionOne = false;
+        tmpIsFractionOne = boltzmannFraction == 1.0;
         tmpDistanceNumber = aDistances.length;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
         tmpDivider = 1;
@@ -2941,18 +2938,19 @@ public class MIPET {
             tmpChunkNumber = 1;
             tmpChunkSize = tmpConfigNumber;
             tmpChunkRemainder = 0;
+            tmpRot2EndIndex = aRotData2.length;
         } else {
-            tmpChunkSize = tmpConfigNumber / cpuCoreNumber;
-            tmpChunkRemainder = tmpConfigNumber % cpuCoreNumber;
-            if (tmpChunkSize > 1000000) {
-                while (tmpChunkSize > 1000000) {
+            tmpChunkNumber = cpuCoreNumber;
+            tmpChunkSize = aRotData2.length / tmpChunkNumber;
+            tmpChunkRemainder = aRotData2.length % tmpChunkNumber;
+            if (tmpChunkSize > 1000) {
+                while (tmpChunkSize > 1000) {
                     tmpDivider++;
-                    tmpChunkSize = tmpConfigNumber / cpuCoreNumber / tmpDivider;
-                    tmpChunkRemainder = tmpConfigNumber % (cpuCoreNumber 
-                            * tmpDivider);
+                    tmpChunkNumber = cpuCoreNumber * tmpDivider;
+                    tmpChunkSize = aRotData2.length / tmpChunkNumber;
+                    tmpChunkRemainder = tmpConfigNumber % tmpChunkNumber;
                 }
             }
-            tmpChunkNumber = tmpConfigNumber / tmpChunkSize;
             if (tmpChunkRemainder > 0) {
                 tmpChunkNumber++;
             }
@@ -2961,6 +2959,7 @@ public class MIPET {
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy using TINKER analyze">
+        
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
         tmpRotData1 = aRotData1;
@@ -2981,10 +2980,12 @@ public class MIPET {
                         tmpTinkerXyz2,
                         isTinkerOn);
                 tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
-                tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
-//                if (tmpChunkIndex == tmpChunkNumber - 1) {
-//                    tmpRot2EndIndex += tmpChunkRemainder;
-//                } 
+                if (tmpChunkIndex <= tmpChunkNumber - 1 
+                        && tmpChunkRemainder == 0) {
+                    tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
+                } else {
+                    tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkRemainder;
+                }
                 double[][][] tmpRotPart2;
                 tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
                         tmpRot2StartIndex,
@@ -3026,7 +3027,7 @@ public class MIPET {
         int tmpTaskIndex;
         int tmpFractionToMax;
         double tmpDistMinEnergy;
-        double tmpPartMinEnergy;
+        double tmpAllDistMinEnergy;
         double tmpEmin;
         double tmpRezipTempGasconst;
         double tmpWgtEmin;
@@ -3044,14 +3045,14 @@ public class MIPET {
         tmpSumWgt = 0;
         tmpSumWgtxE = 0;
         tmpDistMinEnergy = 1E10;
-        tmpPartMinEnergy = 1E10;
+        tmpAllDistMinEnergy = 1E10;
         List<Future<WgtEnergyRecord>> tmpFutures = null;
         Future<WgtEnergyRecord> tmpFuture;
         ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
         tmpEmins = new double[tmpDistanceNumber];
         tmpWgtEmins = new double[tmpDistanceNumber];
         tmpRezipTempGasconst = 1 / (temperature * GASCONST);
-        tmpEmin = tmpPartMinEnergy;
+        tmpEmin = tmpAllDistMinEnergy;
         tmpWgtEmin = 100.;
         
         try {            
@@ -3063,22 +3064,22 @@ public class MIPET {
         tmpFuture = null;
             
         for (int i = 0; i < tmpDistanceNumber; i++) {
-            
+                        
             for (int j = 0; j < tmpChunkNumber; j++) {
                 if (tmpFutures != null) {
                     tmpFuture = tmpFutures.get(tmpTaskIndex);
                 }
                 try {
                     if (tmpFuture != null) {
-                        tmpDistEnergies.addAll(tmpFuture.get().wgtEnergys());
-                        tmpDistMinEnergy = tmpFuture.get().wgtEnergys().get(0);
+                        tmpDistEnergies.addAll(tmpFuture.get().energys());
+                        tmpDistMinEnergy = tmpFuture.get().energys().get(0);
                         if (tmpIsFractionOne) {
                             tmpSumWgt += tmpFuture.get().sumWgt();
                             tmpSumWgtxE += tmpFuture.get().sumWgtxE();
                         }
                     }
-                    if (tmpDistMinEnergy < tmpPartMinEnergy) {
-                        tmpPartMinEnergy = tmpDistMinEnergy;
+                    if (tmpDistMinEnergy < tmpAllDistMinEnergy) {
+                        tmpAllDistMinEnergy = tmpDistMinEnergy;
                         tmpDistMinIndex = i;
                         tmpChunkMinIndex = j;
                     }
@@ -3093,14 +3094,13 @@ public class MIPET {
             // Store all energies at same distance to tmpEnergyDatas[i]
             if (tmpIsFractionOne) {
                 tmpEnergyDatas = new double[1];
-                tmpEnergyDatas[0] = tmpPartMinEnergy;
+                tmpEnergyDatas[0] = Collections.min(tmpDistEnergies);
                 tmpWgtEmins[i] = tmpSumWgtxE / tmpSumWgt;
                 tmpSumWgt = 0;
                 tmpSumWgtxE = 0;
             } else {
                 tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
                 Arrays.sort(tmpEnergyDatas);
-                tmpEmins[i] = tmpEnergyDatas[0];
                 tmpFractionToMax = (int)(tmpEnergyDatas.length * boltzmannFraction);
                 tmpEnergyDataFraction = new double[tmpFractionToMax];
                 tmpWeights = new double[tmpFractionToMax];
@@ -3116,6 +3116,7 @@ public class MIPET {
                 tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
                         tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
             }
+            tmpEmins[i] = tmpEnergyDatas[0];
             if (tmpWgtEmin > tmpWgtEmins[i]) {
                 tmpWgtEmin = tmpWgtEmins[i];
             }
@@ -3129,13 +3130,13 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Export .xyz file with lowest intermolecular energy">
-        if (tmpPartMinEnergy < aMinEnergy) {
+        if (tmpAllDistMinEnergy < aMinEnergy) {
             String tmpSourceFileName;
             String tmpExportFileName;
             Path tmpSource;
             Path tmpTarget;
             
-            tmpEmin = tmpPartMinEnergy;
+            tmpEmin = tmpAllDistMinEnergy;
             tmpSourceFileName = scratchDirectory
                     + FILESEPARATOR
                     + aParticlePair

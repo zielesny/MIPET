@@ -25,7 +25,7 @@ import java.util.ArrayList;
  * Record for storage weighted intermolecular differential pair interaction 
  *   energies, Sum of Weights and Sum of weight * energy
  * @author Mirco Daniel
- * @param wgtEnergys
+ * @param energys
  *   Weighted energy values (sorted)
  * @param sumWgt
  *   Sum of weights
@@ -33,7 +33,7 @@ import java.util.ArrayList;
  *   Sum of weight * energy value
  */
 public record WgtEnergyRecord(
-        ArrayList<Double> wgtEnergys,
+        ArrayList<Double> energys,
         double sumWgt,
         double sumWgtxE) {
 }
