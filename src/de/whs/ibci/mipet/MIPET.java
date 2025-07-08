@@ -966,12 +966,12 @@ public class MIPET {
                 //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
 
                 //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                tmpRotCoords = RotationUtil
-                        .getRotationsCoords(sphereNodeNumber1, 
-                                rotationNumber1,
-                                tmpXyzData1, 
-                                tmpXyzData2,
-                                isFibonacciSphereAlgorithm);
+                tmpRotCoords = RotationUtil.getRotationsCoords(
+                        sphereNodeNumber1, 
+                        rotationNumber1,
+                        tmpXyzData1, 
+                        tmpXyzData2,
+                        isFibonacciSphereAlgorithm);
                 tmpXyzRotData1 = tmpRotCoords.get(0);
                 tmpXyzRotData2 = tmpRotCoords.get(1);
                 
@@ -1058,12 +1058,12 @@ public class MIPET {
                     }
 
                     //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                    tmpRotCoords = RotationUtil
-                            .getRotationsCoords(sphereNodeNumber2, 
-                                    rotationNumber2,
-                                    tmpXyzData1,
-                                    tmpXyzData2,
-                                    isFibonacciSphereAlgorithm);
+                    tmpRotCoords = RotationUtil.getRotationsCoords(
+                            sphereNodeNumber2, 
+                            rotationNumber2,
+                            tmpXyzData1,
+                            tmpXyzData2,
+                            isFibonacciSphereAlgorithm);
                     tmpXyzRotData1 = tmpRotCoords.get(0);
                     tmpXyzRotData2 = tmpRotCoords.get(1);
 
@@ -1081,8 +1081,10 @@ public class MIPET {
 
                     tmpAllDistances.addAll(tmpDistanceList);
                     tmpDistances = tmpDistanceList.stream()
-                            .mapToDouble(d -> d).toArray();
-                    tmpEnergyRecords[1] = getInterMolecularEnergy(tmpParticlePair,
+                            .mapToDouble(d -> d)
+                            .toArray();
+                    tmpEnergyRecords[1] = getInterMolecularEnergy(
+                            tmpParticlePair,
                             tmpDistances, 
                             tmpTinkerXYZ1, 
                             tmpTinkerXYZ2, 
@@ -1104,12 +1106,12 @@ public class MIPET {
                     //</editor-fold>
 
                     //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                    tmpRotCoords = RotationUtil
-                            .getRotationsCoords(sphereNodeNumber3, 
-                                    rotationNumber3,
-                                    tmpXyzData1,
-                                    tmpXyzData2,
-                                    isFibonacciSphereAlgorithm);
+                    tmpRotCoords = RotationUtil.getRotationsCoords(
+                            sphereNodeNumber3, 
+                            rotationNumber3,
+                            tmpXyzData1,
+                            tmpXyzData2,
+                            isFibonacciSphereAlgorithm);
                     tmpXyzRotData1 = tmpRotCoords.get(0);
                     tmpXyzRotData2 = tmpRotCoords.get(1);
 
@@ -1127,8 +1129,10 @@ public class MIPET {
 
                     tmpAllDistances.addAll(tmpDistanceList);
                     tmpDistances = tmpDistanceList.stream()
-                            .mapToDouble(d -> d).toArray();
-                    tmpEnergyRecords[2] = getInterMolecularEnergy(tmpParticlePair,
+                            .mapToDouble(d -> d)
+                            .toArray();
+                    tmpEnergyRecords[2] = getInterMolecularEnergy(
+                            tmpParticlePair,
                             tmpDistances, 
                             tmpTinkerXYZ1, 
                             tmpTinkerXYZ2, 
@@ -1146,22 +1150,12 @@ public class MIPET {
                                 tmpEnergyRecords[2].Emins()[i],
                                 tmpEnergyRecords[2].wgtEmins()[i]));
                     }
-
-                    //</editor-fold>
-
-                    //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                    tmpRotCoords = RotationUtil
-                            .getRotationsCoords(sphereNodeNumber4, 
-                                    rotationNumber4,
-                                    tmpXyzData1,
-                                    tmpXyzData2,
-                                    isFibonacciSphereAlgorithm);
+                    
+                    tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
 
                     //</editor-fold>
 
                     //<editor-fold defaultstate="collapsed" desc="Scan at equlibrium distance">
-                    tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
-
                     tmpDistances = new double[1];
                     tmpDistances[0] = tmpGlbEminDist; 
                     tmpEnergyRecords[3] = getInterMolecularEnergy(
@@ -1260,11 +1254,14 @@ public class MIPET {
 
                     for (int i = 0; i < tmpDistSize; i++) {
                         tmpEnergySorted[i][0] = tmpDistEminRecords
-                                .get(tmpDistanceIndices[i]).distance();
+                                .get(tmpDistanceIndices[i])
+                                .distance();
                         tmpEnergySorted[i][1] = tmpDistEminRecords
-                                .get(tmpDistanceIndices[i]).Emin();
+                                .get(tmpDistanceIndices[i])
+                                .Emin();
                         tmpEnergySorted[i][2] = tmpDistEminRecords
-                                .get(tmpDistanceIndices[i]).wgtEmin();
+                                .get(tmpDistanceIndices[i])
+                                .wgtEmin();
                     }
 
                     //</editor-fold>
@@ -1408,7 +1405,9 @@ public class MIPET {
                                     "InterruptException during reading output0_opt.txt",
                                     ex);
                         }
-                        tmpProcess.destroy();
+                        if (tmpProcess != null) {
+                            tmpProcess.destroy();
+                        }
                         tmpSourceName = scratchDirectory
                                 + FILESEPARATOR 
                                 + tmpParticlePair
@@ -1898,8 +1897,8 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">
-        System.out.println("Calculating coordination numbers...");
         if (!forcefield_CN.isEmpty()) {
+            System.out.println("Calculating coordination numbers...");
             getCoordinationNumbers(tmpJobTaskRecordList);
         }
         
@@ -1907,7 +1906,6 @@ public class MIPET {
         
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
         System.out.println("Exporting parameterset...");
-        
         float tmpTotalTimeSec;
         tmpTotalTimeSec = (System.currentTimeMillis() - tmpTotalTime) / 1000;
         try {
