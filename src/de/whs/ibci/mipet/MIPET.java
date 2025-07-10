@@ -1546,7 +1546,8 @@ public class MIPET {
                     Path tmpTarget;
 
                     // Write ouput.0 file
-                    tmpOriginal = Paths.get(scratchDirectory, tmpParticlePair + ".0");
+                    tmpOriginal = Paths.get(scratchDirectory, 
+                            tmpParticlePair + ".0");
                     tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
                     try {
                         Files.copy(tmpOriginal, tmpTarget,
@@ -2936,7 +2937,6 @@ public class MIPET {
             tmpChunkNumber = 1;
             tmpChunkSize = tmpConfigNumber;
             tmpChunkRemainder = 0;
-            tmpRot2EndIndex = aRotData2.length;
         } else {
             tmpChunkNumber = cpuCoreNumber;
             tmpChunkSize = aRotData2.length / tmpChunkNumber;
@@ -2957,7 +2957,6 @@ public class MIPET {
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy using TINKER analyze">
-        
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
         tmpRotData1 = aRotData1;
@@ -2978,11 +2977,15 @@ public class MIPET {
                         tmpTinkerXyz2,
                         isTinkerOn);
                 tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
-                if (tmpChunkIndex <= tmpChunkNumber - 1 
-                        && tmpChunkRemainder == 0) {
-                    tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
+                if (tmpChunkNumber == 1) {
+                    tmpRot2EndIndex = aRotData2.length;
                 } else {
-                    tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkRemainder;
+                    if (tmpChunkIndex <= tmpChunkNumber - 1 
+                            && tmpChunkRemainder == 0) {
+                        tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
+                    } else {
+                        tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkRemainder;
+                    }
                 }
                 double[][][] tmpRotPart2;
                 tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,

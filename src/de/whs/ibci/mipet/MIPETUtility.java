@@ -1834,7 +1834,7 @@ public class MIPETUtility{
                 aTokens[2] = aTokens[1];
                 tmpResult = String.join("",
                         aTokens[0], 
-                        " ".repeat(10),
+                        " ".repeat(8),
                         aTokens[1],
                         " ".repeat(2),
                         aTokens[2],
