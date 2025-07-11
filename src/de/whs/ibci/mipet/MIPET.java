@@ -2946,7 +2946,7 @@ public class MIPET {
                     tmpDivider++;
                     tmpChunkNumber = cpuCoreNumber * tmpDivider;
                     tmpChunkSize = aRotData2.length / tmpChunkNumber;
-                    tmpChunkRemainder = tmpConfigNumber % tmpChunkNumber;
+                    tmpChunkRemainder = aRotData2.length % tmpChunkNumber;
                 }
             }
             if (tmpChunkRemainder > 0) {
@@ -3097,6 +3097,9 @@ public class MIPET {
                 tmpEnergyDatas = new double[1];
                 tmpEnergyDatas[0] = Collections.min(tmpDistEnergies);
                 tmpWgtEmins[i] = tmpSumWgtxE / tmpSumWgt;
+                if (Double.isNaN(tmpWgtEmins[i])) {
+                    tmpWgtEmins[i] = 100.;
+                } 
                 tmpSumWgt = 0;
                 tmpSumWgtxE = 0;
             } else {
@@ -3116,6 +3119,9 @@ public class MIPET {
 
                 tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
                         tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
+                if (Double.isNaN(tmpWgtEmins[i])) {
+                    tmpWgtEmins[i] = 100.;
+                } 
             }
             tmpEmins[i] = tmpEnergyDatas[0];
             if (tmpWgtEmin > tmpWgtEmins[i]) {
