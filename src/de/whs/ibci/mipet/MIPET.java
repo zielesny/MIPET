@@ -845,7 +845,6 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Variable declarations">
-        boolean tmpIsFraction;
         byte tmpH2OPos;
         int tmpXyz1ID;
         int tmpXyz2ID;
@@ -887,7 +886,6 @@ public class MIPET {
                 + dielectricConstant
                 + LINESEPARATOR;
         tmpForcefield = forcefield_IE;
-        tmpIsFraction = boltzmannFraction != 1.0;
         System.out.println("Calculating intermolecular energy...");
         
         //</editor-fold>
@@ -1058,14 +1056,17 @@ public class MIPET {
                     }
 
                     //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                    tmpRotCoords = RotationUtil.getRotationsCoords(
-                            sphereNodeNumber2, 
-                            rotationNumber2,
-                            tmpXyzData1,
-                            tmpXyzData2,
-                            isFibonacciSphereAlgorithm);
-                    tmpXyzRotData1 = tmpRotCoords.get(0);
-                    tmpXyzRotData2 = tmpRotCoords.get(1);
+                    if (sphereNodeNumber2 != sphereNodeNumber1 
+                            || rotationNumber2 != rotationNumber1) {
+                        tmpRotCoords = RotationUtil.getRotationsCoords(
+                                sphereNodeNumber2, 
+                                rotationNumber2,
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                        tmpXyzRotData1 = tmpRotCoords.get(0);
+                        tmpXyzRotData2 = tmpRotCoords.get(1);
+                    }
 
                     //</editor-fold>
 
@@ -1106,14 +1107,17 @@ public class MIPET {
                     //</editor-fold>
 
                     //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
-                    tmpRotCoords = RotationUtil.getRotationsCoords(
-                            sphereNodeNumber3, 
-                            rotationNumber3,
-                            tmpXyzData1,
-                            tmpXyzData2,
-                            isFibonacciSphereAlgorithm);
-                    tmpXyzRotData1 = tmpRotCoords.get(0);
-                    tmpXyzRotData2 = tmpRotCoords.get(1);
+                    if (sphereNodeNumber3 != sphereNodeNumber2 
+                            || rotationNumber3 != rotationNumber2) {
+                        tmpRotCoords = RotationUtil.getRotationsCoords(
+                                sphereNodeNumber3, 
+                                rotationNumber3,
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                        tmpXyzRotData1 = tmpRotCoords.get(0);
+                        tmpXyzRotData2 = tmpRotCoords.get(1);
+                    }
 
                     //</editor-fold>
 
@@ -1152,6 +1156,21 @@ public class MIPET {
                     }
                     
                     tmpAllDistances.add(tmpEnergyRecords[2].eqDistance());
+
+                    //</editor-fold>
+                    
+                    //<editor-fold defaultstate="collapsed" desc="Calculate rotated coordinates">
+                    if (sphereNodeNumber4 != sphereNodeNumber3 
+                            || rotationNumber4 != rotationNumber3) {
+                        tmpRotCoords = RotationUtil.getRotationsCoords(
+                                sphereNodeNumber4, 
+                                rotationNumber4,
+                                tmpXyzData1,
+                                tmpXyzData2,
+                                isFibonacciSphereAlgorithm);
+                        tmpXyzRotData1 = tmpRotCoords.get(0);
+                        tmpXyzRotData2 = tmpRotCoords.get(1);
+                    }
 
                     //</editor-fold>
 
