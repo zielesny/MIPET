@@ -2999,11 +2999,15 @@ public class MIPET {
                 if (tmpChunkNumber == 1) {
                     tmpRot2EndIndex = aRotData2.length;
                 } else {
-                    if (tmpChunkIndex <= tmpChunkNumber - 1 
-                            && tmpChunkRemainder == 0) {
+                    if (tmpChunkIndex < tmpChunkNumber - 1) { 
                         tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
                     } else {
-                        tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkRemainder;
+                        if (tmpChunkRemainder > 0 ) { 
+                            tmpRot2EndIndex = tmpRot2StartIndex 
+                                    + tmpChunkRemainder;
+                        } else {
+                            tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
+                        }
                     }
                 }
                 double[][][] tmpRotPart2;
@@ -3124,7 +3128,8 @@ public class MIPET {
             } else {
                 tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
                 Arrays.sort(tmpEnergyDatas);
-                tmpFractionToMax = (int)(tmpEnergyDatas.length * boltzmannFraction);
+                tmpFractionToMax = (int)(tmpEnergyDatas.length 
+                        * boltzmannFraction);
                 tmpEnergyDataFraction = new double[tmpFractionToMax];
                 tmpWeights = new double[tmpFractionToMax];
 
