@@ -553,7 +553,6 @@ public class MIPET {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Public methods">
-    
     /**
      * Main method
      * @param args
@@ -1954,7 +1953,8 @@ public class MIPET {
        
     } 
     
-    // </editor-fold>
+    //</editor-fold>
+    //</editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     /**
