@@ -3,7 +3,6 @@ AcNH2     CC(=O)N
 Azolid    N1CCCC1
 Bu				CCCC
 CisButene C/C=C\C
-DMP       O=P(OC)(OC)O
 Et				CC
 Et2O			CCOCC
 Ethene    C=C
@@ -20,6 +19,7 @@ Me				C
 Me2NH			CNC
 Me2O			COC
 Me2CO			CC(=O)C
+Me2P      O=P(OC)(OC)O
 Me2S			CSC
 Me2S2			CSSC
 Me3N      CN(C)C
@@ -29,8 +29,8 @@ MeBr			CBr
 MeCl			CCl
 MeNH2     CN
 MeOH			CO
+MeP       O=P(OC)(O)O
 MeSH      CS
-MP        O=P(OC)(O)O
 Na+       [Na+]
 Ph        c1ccccc1
 PhBr			c1c(Br)cccc1

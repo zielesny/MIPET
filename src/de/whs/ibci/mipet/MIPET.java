@@ -4073,9 +4073,6 @@ public class MIPET {
                     MIPETUTIL.getVdwVolume(smiles.get(tmpParticleName)) 
                             * WATERVOLUMERATIO)); // volume [A³]
             }
-            tmpParticleDescriptions.add(String.format("%.4f", 
-                    MIPETUTIL.getVdwVolume(smiles.get(tmpParticleName)) 
-                            * WATERVOLUMERATIO)); // volume [A³]
             tmpParticleDescriptions.add(Double.toString(GRAPHICS_RADIUS)); // graphics-radius
             tmpParticleDescriptions.add(DEFAULT_COLOR); // color
             tmpParticleDescriptionsList.add(tmpParticleDescriptions);
