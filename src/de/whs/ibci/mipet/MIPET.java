@@ -207,6 +207,11 @@ public class MIPET {
     private static String[] prmContent2;
     
     /**
+     * Partial charge correction factor
+     */
+    private static double[] chargeCorr;
+    
+    /**
      * CPUcore number
      */
     private static int cpuCoreNumber;
@@ -2356,15 +2361,20 @@ public class MIPET {
      */
     private static void readPrm(String aForcefield) {
         int tmpParticlesLength;
+        int tmpChargeCorrStartPos;
+        int tmpChargeCorrEndPos;
         String tmpPrmName1;
         String tmpParticleName;
+        String tmpSearch;
         String[] tmpLines;
         String[] tmpTokens;
         StringBuilder tmpPrm2;
         
         tmpParticlesLength = particleNames.size();
+        tmpSearch = "Partial charge correction factor:";
         prmContent1 = new String[tmpParticlesLength];
         prmContent2 = new String[tmpParticlesLength];
+        chargeCorr = new double[tmpParticlesLength];
         tmpPrm2 = new StringBuilder(100000);
                 
         for (int i = 0; i < tmpParticlesLength; i++) {
@@ -2389,6 +2399,20 @@ public class MIPET {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during reading .prm file.", ex);
                 }
+                
+                // Read partial charge correction factor
+                if (prmContent1[i].contains(tmpSearch)) {
+                    tmpChargeCorrStartPos = prmContent1[i]
+                            .indexOf(tmpSearch) + 33;
+                    tmpChargeCorrEndPos = prmContent1[i]
+                            .indexOf("\n", tmpChargeCorrStartPos);
+                    chargeCorr[i] = Double.parseDouble(prmContent1[i]
+                            .substring(tmpChargeCorrStartPos, 
+                                    tmpChargeCorrEndPos));
+                } else {
+                    chargeCorr[i] = 1.;
+                }
+                
             }
             
             // Change atomtype number of 2. particle to avoid redundancy
@@ -2487,7 +2511,8 @@ public class MIPET {
                 }
                 if (tmpLines[j].startsWith("charge ")) {
                     tmpLine = tmpLines[j].substring(20);
-                    tmpCharges[i][tmpChargeIndex] = Double.parseDouble(tmpLine);
+                    tmpCharges[i][tmpChargeIndex] = Double.parseDouble(tmpLine) 
+                            * chargeCorr[i];
                     tmpChargeIndex++;
                 }
             }

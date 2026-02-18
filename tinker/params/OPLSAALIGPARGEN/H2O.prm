@@ -1,3 +1,4 @@
+Partial charge correction factor: 1.0
 !---------------------------------------------
 !        From OPLS-AA TIP5P_Water
 !    LIGPARGEN can't generate tinker's .xyz and .key file from H2O
@@ -19,9 +20,6 @@ vdw-14-scale            2.0
 chg-14-scale            2.0
 electric                332.06
 dielectric              1.0
-
-
-
 
 
 ##  Atom Type Definitions  ##

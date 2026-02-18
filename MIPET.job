@@ -28,7 +28,6 @@ $
 #AcNH2
 #Bu
 #CisButene
-#DMP
 #Et
 #Et2O
 #Ethene
@@ -45,6 +44,7 @@ $
 #Me2CO
 #Me2NH
 #Me2O
+#Me2P
 #Me2S
 #Me2S2
 #Me3N
@@ -54,8 +54,8 @@ $
 #MeCl
 #MeNH2
 #MeOH
+#MeP
 #MeSH
-#MP
 #Ph
 #PhBr
 #PhCl
@@ -64,5 +64,6 @@ $
 #Pr
 #PrImine
 #Pyridine
-#Pyrrole
-VinylCl
+Pyrrole
+VinylBr
+#VinylCl

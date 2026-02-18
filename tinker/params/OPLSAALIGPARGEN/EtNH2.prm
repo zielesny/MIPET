@@ -1,3 +1,4 @@
+Partial charge correction factor: 1.0
 !---------------------------------------------
 !        Generated with LigParGen 
 !        William L. Jorgensen Lab
@@ -27,8 +28,6 @@ dielectric              1.0
         ##  Atom Type Definitions  ##
         ##                         ##
         #############################
-
-
 atom        801  801    CT    "C01"         6     12.011     4
 atom        800  800    CT    "C00"         6     12.011     4
 atom        803  803    HC    "H03"         1      1.008     1
@@ -46,8 +45,6 @@ atom        809  809     H    "H09"         1      1.008     1
         ##  Van der Waals Parameters  ##
         ##                            ##
         ################################
-        
-        
 vdw         801           3.5000   0.0660 
 vdw         800           3.5000   0.0660 
 vdw         803           2.5000   0.0300 
@@ -65,8 +62,6 @@ vdw         809           0.0000   0.0000
         ##  Bond Stretching Parameters  ##
         ##                              ##
         ##################################
-
-
 bond        801  800           268.00   1.5290 
 bond        802  800           382.00   1.4480 
 bond        803  801           340.00   1.0900 
@@ -83,8 +78,6 @@ bond        809  802           434.00   1.0100
         ##  Angle Bending Parameters  ##
         ##                            ##
         ################################
-
-
 angle       802  800  801    56.20   109.47 
 angle       803  801  800    37.50   110.70 
 angle       804  801  800    37.50   110.70 
@@ -141,8 +134,6 @@ imptors     800  802  808  809        0.000 180.0  2
         ##  Atomic Partial Charge Parameters  ##
         ##                                    ##
         ########################################
-
-
 charge         801          -0.2335 
 charge         800           0.1184 
 charge         803           0.0866 
@@ -153,5 +144,3 @@ charge         807           0.0712
 charge         802          -0.9951 
 charge         808           0.3541 
 charge         809           0.3541 
-
-
