@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -23,6 +23,13 @@ package de.whs.ibci.mipet;
  * Record for storage molecule datas
  * 
  * @author Mirco Daniel
+ * @param name: Molecule name
+ * @param atomNumber: Atomic number
+ * @param elements: Elements in the molecule
+ * @param atomTypes: Atom type numbers
+ * @param epsilons: Epsilon parameters
+ * @param sigmas: Sigma parameters
+ * @param charges: Partial charges
  */
 public record MoleculeRecord(
         String name,

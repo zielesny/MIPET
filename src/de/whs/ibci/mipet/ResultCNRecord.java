@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -21,7 +21,11 @@ package de.whs.ibci.mipet;
 
 /**
  * Record for storage coordination numbers
+ * 
  * @author Mirco Daniel
+ * @param particleName1: The name of first particle
+ * @param particleName2: The name of second particle
+ * @param cnValue: Coordination number
  */
 public record ResultCNRecord(
         String particleName1,    

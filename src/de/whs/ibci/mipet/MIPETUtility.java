@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -111,6 +111,9 @@ public class MIPETUtility{
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
     
+    /** 
+     * Constructor
+     */
     public MIPETUtility(){
         initialize();
     }
@@ -953,8 +956,8 @@ public class MIPETUtility{
     /**
      * Get SMILES data method
      *   Loads the SMILES code of the "known" molecules
-     * @param aSmilesFileName
-     * @return 
+     * @param aSmilesFileName: File name of SMILES
+     * @return Molecule name and SMILES as hashmap
      */
     public HashMap<String, String> getSmilesData(String aSmilesFileName) {
         HashMap <String, String> tmpSmiles = new HashMap<>();
@@ -1775,11 +1778,12 @@ public class MIPETUtility{
     }
     
     /**
+     * Write distance and energy values to create a diagram
      * 
-     * @param aFileName
-     * @param aDistances
-     * @param aDistanceIndices
-     * @param aEnergySorted 
+     * @param aFileName: File name
+     * @param aDistances: Distances
+     * @param aDistanceIndices: Indices of distances
+     * @param aEnergySorted: Sorted energy values
      */
     public void writeDistance_Energy(String aFileName, Double[] aDistances, 
             Integer[] aDistanceIndices, double[][] aEnergySorted) {
@@ -2036,6 +2040,11 @@ public class MIPETUtility{
         return tmpSb.toString();
     }
     
+    /**
+     * Workaround method to fix TIP5P due to Lone pairs
+     * @param aFileName: .xyz-file name with H2O in it
+     * @param aStartIndex: Number in .xyz-file
+     */
     public void fixTinkerXYZ_H2O(String aFileName, int aStartIndex) {
         String tmpLine;
         String tmpNewLine;

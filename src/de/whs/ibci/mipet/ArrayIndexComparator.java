@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -22,19 +22,25 @@ package de.whs.ibci.mipet;
 import java.util.Comparator;
 
 /**
- *
+ * Class ArrayIndexComparator
  * @author Mirco Daniel
  */
 public class ArrayIndexComparator implements Comparator<Integer>{
     private final Double[] array;
 
-    public ArrayIndexComparator(Double[] anArray)
-    {
+    /**
+     * Constructor ArrayIndexComparator
+     * @param anArray: A double array
+     */
+    public ArrayIndexComparator(Double[] anArray){
         this.array = anArray;
     }
 
-    public Integer[] createIndexArray()
-    {
+    /**
+     * Creates an index array object
+     * @return Index array as an object
+     */
+    public Integer[] createIndexArray(){
         Integer[] tmpIndexes = new Integer[array.length];
         
         for (int i = 0; i < array.length; i++)
@@ -46,10 +52,7 @@ public class ArrayIndexComparator implements Comparator<Integer>{
     }
 
     @Override
-    public int compare(Integer aIndex1, Integer aIndex2)
-    {
-        return array[aIndex1].compareTo(array[aIndex2]);
+    public int compare(Integer aIndex1, Integer aIndex2){
+        return this.array[aIndex1].compareTo(this.array[aIndex2]);
     }
-    
-    
 }

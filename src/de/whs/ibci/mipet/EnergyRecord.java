@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -21,24 +21,21 @@ package de.whs.ibci.mipet;
 
 /**
  * Record for storage energy datas
- * 
  * @author Mirco Daniel
- */
-
-/**
- * Energy record
- * @param distances 
+ * @param distances:
  *   Distances of particle centre i and particle centre j
- * @param Eminsintermolecular energies of all configurations
+ * @param Emins: 
+ *   Lowest intermolecular energy of the examined configurations at given distance
  *   [i]: i distance index
- *   Minimum of 
- * @param wgtEmins
- *   Minimum of weighted intermolecular energies of all configurations
+ * @param wgtEmins:
+ *   Weighted lowest intermolecular energy at given distance
  *   [i]: i distance index
- * @param eqDistance 
+ * @param eqDistance: 
  *   Equilibrium distance in Angstrom with wgtEmin
- * @param wgtEmin 
- *   Minimum of weighted intermolecular energy
+ * @param Emin:
+ *   Lowest intermolecular energy of the examined configurations from all distances
+ * @param wgtEmin: 
+ *   Lowest weighted intermolecular energy of the examined configurations from all distances
  */
 public record EnergyRecord(
         double[] distances,

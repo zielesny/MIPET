@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -299,6 +299,11 @@ public class TinkerXYZ implements Cloneable {
         return this.particleName2;
     }
     
+    /**
+     * Returns the forcefield name
+     * 
+     * @return forcefield name
+     */
     public String getForcefieldName() {
         return this.forcefieldName;
     }
@@ -1019,7 +1024,7 @@ public class TinkerXYZ implements Cloneable {
     }
     
     /**
-     * 
+     * Set atom types of particle 1
      */
     public void setAtomTypeList1() {
         int tmpAtomSize1;
@@ -1035,6 +1040,9 @@ public class TinkerXYZ implements Cloneable {
         this.atomTypeList1 = tmpAtomTypes;
     }
     
+    /**
+     * Set distances
+     */
     public void setDistances() {
         
         // Check coordinates

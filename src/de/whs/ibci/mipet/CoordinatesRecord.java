@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -20,12 +20,8 @@
 package de.whs.ibci.mipet;
 
 /**
- * Record for storage coordinates datas
- * 
+ * Record for xyz-coordinates of particle 1 and 2
  * @author Mirco Daniel
- */
-
-/**
  * @param coord1: Coordinates of solute particle
  *   [i][j][k]: i: simulation step, j: atom, k: xyz
  * @param coord2: Coordinates of solvent particles

@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -556,11 +556,20 @@ public class MIPET {
     private static boolean isRATTLE;
     
     // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Constructor">
+    /**
+     * Constructor
+     */    
+    public MIPET() {
+    }
+    
+    // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     /**
      * Main method
-     * @param args
+     * @param args: Command line arguments
      */
     public static void main(String[] args) {
         //<editor-fold defaultstate="collapsed" desc="Variables declaration">

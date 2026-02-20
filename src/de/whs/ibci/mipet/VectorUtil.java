@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -34,6 +34,15 @@ public class VectorUtil {
     private static final Logger LOGGER = Logger.getLogger(VectorUtil.class.getName());
     //</editor-fold>
 
+    //<editor-fold desc="Constructor" defaultstate="collapsed">
+    /**
+     * Constructor
+     */
+    public VectorUtil() {
+    }
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Public static methods">
     /**
      * Method to calculate the Dot product of two vectors.

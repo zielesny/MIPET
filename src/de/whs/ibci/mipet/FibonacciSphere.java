@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -29,6 +29,12 @@ import java.util.LinkedList;
  * 
  */
 public class FibonacciSphere {
+    
+    /**
+     * Constructor FibonacciSphere
+     */
+    public FibonacciSphere() {
+    }
     
     /**
      * Determine the coordinates of nodes of fibonaccisphere 
@@ -65,5 +71,4 @@ public class FibonacciSphere {
         
         return tmpCoordsList;
     }
-    
 }

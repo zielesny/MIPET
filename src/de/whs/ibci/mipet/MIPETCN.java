@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -103,6 +103,18 @@ public class MIPETCN implements Callable<int[]> {
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
     
+    /**
+     * Constructor of MIPETCN
+     * 
+     * @param aCommandList: Command list for tinker's dynamic.exe
+     * @param aJobTaskRecord: Jobtasks
+     * @param aScratchDir: Scratch directory name
+     * @param aCatchRadius: Catch radius
+     * @param anIsWarmup: Whether warmup will be done
+     * @param anIsLogWarmup: Whether log data for warmup will be generated or not
+     * @param anIsLogDynamic: Whether log data for dynamic will be generated or not
+     * @param anIsTinker9: Whether tinker9 (GPU supported calculation) is used or not
+     */
     public MIPETCN(String[] aCommandList,
             JobTaskRecord aJobTaskRecord, 
             String aScratchDir,

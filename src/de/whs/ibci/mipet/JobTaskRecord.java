@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -20,19 +20,15 @@
 package de.whs.ibci.mipet;
 
 /**
- * Record for storage job tasks
+ * Record for job tasks
  * 
  * @author Mirco Daniel
- */
-
-/**
- * @param forcefieldName: Name of the force field
+ * @param forcefield_IE_Name: Name of the force field for intermolecular energy calculation
+ * @param forcefield_CN_Name: Name of the force field for coordinations number calculation
  * @param particleName1: Name of the first particle
  * @param particleName2: Name of the second particle
  * @param result_IE_PathName: Name of the energy result directory
  * @param result_CN_PathName: Name of the coordination number result directory
- * @param hasSpecialForcefield_IE: Flag if there is a special force field file for intermolecular energy calculation
- * @param hasSpecialForcefield_CN: Flag if there is a special force field file for coordination number calculation
  * @param hasEnergieJob: Flag of energy calculation job
  * @param hasCNJob: Flag of coordination number calculation job
  * @param isSameParticle: Flag of wether both particles are same

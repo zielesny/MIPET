@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -22,7 +22,10 @@ package de.whs.ibci.mipet;
 /**
  * Record for distance - Emin datas
  * 
- * @author Daniel
+ * @author Mirco Daniel
+ * @param distance: Distance in Angstrom between two particles (cetre to centre)
+ * @param Emin: Lowest intermolecular energy of the examined configurations at given distance
+ * @param wgtEmin: Weighted lowest intermolecular energy at given distance
  */
 public record Distance_EnergyRecord(
         double distance,

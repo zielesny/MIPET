@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -134,19 +134,19 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     /**
      * Constructor of MIPET4JavaAnalyze class
      * 
-     * @param aTinkerXYZ
-     * @param aTinkerOn Flag for whether tinker is used or not
-     * @param aDistanceIndex
-     * @param aChunkIndex
-     * @param anAtomNumber
-     * @param aScratchDir Scratch directory name
-     * @param aMinAtomDistance
-     * @param aRotData1 Coordinates of first particle
-     * @param aCommandList Command list for tinker's analyze.exe
-     * @param aRotData2 Coordinatdes of sendond particle
-     * @param aMolecules Molecule datas
-     * @param aIsFractionOne Whether Boltzmann fraction = 1.0 (true) or not (false)
-     * @param aTemperature Temperature
+     * @param aTinkerXYZ: Tinker xyz-data
+     * @param aTinkerOn: Flag for whether tinker is used or not
+     * @param aDistanceIndex: Distance index
+     * @param aChunkIndex: Chunk index
+     * @param anAtomNumber: Atom number
+     * @param aScratchDir: Scratch directory name
+     * @param aMinAtomDistance: Minimum atom to atom distance (if smaller it will not be calculated)
+     * @param aRotData1: Coordinates of first particle
+     * @param aCommandList: Command list for tinker's analyze.exe
+     * @param aRotData2: Coordinatdes of sendond particle
+     * @param aMolecules: Molecule datas
+     * @param aIsFractionOne: Whether Boltzmann fraction = 1.0 (true) or not (false)
+     * @param aTemperature: Temperature [K]
      */
     public MIPETAnalyze(
             TinkerXYZ aTinkerXYZ,

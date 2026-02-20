@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -46,6 +46,15 @@ public class RotationUtil {
     private static final Logger LOGGER = Logger.getLogger(RotationUtil.class.getName());
     //</editor-fold>
 
+    //<editor-fold desc="Constructor" defaultstate="collapsed">
+    /**
+     * Constructor RotationUtil
+     */
+    public RotationUtil() {
+    }
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Private methods">
     /**
      * Reads the input file (only .txt) and saves the coordinates as a list of arrays
@@ -188,13 +197,13 @@ public class RotationUtil {
     }
     
     /**
-     * Get the coordinatates of particle1 & particle2
+     * Get the coordinatates of particle1 and particle2
      * 
-     * @param aSphereNodeNumber Sphere node number
-     * @param aRotNumber Rotation node number
-     * @param aXyzData1 Original coordinates of particle1
-     * @param aXyzData2 Original coordinates of particle2
-     * @param aIsFibonacciSphereAlgorithm
+     * @param aSphereNodeNumber: Sphere node number
+     * @param aRotNumber: Rotation node number
+     * @param aXyzData1: Original coordinates of particle1
+     * @param aXyzData2: Original coordinates of particle2
+     * @param aIsFibonacciSphereAlgorithm: Flag whether fibonaccis phere algorithm is used
      * @return Coordinates of particle1 after rotations
      */
     public static LinkedList<double[][][]> getRotationsCoords(

@@ -1,6 +1,6 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
- * Copyright (C) 2025  Achim Zielesny (achim.zielesny@googlemail.com)
+ * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
  * 
  * Source code is available at <https://github.com/zielesny/MIPET>
  * 
@@ -43,6 +43,15 @@ public class MatrixUtil {
         {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     //</editor-fold>
 
+    //<editor-fold desc="Consstructor" defaultstate="collapsed">
+    /** 
+     * Constructor MatrixUtil
+     */
+    public MatrixUtil() {
+    }
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Public static methods">
     /**
      * Calculates the product of a scalar with a matrix.
