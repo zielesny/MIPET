@@ -1,19 +1,19 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
  * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
- * 
+ * <p>
  * Source code is available at <https://github.com/zielesny/MIPET>
- * 
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,10 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -77,7 +74,8 @@ public class MIPETCN implements Callable<int[]> {
     /**
      * File separator
      */
-    private final String FILESEPARATOR = System.getProperty("file.separator");
+    private final String FILESEPARATOR = FileSystems.getDefault()
+            .getSeparator();
     
     /**
      * Catch radius in Angstrom

@@ -1,0 +1,37 @@
+Partial charge correction factor: 1.0
+
+#Force Field Definition
+
+forcefield              OPLS-AA
+
+vdwindex                TYPE
+vdwtype                 LENNARD-JONES
+radiusrule              GEOMETRIC
+radiustype              SIGMA
+radiussize              DIAMETER
+epsilonrule             GEOMETRIC
+torsionunit             1.0
+imptorunit              1.0
+vdw-14-scale            2.0
+chg-14-scale            2.0
+electric                332.06
+dielectric              1.0
+
+
+##  Atom Type Definitions  ##
+atom        800  800    OW    "TIP4P Water O1"         8     15.999     4
+atom        801  801     H    "TIP4P Water H2"         1      1.008     1
+atom        802  802     H    "TIP4P Water H3"         1      1.008     1
+atom        803  803     M    "TIP4P Water M4"         0      0.000     1
+
+##  Van der Waals Parameters  ##
+vdw         800           3.15365  0.1550
+vdw         801           0.0000   0.0000
+vdw         802           0.0000   0.0000
+vdw         803           0.0000   0.0000
+
+##  Atomic Partial Charge Parameters ##
+charge         800           0.0000
+charge         801           0.5200
+charge         802           0.5200
+charge         803          -1.0400

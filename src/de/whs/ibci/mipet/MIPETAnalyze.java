@@ -1,19 +1,19 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
  * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
- * 
+ * <p>
  * Source code is available at <https://github.com/zielesny/MIPET>
- * 
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,33 +53,14 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      * Logger of this class
      */
     private static final Logger LOGGER = Logger
-            .getLogger(MIPET.class.getName());
+            .getLogger(MIPETAnalyze.class.getName());
     
     /**
      * File separator
      */
-    private final String FILESEPARATOR = System.getProperty("file.separator");
-    
-    /**
-     * Conversion factor Joule to Calorie (therm.)
-     */
-    private final double J_CAL = 0.2390057361; 
-    
-    /**
-     * Coulomb constant in N*m^2/C^2
-     */
-    private final double COULOMB = 8.9875517862E9; 
-    
-    /**
-     * Elementary charge in C
-     */
-    private final double ELEMENTCHARGE = 1.602176634E-19;
-    
-    /**
-     * Avogadro constant in 1/mole
-     */
-    private final double AVOGADRO = 6.02214076E23;
-    
+    private final String FILESEPARATOR = FileSystems.getDefault()
+            .getSeparator();
+
     /**
      * Tinkerxyz object
      */
@@ -121,12 +103,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     private final LinkedList<MoleculeRecord> MOLECULES;
     
     private final double TEMP;
-    
-    /**
-     * Gas constant R [kcal/(mol*K)]
-     */
-    private final double GASCONST = 1.98720425864E-3;
-    
+
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
@@ -183,7 +160,31 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     
     @Override
     public WgtEnergyRecord call() {
-        final double REZIPTEMPGASCONST = 1 / (this.TEMP * this.GASCONST);
+        /*
+         * Gas constant R [kcal/(mol*K)]
+         */
+        final double GASCONST = 1.98720425864E-3;
+
+        /*
+         * Conversion factor Joule to Calorie (therm.)
+         */
+        final double j_CAL = 0.2390057361;
+
+        /*
+         * Coulomb constant in N*m^2/C^2
+         */
+        final double COULOMB = 8.9875517862E9;
+
+        /*
+         * Elementary charge in C
+         */
+        final double ELEMENTCHARGE = 1.602176634E-19;
+
+        /*
+         * Avogadro constant in 1/mole
+         */
+        double AVOGADRO = 6.02214076E23;
+        final double REZIPTEMPGASCONST = 1 / (this.TEMP * GASCONST);
         boolean tmpIs2Close;
         int tmpRot1Size;
         int tmpRot2Size;
@@ -200,13 +201,13 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         double tmpFactor; // in kcal * m / (mole * C^2)
         double tmpSigma; // in Angstrom
         double tmpEpsilon; // in kcal/mole
-        double tmpDistances[][]; // in Angstrom
-        double tmpEpsilons1[];
-        double tmpEpsilons2[];
-        double tmpSigmas1[];
-        double tmpSigmas2[];
-        double tmpCharges1[];
-        double tmpCharges2[];
+        double[][] tmpDistances; // in Angstrom
+        double[] tmpEpsilons1;
+        double[] tmpEpsilons2;
+        double[] tmpSigmas1;
+        double[] tmpSigmas2;
+        double[] tmpCharges1;
+        double[] tmpCharges2;
         double tmpCoulombEnergy; // in kcal/mole
         double tmpLJEnergy; // in kcal/mole
         double tmpRatio;
@@ -229,9 +230,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         String tmpValueCandidate;
         TinkerXYZ tmpTinkerXYZ;
         TinkerXYZ tmpTinkerXYZMin;
-        
+
         tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
-        tmpFactor = AVOGADRO * J_CAL * tmpChargeQ * COULOMB * 1E7; 
+        tmpFactor = AVOGADRO * j_CAL * tmpChargeQ * COULOMB * 1E7;
         tmpTinkerXYZ = this.TINKERXYZ;
         tmpTinkerXYZMin = new TinkerXYZ();
         tmpForcefield = tmpTinkerXYZ.getForcefieldName();

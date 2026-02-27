@@ -12,6 +12,9 @@ EtOH			CCO
 Furan			C1=COC=C1
 Guanidine	N=C(N)N
 H2O				O
+H2OTIP3P  O
+H2OTIP4P  O
+H2OTIP5P  O
 HAc				CC(O)=O
 HCHO			C=O
 Imidazole N1C=CN=C1

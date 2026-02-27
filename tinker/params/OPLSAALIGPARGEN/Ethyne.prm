@@ -1,6 +1,5 @@
-Partial charge correction factor: 1.0
-## Source: oplsaa.prm
-## charge parameter multiplied 1.14
+Partial charge correction factor: 1.14
+
 
       ##############################
       ##                          ##
@@ -75,7 +74,7 @@ torsion     803  801  800  802        0.000 0.0 1   0.000 180.0 2   0.000 0.0 3
       ##  Atomic Partial Charge Parameters  ##
       ##                                    ##
       ########################################
-charge         800          -0.2394
-charge         801          -0.2394
-charge         802           0.2280
-charge         803           0.2280
+charge         800          -0.2100
+charge         801          -0.2100
+charge         802           0.2100
+charge         803           0.2100

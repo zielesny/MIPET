@@ -1,19 +1,19 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
  * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
- * 
+ * <p>
  * Source code is available at <https://github.com/zielesny/MIPET>
- * 
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,23 +28,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
+import java.nio.file.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
+
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -81,7 +69,8 @@ public class MIPETUtility{
     /**
      * File separator
      */
-    final private String FILESEPARATOR = System.getProperty("file.separator");
+    final private String FILESEPARATOR = FileSystems
+            .getDefault().getSeparator();
     
     //</editor-fold>
     
@@ -142,7 +131,7 @@ public class MIPETUtility{
      * @param smilesString
      *   input fragment as SMILES 
      * @return 
-     *   Van der Waals volume by using VABVolume of CDK
+     *   Van der Waals volume by using VAB Volume of CDK
      */
     public double getVdwVolume(String smilesString) {
         if (smilesString == null || smilesString.isEmpty()) {
@@ -177,7 +166,7 @@ public class MIPETUtility{
     public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
         double atomicMass = 0;
         
-        if (aSmilesString.trim().toLowerCase().equals("lp")) {
+        if (aSmilesString.trim().equalsIgnoreCase("lp")) {
             return 0;
         }
         try {
@@ -235,9 +224,9 @@ public class MIPETUtility{
     }
     
     /**
-     * Read the boxlength from a given .arc file
+     * Read the box length from a given .arc file
      * @param aFileName Filename of .arc file
-     * @return Boxlength in Angstrom
+     * @return Box length in Angstrom
      */
     public double getBoxLength(String aFileName) {
         String tmpReadLine;
@@ -352,8 +341,7 @@ public class MIPETUtility{
         }
         
         for (int i = 0; i < tmpIterSize; i++) {
-            tmpNeighborPart.clear();
-            
+
             for (int j = 0; j < tmpAtomSize1; j++) {
                 if (!tmpIgnoreIndex1.contains(j)) {
                     for (int k = 0; k < tmpPartSize2; k++) {
@@ -739,7 +727,7 @@ public class MIPETUtility{
      * 
      * @param aFileName File name
      * @param anAtomNumber1 Atom number of solute particle
-     * @param anAtomNumber2 Atom number of slvent particle
+     * @param anAtomNumber2 Atom number of solvent particle
      * @return All coordinates of .arc file
      */
     public CoordinatesRecord getCoordinatesFromArcFile(String aFileName,
@@ -831,8 +819,6 @@ public class MIPETUtility{
                 }
                 tmpIndex = (tmpLineCounter - 1) % (tmpAtomNumber + 2);
             }
-            
-            tmpBR.close();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException in getCoordinatesFromArcFile.", ex);
@@ -985,9 +971,9 @@ public class MIPETUtility{
     /**
      * Determines if the smallest distance between two particles 
      *   is less than minDistance or not. This method is used to exclude
-     *   two particle configurations, wich are too close. This would produce
+     *   two particle configurations, which are too close. This would produce
      *   too high value of intermolecular energy which will be expressed 
-     *   by asterisks in tinker's outputfile.
+     *   by asterisks in tinker's output file.
      * 
      * @param aCoord1
      *   Coordinates of atoms of first particle
@@ -1073,9 +1059,9 @@ public class MIPETUtility{
      */
     public double sum(double[] aDoubleArray) {
         double tmpSum = 0;
-        
-        for (int i = 0; i < aDoubleArray.length; i++) {
-            tmpSum += aDoubleArray[i];
+
+        for (double tmpValue : aDoubleArray) {
+            tmpSum += tmpValue;
         }
         
         return tmpSum;
@@ -1089,9 +1075,9 @@ public class MIPETUtility{
      */
     public long sum(int[] anIntArray) {
         int tmpSum = 0;
-        
-        for (int i = 0; i < anIntArray.length; i++) {
-            tmpSum += anIntArray[i];
+
+        for (int tmpValue : anIntArray) {
+            tmpSum += tmpValue;
         }
         
         return tmpSum;
@@ -1122,9 +1108,9 @@ public class MIPETUtility{
     public double standarddeviation(int[] aValues, double aMean) {
         double tmpSum = 0;
         double tmpReturnValue;
-        
-        for (int i = 0; i < aValues.length; i++) {
-            tmpSum += (aValues[i] - aMean) * (aValues[i] - aMean);
+
+        for (int tmpValue : aValues) {
+            tmpSum += (tmpValue - aMean) * (tmpValue - aMean);
         }
         
         tmpReturnValue = Math.sqrt(1.0 / (aValues.length - 1) * tmpSum);
@@ -1281,9 +1267,10 @@ public class MIPETUtility{
     }
     
     /**
-     * 
-     * @param aArrayList
-     * @return 
+     * Converts Double ArrayList to primitive ArrayList
+     *
+     * @param aArrayList: Double values as ArrayList
+     * @return Double values as ArrayList
      */
     double[] toPrimitive (ArrayList<Double> aArrayList) {
         int tmpArraySize;
@@ -1340,10 +1327,10 @@ public class MIPETUtility{
     }
     
     /**
-     * Write Particlelogfiles
+     * Write Particle logfiles
      * 
      * @param aJobTaskRecords
-     *   First Particlename, second Particlename, result directory name etc.
+     *   First Particle name, second Particle name, result directory name etc.
      * @param aLabelValues
      *   0: Label 1: Value
      */
@@ -1442,7 +1429,7 @@ public class MIPETUtility{
     }
     
     /**
-     * Write Zij datas
+     * Write Zij data
      * 
      * @param aJobTaskRecords
      *   Parameter and particle names etc.
@@ -1524,22 +1511,22 @@ public class MIPETUtility{
         String tmpParticle2;
         String[] tmpParameterParticle;
         String[][] tmpReturn;
-        
-        for (int i = 0; i < tmpPathNameLength; i++) {
+
+        for (String s : aPathName) {
             tmpParamStartIndex = -1;
             tmpParticleStartIndex = -1;
             tmpSeparateIndex = -1;
-            
-            
-            for (int j = aPathName.get(i).length() - 1; j >= 0; j--) {
-                if (aPathName.get(i).charAt(j) == '_') {
+
+
+            for (int j = s.length() - 1; j >= 0; j--) {
+                if (s.charAt(j) == '_') {
                     tmpSeparateIndex = j;
-                } else if (aPathName.get(i).charAt(j) == 
-                        FILESEPARATOR.charAt(0) && 
+                } else if (s.charAt(j) ==
+                        FILESEPARATOR.charAt(0) &&
                         tmpParticleStartIndex == -1) {
-                                tmpParticleStartIndex = j + 1;
-                } else if (tmpParamStartIndex == -1) {
-                    if (aPathName.get(i).charAt(j) == FILESEPARATOR.charAt(0)) {
+                    tmpParticleStartIndex = j + 1;
+                } else {
+                    if (s.charAt(j) == FILESEPARATOR.charAt(0)) {
                         tmpParamStartIndex = j + 1;
                         break;
                     } else if (j == 0) {
@@ -1547,19 +1534,18 @@ public class MIPETUtility{
                     }
                 }
             }
-            
+
             tmpParameterParticle = new String[3];
-            tmpParameter = aPathName.get(i)
+            tmpParameter = s
                     .substring(tmpParamStartIndex, tmpParticleStartIndex - 1);
             tmpParameterParticle[0] = tmpParameter;
-            tmpParticle1 = aPathName.get(i)
+            tmpParticle1 = s
                     .substring(tmpParticleStartIndex, tmpSeparateIndex);
-            tmpParameterParticle[1] = tmpParticle1; 
-            tmpParticle2 = aPathName.get(i)
-                    .substring(tmpSeparateIndex + 1, aPathName.get(i).length());
+            tmpParameterParticle[1] = tmpParticle1;
+            tmpParticle2 = s.substring(tmpSeparateIndex + 1);
             tmpParameterParticle[2] = tmpParticle2;
             tmpParameterParticleList.add(tmpParameterParticle);
-            if(!tmpParameterParticle[1].equals(tmpParameterParticle[2])) {
+            if (!tmpParameterParticle[1].equals(tmpParameterParticle[2])) {
                 tmpParameterParticle = new String[3];
                 tmpParameterParticle[0] = tmpParameter;
                 tmpParameterParticle[1] = tmpParticle2;
@@ -1612,7 +1598,7 @@ public class MIPETUtility{
         String tmpOldNumber;
         String tmpNewNumber;
         String tmpXYZFileName;
-        String[] tmpSplited;
+        String[] tmpSplit;
         Process tmpProcess;
         File tmpOutputFile;
         ArrayList<String[]> tmpXYZContent;
@@ -1636,12 +1622,12 @@ public class MIPETUtility{
             tmpContentLines = tmpXYZContent.size();
             
             for (int i = 0; i < tmpContentLines; i++) {
-                tmpSplited = tmpXYZContent.get(i)[0].trim().split("\\s+");
-                tmpXYZContent.set(i, tmpSplited);
-                if (tmpSplited[1].toUpperCase().equals("LP") || 
-                        tmpSplited[1].equals("M")) {
+                tmpSplit = tmpXYZContent.get(i)[0].trim().split("\\s+");
+                tmpXYZContent.set(i, tmpSplit);
+                if (tmpSplit[1].equalsIgnoreCase("LP") ||
+                        tmpSplit[1].equals("M")) {
                     tmpXYZContent.set(i, null);
-                    tmpDeleteAtomNumber.add(tmpSplited[0]);
+                    tmpDeleteAtomNumber.add(tmpSplit[0]);
                 }
             }
             
@@ -1787,7 +1773,7 @@ public class MIPETUtility{
      */
     public void writeDistance_Energy(String aFileName, Double[] aDistances, 
             Integer[] aDistanceIndices, double[][] aEnergySorted) {
-        int tmpEnergieNumber;
+        int tmpEnergiesNumber;
         
         try (BufferedWriter tmpBW = new BufferedWriter(
                 new FileWriter(aFileName))) {
@@ -1805,9 +1791,9 @@ public class MIPETUtility{
             tmpBW.append(LINESEPARATOR);
             
             for (double[] aEnergySorted1 : aEnergySorted) {
-                tmpEnergieNumber = aEnergySorted1.length;
+                tmpEnergiesNumber = aEnergySorted1.length;
                 
-                for (int j = 0; j < tmpEnergieNumber; j++) {
+                for (int j = 0; j < tmpEnergiesNumber; j++) {
                     tmpBW.append(String.valueOf(aEnergySorted1[j]));
                     tmpBW.append("    ");
                 }
@@ -1823,9 +1809,10 @@ public class MIPETUtility{
     }
     
     /**
-     * Take a String and change an atomtype number to another one
+     * Take a String and change an atom type number to another one
+     *
      * @param aTokens Tokens of a Line
-     * @return String with changed atomtype number
+     * @return String with changed atom type number
      */
     public String changeAtomType(String[] aTokens) {
         String tmpResult;
@@ -1983,61 +1970,51 @@ public class MIPETUtility{
      * Fills left side of the string with spaces so the string is right aligned
      *   It is much faster version of String.format()
      * @param aInput
-     *   Inputstring
+     *   Input string
      * @param aPadUpTo
-     *   Total length of Inputstring and spaces
+     *   Total length of Input string and spaces
      * @return 
      *   String with left filled with spaces
      */
     public String padLeft(String aInput, int aPadUpTo) {
-        
+        String tmpSB;
+
         // Check parameters
         if (aInput == null || aInput.isEmpty()) {
             throw new IllegalArgumentException("aInput is null or empty.");
         } else if (aPadUpTo <= 0) {
             throw new IllegalArgumentException("aPadUpTo should be positive.");
         }
-        
-        StringBuilder tmpSB = new StringBuilder();
+
         char tmpPadChar = ' ';
-        
-        for (int toPrepend = aPadUpTo - aInput.length(); 
-                toPrepend > 0; toPrepend--) {
-            tmpSB.append(tmpPadChar);
-        }
-        
-        tmpSB.append(aInput);
-        return tmpSB.toString();
+        tmpSB = String.valueOf(tmpPadChar)
+                .repeat(Math.max(0, aPadUpTo - aInput.length())) + aInput;
+        return tmpSB;
     }
     
     /**
      * Fills right side of string with spaces so the string is left aligned
      *   Much faster version of String.format()
      * @param aInput
-     *   Inputstring
+     *   Input string
      * @param aPadUpTo
-     *   Total length of Inputstring and spaces
+     *   Total length of Input string and spaces
      * @return 
      *   String with right filled with spaces
      */
     public String padRight(String aInput, int aPadUpTo) {
-        
+        String tmpSb;
+
         if (aInput == null || aInput.isEmpty()) {
             throw new IllegalArgumentException("aInput is null or empty.");
         } else if (aPadUpTo <= 0) {
             throw new IllegalArgumentException("aPadUpTo should be positive.");
         }
-        
-        StringBuilder tmpSb = new StringBuilder();
+
         char tmpPadChar = ' ';
-        tmpSb.append(aInput);
-        
-        for (int toAppend = aInput.length(); 
-                toAppend < aPadUpTo; toAppend++) {
-            tmpSb.append(tmpPadChar);
-        }
-        
-        return tmpSb.toString();
+        tmpSb = aInput + String.valueOf(tmpPadChar)
+                .repeat(Math.max(0, aPadUpTo - aInput.length()));
+        return tmpSb;
     }
     
     /**
@@ -2108,16 +2085,16 @@ public class MIPETUtility{
     
     private void initialize() {
         // For the development
-        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-                Locale.getDefault(), this.getClass().getClassLoader());
+//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
+//                Locale.getDefault(), this.getClass().getClassLoader());
         // For the distribution
-//        try {
-//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-//        } catch (IOException ex) {
-//            LOGGER.log(Level.SEVERE, 
-//                    "IOException during initialize().", ex);
-//        }
+        try {
+            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
+                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE,
+                    "IOException during initialize().", ex);
+        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();

@@ -1,19 +1,19 @@
 /**
  * MIPET - Mesoscopic Interaction Parameter Estimation with Tinker
  * Copyright (C) 2026  Achim Zielesny (achim.zielesny@googlemail.com)
- * 
+ * <p>
  * Source code is available at <https://github.com/zielesny/MIPET>
- * 
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,8 +25,8 @@ import java.util.LinkedList;
  * Class FibonacciSphere
  * @author Daniel
  * Saff, E.B. and Kuijlaars, A.B.J. (1997) Distributing Many Points on a Sphere. The Mathematical Intelligencer, 19, 5-11.
- * https://doi.org/10.1007/BF03024331
- * 
+ * <a href="https://doi.org/10.1007/BF03024331">...</a>
+ *
  */
 public class FibonacciSphere {
     
@@ -44,7 +44,6 @@ public class FibonacciSphere {
      *   xyz-Coordinates of nodes
      */
     public static LinkedList<double[]> getSphereNodes(int aNodeNumber) {
-        int tmpNodeNumber = aNodeNumber;
         double tmpPhi; // Golden angle in radians
         double tmpTheta; // Golden angle increment
         double tmpX; // x-coordinate [-1; 1]
@@ -56,8 +55,8 @@ public class FibonacciSphere {
         
         tmpPhi = (3.0 - Math.sqrt(5.0)) * Math.PI;
          
-        for (int i = 0; i < tmpNodeNumber; i++) {
-            tmpY = 1 - (i / (double)(tmpNodeNumber - 1)) * 2;
+        for (int i = 0; i < aNodeNumber; i++) {
+            tmpY = 1 - (i / (double)(aNodeNumber - 1)) * 2;
             tmpRadius = Math.sqrt(1 - tmpY * tmpY);
             tmpTheta = i * tmpPhi;
             tmpX = Math.cos(tmpTheta) * tmpRadius;
