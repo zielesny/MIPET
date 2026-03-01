@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -2328,7 +2329,7 @@ public class MIPET {
             // Change atom type number of 2. particle to avoid redundancy
             tmpXyz2.setLength(0);
             if (aForcefield.equals("OPLSAALIGPARGEN")) {
-                tmpLines = xyzContent1[i].split(LINESEPARATOR);
+                tmpLines = xyzContent1[i].lines().toArray(String[]::new);
                 tmpXyz2.append(tmpLines[0]);
 
                 for (int j = 1; j < tmpLines.length; j++) {
@@ -2458,6 +2459,7 @@ public class MIPET {
         double[][] tmpEpsilons;
         double[][] tmpSigmas;
         double[][] tmpCharges;
+        StringTokenizer tmpTokenizer;
         String[] tmpLines;
         String[] tmpWords;
         String[][] tmpElements;
@@ -2473,16 +2475,21 @@ public class MIPET {
         
         // Read elements and atomTypes
         for (int i = 0; i < tmpParticleSize; i++) {
-            tmpLines = xyzContent1[i].split(LINESEPARATOR);
+            tmpLines = xyzContent1[i].lines().toArray(String[]::new);
             tmpWords = tmpLines[0].trim().split("\\s+");
             tmpAtomNumber[i] = Integer.parseInt(tmpWords[0]);
             tmpElements[i] = new String[tmpAtomNumber[i]];
             tmpAtomTypes[i] = new int[tmpAtomNumber[i]];
             
             for (int j = 1; j < tmpLines.length; j++) {
-                tmpWords = tmpLines[j].trim().split("\\s+");
-                tmpElements[i][j - 1] = tmpWords[1];
-                tmpAtomTypes[i][j-1] = Integer.parseInt(tmpWords[5]);
+                tmpTokenizer = new StringTokenizer(tmpLines[j]);
+                tmpTokenizer.nextToken();
+                tmpElements[i][j - 1] = tmpTokenizer.nextToken();
+                tmpTokenizer.nextToken();
+                tmpTokenizer.nextToken();
+                tmpTokenizer.nextToken();
+                tmpAtomTypes[i][j-1] = Integer
+                        .parseInt(tmpTokenizer.nextToken());
             }
             
         }
@@ -2491,24 +2498,28 @@ public class MIPET {
         for (int i = 0; i < tmpParticleSize; i++) {
             tmpSigmaIndex = 0;
             tmpChargeIndex = 0;
-            tmpLines = prmContent1[i].split(LINESEPARATOR);
+            tmpLines = prmContent1[i].lines().toArray(String[]::new);
             tmpSigmas[i] = new double[tmpAtomNumber[i]];
             tmpEpsilons[i] = new double[tmpAtomNumber[i]];
             tmpCharges[i] = new double[tmpAtomNumber[i]];
 
             for (String tmpLine : tmpLines) {
                 if (tmpLine.startsWith("vdw ")) {
-                    tmpWords = tmpLine.trim().split("\\s+");
+                    tmpTokenizer = new StringTokenizer(tmpLine);
+                    tmpTokenizer.nextToken();
+                    tmpTokenizer.nextToken();
                     tmpSigmas[i][tmpSigmaIndex] =
-                            Double.parseDouble(tmpWords[2]);
+                            Double.parseDouble(tmpTokenizer.nextToken());
                     tmpEpsilons[i][tmpSigmaIndex] =
-                            Double.parseDouble(tmpWords[3]);
+                            Double.parseDouble(tmpTokenizer.nextToken());
                     tmpSigmaIndex++;
-                }
-                if (tmpLine.startsWith("charge ")) {
-                    tmpWords = tmpLine.trim().split("\\s+");
-                    tmpCharges[i][tmpChargeIndex] = Double
-                            .parseDouble(tmpWords[2]) * chargeCorr[i];
+                } else if (tmpLine.startsWith("charge ")) {
+                    tmpTokenizer = new StringTokenizer(tmpLine);
+                    tmpTokenizer.nextToken();
+                    tmpTokenizer.nextToken();
+                    tmpCharges[i][tmpChargeIndex] = 
+                            Double.parseDouble(tmpTokenizer.nextToken()) 
+                            * chargeCorr[i];
                     tmpChargeIndex++;
                 }
             }
@@ -3090,7 +3101,6 @@ public class MIPET {
         tmpEmins = new double[tmpDistanceNumber];
         tmpWgtEmins = new double[tmpDistanceNumber];
         tmpRezipTempGasconst = 1 / (temperature * GASCONST);
-        tmpEmin = tmpAllDistMinEnergy;
         tmpWgtEmin = 100.;
         
         try {            
@@ -3175,13 +3185,13 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Export .xyz file with the lowest intermolecular energy">
+        tmpEmin = tmpAllDistMinEnergy;
         if (tmpAllDistMinEnergy < aMinEnergy) {
             String tmpSourceFileName;
             String tmpExportFileName;
             Path tmpSource;
             Path tmpTarget;
             
-            tmpEmin = tmpAllDistMinEnergy;
             tmpSourceFileName = scratchDirectory
                     + FILESEPARATOR
                     + aParticlePair
