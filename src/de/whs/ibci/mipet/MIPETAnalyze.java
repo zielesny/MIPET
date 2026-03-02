@@ -199,8 +199,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         int tmpMinIndex;
         double tmpChargeQ; // in C^2
         double tmpFactor; // in kcal * m / (mole * C^2)
-        double tmpSigma; // in Angstrom
-        double tmpEpsilon; // in kcal/mole
         double[][] tmpDistances; // in Angstrom
         double[] tmpEpsilons1;
         double[] tmpEpsilons2;
@@ -210,9 +208,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         double[] tmpCharges2;
         double tmpCoulombEnergy; // in kcal/mole
         double tmpLJEnergy; // in kcal/mole
-        double tmpRatio;
-        double tmpRatio2; // tmpRatio^2
-        double tmpRatio6; // tmpRatio^6
         double tmpValue;
         double tmpMinEnergy; // in kcal/mole
         double tmpWgt;
@@ -410,9 +405,37 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                         "IOException during deleting files in scratch directory.", ex);
             }
         } else {
+            // Pre-computation of sigma and epsilon
+            double[] tmpSigma3_1 = new double[tmpAtomSize1];
+            double[] tmpSqrtEps1 = new double[tmpAtomSize1];
+            
+            for (int i = 0; i < tmpAtomSize1; i++) {
+                tmpSigma3_1[i] = tmpSigmas1[i] * tmpSigmas1[i] *tmpSigmas1[i];
+                tmpSqrtEps1[i] = Math.sqrt(tmpEpsilons1[i]);
+            }
+            
+            double[] tmpSigma3_2 = new double[tmpAtomSize2];
+            double[] tmpSqrtEps2 = new double[tmpAtomSize2];
+            
+            for (int i = 0; i < tmpAtomSize2; i++) {
+                tmpSigma3_2[i] = tmpSigmas2[i] * tmpSigmas2[i] *tmpSigmas2[i];
+                tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
+            }
+            
+            double tmp_kSigma3;
+            double tmp_kSqrtEps;
+            double tmp_kCoulombBase;
+            double tmpDist;
+            double tmpInvDist;
+            double tmpInvDist2;
+            double tmpInvDist6;
+            double tmpRatio6;
+            double tmpEpsilonProd;
+            int tmpBestRot1Index = -1;
+            int tmpBestRot2Index = -1;
+            
             for (int i = 0; i < tmpRot1Size; i++) {
-                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
-                        ISTINKERON);
+                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], ISTINKERON);
 
                 for (int j = 0; j < tmpRot2Size; j++) {
                     tmpIs2Close = MIPETUTIL.isTooClose(
@@ -424,25 +447,28 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                 ISTINKERON);
                         tmpTinkerXYZ.setDistances();
                         tmpDistances = tmpTinkerXYZ.getDistances();
-                        tmpValue = 0;
+                        tmpValue = 0.;
                         
                         for (int k = 0; k < tmpAtomSize1; k++) {
+                            tmp_kSigma3 = tmpSigma3_1[k];
+                            tmp_kSqrtEps = tmpSqrtEps1[k];
+                            tmp_kCoulombBase = tmpFactor * tmpCharges1[k];
                             
                             for (int m = 0; m < tmpAtomSize2; m++) {
-                                tmpSigma = Math.sqrt(tmpSigmas1[k] 
-                                        * tmpSigmas2[m]);
-                                tmpEpsilon = Math.sqrt(tmpEpsilons1[k] 
-                                        * tmpEpsilons2[m]);
-                                tmpRatio =  tmpSigma
-                                        / tmpDistances[k][m];
-                                tmpRatio2 = tmpRatio * tmpRatio;
-                                tmpRatio6 = tmpRatio2 * tmpRatio2 * tmpRatio2;
-                                tmpLJEnergy = 4 * tmpEpsilon * tmpRatio6 
-                                        * (tmpRatio6 - 1);
-                                tmpCoulombEnergy = tmpFactor 
-                                        * tmpCharges1[k] 
-                                        * tmpCharges2[m] 
-                                        / tmpDistances[k][m];
+                                tmpDist = tmpDistances[k][m];
+                                tmpInvDist = 1.0 / tmpDist;
+                                
+                                // Lennard-Jones Logic without Math.sqrt()
+                                tmpInvDist2 = tmpInvDist * tmpInvDist;
+                                tmpInvDist6 = tmpInvDist2 * tmpInvDist2 
+                                        * tmpInvDist2;
+                                tmpRatio6 = (tmp_kSigma3 * tmpSigma3_2[m]) 
+                                        * tmpInvDist6;
+                                tmpEpsilonProd = tmp_kSqrtEps * tmpSqrtEps2[m];
+                                tmpLJEnergy = 4.0 * tmpEpsilonProd * tmpRatio6 
+                                        * (tmpRatio6 - 1.0);
+                                tmpCoulombEnergy = tmp_kCoulombBase 
+                                        * tmpCharges2[m] * tmpInvDist;
                                 tmpValue += tmpCoulombEnergy + tmpLJEnergy;
                             }
                                 
@@ -458,12 +484,22 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                         }
                         if (tmpValue < tmpMinEnergy) {
                             tmpMinEnergy = tmpValue;
-                            tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
+                            tmpBestRot1Index = i;
+                            tmpBestRot2Index = j;
+                            
                         }
                     }
                     tmpChunkIndex++;
                 }
 
+            }
+            
+            if (tmpBestRot1Index != -1 && tmpBestRot2Index != -1) {
+                tmpTinkerXYZ.setCoordinateList1(
+                        this.ROTDATA1[tmpBestRot1Index], ISTINKERON);
+                tmpTinkerXYZ.setCoordinateList2(
+                        this.ROTDATA2[tmpBestRot2Index], ISTINKERON);
+                tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
             }
             
             tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
