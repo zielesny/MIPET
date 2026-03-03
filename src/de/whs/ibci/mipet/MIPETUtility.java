@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -1504,7 +1505,6 @@ public class MIPETUtility{
         int tmpParamStartIndex;
         int tmpParticleStartIndex;
         int tmpSeparateIndex;
-        int tmpPathNameLength = aPathName.size();
         LinkedList<String[]> tmpParameterParticleList = new LinkedList<>();
         String tmpParameter;
         String tmpParticle1;
@@ -2084,9 +2084,28 @@ public class MIPETUtility{
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     
     private void initialize() {
+        ResourceBundle tmpBundle;
+        Path tmpExternalPath = Paths.get(BUNDLE_NAME_EXTERN);
+
+        if (Files.exists(tmpExternalPath)) {
+            // 1. Try: Load the external file (for the production)
+            try (InputStream is = Files.newInputStream(tmpExternalPath)) {
+                tmpBundle = new PropertyResourceBundle(is);
+            } catch (IOException ex) {
+            // Fallback during reading the file 
+                tmpBundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                        Locale.getDefault(), this.getClass().getClassLoader());
+            }
+        } else {
+            // 2. Fallback: Read internal file (for the development)
+            tmpBundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                    Locale.getDefault(), this.getClass().getClassLoader());
+        }
+        RESOURCE_BUNDLE = tmpBundle;
+        
         // For the development
-        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
-                Locale.getDefault(), this.getClass().getClassLoader());
+//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
+//                Locale.getDefault(), this.getClass().getClassLoader());
         //For the distribution
 //        try {
 //            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
