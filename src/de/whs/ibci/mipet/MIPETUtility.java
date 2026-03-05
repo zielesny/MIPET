@@ -1505,6 +1505,7 @@ public class MIPETUtility{
         int tmpParamStartIndex;
         int tmpParticleStartIndex;
         int tmpSeparateIndex;
+        int tmpPathNameLength = aPathName.size();
         LinkedList<String[]> tmpParameterParticleList = new LinkedList<>();
         String tmpParameter;
         String tmpParticle1;
@@ -2102,18 +2103,6 @@ public class MIPETUtility{
                     Locale.getDefault(), this.getClass().getClassLoader());
         }
         RESOURCE_BUNDLE = tmpBundle;
-        
-        // For the development
-//        RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
-//                Locale.getDefault(), this.getClass().getClassLoader());
-        //For the distribution
-//        try {
-//            RESOURCE_BUNDLE = new PropertyResourceBundle(Files
-//                    .newInputStream(Paths.get(BUNDLE_NAME_EXTERN)));
-//        } catch (IOException ex) {
-//            LOGGER.log(Level.SEVERE,
-//                    "IOException during initialize().", ex);
-//        }
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();

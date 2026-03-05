@@ -52,6 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -1636,6 +1637,16 @@ public class MIPET {
                     tmpTinkerXyz.writeToXyzFile(tmpFileName);
                     
                     //</editor-fold>
+                    
+                    // Generate .pdb file of output.0
+                    TinkerToPdbConverter tmpTinkerToPdb = 
+                            new TinkerToPdbConverter(); 
+                    String tmpOutputFileName;
+                    tmpOutputFileName = tmpOutput0FileName.substring(0, 
+                            tmpOutput0FileName.length() - 2) + ".pdb";
+                    tmpTinkerToPdb.convert(tmpOutput0FileName, 
+                            tmpOutputFileName);
+                    
                     if (isTinkerOn) {
                         // Generate .pdb file of output.0
                         tmpHasH2O = tmpParticleName1.equals("H2O") || 
@@ -2327,6 +2338,57 @@ public class MIPET {
             }
             
             // Change atom type number of 2. particle to avoid redundancy
+            // Yoda condition protects against NullPointerException if aForcefield is null
+            if ("OPLSAALIGPARGEN".equals(aForcefield) && 
+                    xyzContent1[i] != null && !xyzContent1[i].isEmpty()) {
+                StringBuilder tmpParsedXyz = new StringBuilder();
+                String[] lines = xyzContent1[i].lines().toArray(String[]::new);
+
+                // Append the first line (the header) if the file isn't empty
+                if (lines.length > 0) {
+                    tmpParsedXyz.append(lines[0]); 
+                }
+
+                for (int j = 1; j < lines.length; j++) {
+                    String tmpCurrentLine = lines[j];
+                    String[] tokens = tmpCurrentLine.trim().split("\\s+");
+
+                    // Safety check: Does the line actually have at least 6 columns?
+                    if (tokens.length >= 6) {
+                        try {
+                            // Safely parse the old atom type (column 6 / index 5) as an integer
+                            int tmpOldType = Integer.parseInt(tokens[5]);
+                            int tmpNewType = tmpOldType + 100;
+
+                            String oldTypeStr = " " + tmpOldType + " ";
+                            String newTypeStr = " " + tmpNewType + " ";
+
+                            // Replace the text 
+                            // (WARNING: As mentioned before, this might accidentally replace the atom ID if it matches the type!)
+                            tmpCurrentLine = tmpCurrentLine
+                                    .replace(oldTypeStr, newTypeStr);
+
+                        } catch (NumberFormatException e) {
+                            // Ignore gracefully if the 6th column is not a valid number (e.g., malformed lines)
+                        }
+                    }
+
+                    tmpParsedXyz.append(LINESEPARATOR).append(tmpCurrentLine);
+                }
+
+                xyzContent2[i] = tmpParsedXyz.toString();
+
+            } else {
+                // Fallback if the forcefield doesn't match or the string is empty
+                xyzContent2[i] = (xyzContent1[i] != null) ? xyzContent1[i] : "";
+            }
+            
+            
+            
+            
+            
+            
+            
             tmpXyz2.setLength(0);
             if (aForcefield.equals("OPLSAALIGPARGEN")) {
                 tmpLines = xyzContent1[i].lines().toArray(String[]::new);
@@ -2336,7 +2398,8 @@ public class MIPET {
                     tmpTokens = tmpLines[j].trim().split("\\s+");
                     tmpOldAtomType = " " + tmpTokens[5] + " ";
                     tmpNewAtomType = " "
-                            + Integer.parseInt(tmpTokens[5]) + 100 + " ";
+                            + (Integer.parseInt(tmpTokens[5]) + 100) 
+                            + " ";
                     tmpLines[j] = tmpLines[j].replace(tmpOldAtomType, 
                             tmpNewAtomType);
                     tmpXyz2.append(LINESEPARATOR);
@@ -2416,28 +2479,30 @@ public class MIPET {
             // Change atomtype number of 2. particle to avoid redundancy
             if (aForcefield.equals("OPLSAALIGPARGEN") &&
                     !prmContent1[i].isEmpty()) {
-                tmpPrm2.setLength(0);
-                tmpLines = prmContent1[i].split("\\n");
-                
-                for (int j = 25; j < tmpLines.length; j++) {
-                    tmpTokens = tmpLines[j].trim().split("\\s+");
-                    switch (tmpTokens[0]) {
-                        case    "atom", 
-                                "vdw", 
-                                "charge",
-                                "bond",
-                                "angle",
-                                "torsion",
-                                "imptors"-> {
-                            tmpLines[j] = MIPETUTIL.changeAtomType(tmpTokens);
+                prmContent2[i] = prmContent1[i].lines()
+                    .dropWhile(line -> !line.contains("Atom Type Definitions"))
+                    .map(line -> {
+                        String[] tmpTokens1 = line.trim().split("\\s+");
+                        if (tmpTokens1.length > 0) {
+                            return switch (tmpTokens1[0]) {
+                                case 
+                                    "atom", 
+                                    "vdw", 
+                                    "charge", 
+                                    "bond", 
+                                    "angle", 
+                                    "torsion", 
+                                    "imptors" 
+                                     -> MIPETUTIL.changeAtomType(tmpTokens1);
+                                default 
+                                     -> line;
+                            };
                         }
-                    }
-                    if (!tmpLines[j].isEmpty()) {
-                        tmpPrm2.append(tmpLines[j]);
-                        tmpPrm2.append(LINESEPARATOR);
-                    }
-                }
-                prmContent2[i] = tmpPrm2.toString();
+                        return line;
+                    })
+                    .filter(line -> !line.isEmpty())
+                    .map(line -> line + LINESEPARATOR) 
+                    .collect(Collectors.joining());
             } else {
                 prmContent2[i] = "";
             }
