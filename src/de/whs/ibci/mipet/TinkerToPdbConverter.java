@@ -99,7 +99,7 @@ public class TinkerToPdbConverter {
                     // PDB-format for the atom (Strict column width)
                     String pdbLine = String.format(Locale.US,
                             "ATOM  %5d %-4s MOL A   1    %8.3f%8.3f%8.3f  1.00  0.00          %2s",
-                            tmpAtomId, // Nutzt die ID aus der Tinker-Datei
+                            tmpAtomId, // Use the ID from the Tinker file
                             formatPdbAtomName(tmpAtomName),
                             x,
                             y,

@@ -3187,7 +3187,7 @@ public class MIPET {
                         tmpDistEnergies.addAll(tmpFuture.get().energys());
                         tmpDistMinEnergy = tmpFuture.get().energys().getFirst();
                         if (tmpIsFractionOne) {
-                            tmpSumWgt += tmpFuture.get().sumWgt();
+                            tmpSumWgt += tmpFuture.get().sumWgt(); 
                             tmpSumWgtxE += tmpFuture.get().sumWgtxE();
                         }
                     }

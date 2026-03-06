@@ -994,7 +994,6 @@ public class MIPETUtility{
         double tmpZDelta;
         double tmpDistanceQ;
         double tmpMinDistQ;
-        boolean tmpIsTooClose = false;
         
         tmpMinDistQ = aMinDist * aMinDist;
         
@@ -1007,12 +1006,11 @@ public class MIPETUtility{
                         + tmpYDelta * tmpYDelta 
                         + tmpZDelta * tmpZDelta;
                 if(tmpDistanceQ < tmpMinDistQ){
-                    tmpIsTooClose = true;
-                    break;
+                    return true;
                 }
             }
         }
-        return tmpIsTooClose;
+        return false;
     }
     
     /**

@@ -475,7 +475,13 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                         }
                         
                         if (ISFRACTIONONE) {
-                            tmpWgt = Math.exp(-tmpValue * REZIPTEMPGASCONST);
+                            // simplify very small value
+                            if (tmpValue > 20) {
+                                tmpWgt = 0.0;
+                            } else {
+                                tmpWgt = Math.exp(-tmpValue 
+                                        * REZIPTEMPGASCONST);
+                            }
                             tmpWgtxE = tmpWgt * tmpValue;
                             tmpSumWgt += tmpWgt;
                             tmpSumWgtxE += tmpWgtxE;
