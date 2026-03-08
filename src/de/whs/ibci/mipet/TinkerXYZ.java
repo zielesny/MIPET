@@ -151,7 +151,9 @@ public class TinkerXYZ implements Cloneable {
     
     /**
      * Atom Coordinates of first particle
-     * [i, j, k] i: sim.iteration j: atomid k: xyz
+     * [i, j, k] i: sim.iteration 
+     *           j: atom id 
+     *           k: xyz
      */
     private double[][][] coordinateList1;
     
@@ -525,10 +527,11 @@ public class TinkerXYZ implements Cloneable {
      * Returns the coordinate of centre of mass from second particle
      * 
      * @return coordinate of center of mass from second particle
-     * [i][j][k] i: index of simulation; j: index of partikel2
-     * k = 0: x
-     * k = 0: y
-     * k = 0: z
+     * [i][j][k]    i: index of simulation; 
+     *              j: index of partikel2
+     *              k = 0: x
+     *                  1: y
+     *                  2: z
      */
     public double[][][] getCentreOfMass2() {
         
@@ -1115,11 +1118,8 @@ public class TinkerXYZ implements Cloneable {
         int tmpAtomNumber;
         int tmpConnectionSize;
         boolean tmpHasCommentLine;
-        double tmpX;
-        double tmpY;
-        double tmpZ;
         String tmpReadLine;
-        String[] tmpReadLineArray;
+        String[] tmpLines;
         Reader tmpStringReader;
         
         tmpStringReader = new StringReader(aTinkerXyz);
@@ -1133,14 +1133,14 @@ public class TinkerXYZ implements Cloneable {
             if (tmpReadLine != null) {
                 this.fileContent.append(tmpReadLine);
                 this.fileContent.append(this.LINESEPARATOR);
-                tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                tmpAtomNumber = Integer.parseInt(tmpReadLineArray[0]);
+                tmpLines = tmpReadLine.trim().split("\\s+");
+                tmpAtomNumber = Integer.parseInt(tmpLines[0]);
                 this.atomNumber = tmpAtomNumber;
                 this.header = "";
-                if (tmpReadLineArray != null && tmpReadLineArray.length > 1) {
+                if (tmpLines != null && tmpLines.length > 1) {
 
-                    for (int i = 1; i < tmpReadLineArray.length; i++) {
-                        this.header +=  tmpReadLineArray[i];
+                    for (int i = 1; i < tmpLines.length; i++) {
+                        this.header +=  tmpLines[i];
                     }
 
                 }
@@ -1162,12 +1162,13 @@ public class TinkerXYZ implements Cloneable {
                 // read second line
                 tmpBR.mark(80);
                 tmpReadLine = tmpBR.readLine();
-                tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                if (!tmpReadLineArray[0].equals("1")) {
+                tmpLines = tmpReadLine.trim().split("\\s+");
+                if (!tmpLines[0].equals("1")) {
                     tmpHasCommentLine = true;
                     this.comment = tmpReadLine;
-                    this.fileContent.append(tmpReadLine);
-                    this.fileContent.append(this.LINESEPARATOR);
+                    this.fileContent
+                            .append(tmpReadLine)
+                            .append(this.LINESEPARATOR);
                 } else {
                     tmpBR.reset();
                 }
@@ -1181,28 +1182,27 @@ public class TinkerXYZ implements Cloneable {
                 for (int i = 0; i < anIterationSize; i++) {
 
                     for (int j = 0; j < this.atomSize1; j++) {
-                        tmpReadLine = tmpBR.readLine();
-                        this.fileContent.append(tmpReadLine);
-                        this.fileContent.append(this.LINESEPARATOR);
-                        tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                        tmpX = Double.parseDouble(tmpReadLineArray[2]);
-                        tmpY = Double.parseDouble(tmpReadLineArray[3]);
-                        tmpZ = Double.parseDouble(tmpReadLineArray[4]);
-                        this.coordinateList1[i][j] = new double[3];
-                        this.coordinateList1[i][j][0] = tmpX;
-                        this.coordinateList1[i][j][1] = tmpY;
-                        this.coordinateList1[i][j][2] = tmpZ;
-                        tmpConnectionSize = tmpReadLineArray.length - 6;
+                        String tmpLine = tmpBR.readLine();
+                        this.fileContent
+                                .append(tmpLine)
+                                .append(this.LINESEPARATOR);
+                        String[] tmpTokens = tmpLine.trim().split("\\s+");
+                        double x = Double.parseDouble(tmpTokens[2]);
+                        double y = Double.parseDouble(tmpTokens[3]);
+                        double z = Double.parseDouble(tmpTokens[4]);
+                        this.coordinateList1[i][j] = new double[]{x, y, z};
                         if (i == 0) {
-                            this.elementList1[j] = tmpReadLineArray[1];
-                            this.atomTypeList1[j] = Integer.
-                                    parseInt(tmpReadLineArray[5]);
-                            this.connectionList1[j] = new int[tmpConnectionSize];
+                            this.elementList1[j] = tmpTokens[1];
+                            this.atomTypeList1[j] = Integer
+                                    .parseInt(tmpTokens[5]);
+                            int connectionSize = tmpTokens.length - 6;
+                            this.connectionList1[j] = new int[connectionSize];
 
-                            for (int k = 0; k < tmpConnectionSize; k++) {
+                            for (int k = 0; k < connectionSize; k++) {
                                 this.connectionList1[j][k] = Integer
-                                        .parseInt(tmpReadLineArray[k + 6]);
+                                        .parseInt(tmpTokens[k + 6]);
                             }
+                            
                         }
                     }
 
@@ -1211,29 +1211,29 @@ public class TinkerXYZ implements Cloneable {
 
                         for (int k = 0; k < this.atomSize2; k++) {
                             tmpReadLine = tmpBR.readLine();
-                            this.fileContent.append(tmpReadLine);
-                            this.fileContent.append(this.LINESEPARATOR);
-                            tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                            tmpX = Double.parseDouble(tmpReadLineArray[2]);
-                            tmpY = Double.parseDouble(tmpReadLineArray[3]);
-                            tmpZ = Double.parseDouble(tmpReadLineArray[4]);
-                            this.coordinateList2[i][j][k] = new double[3];
-                            this.coordinateList2[i][j][k][0] = tmpX;
-                            this.coordinateList2[i][j][k][1] = tmpY;
-                            this.coordinateList2[i][j][k][2] = tmpZ;
-                            tmpConnectionSize = tmpReadLineArray.length - 6;
+                            this.fileContent.append(tmpReadLine)
+                                    .append(this.LINESEPARATOR);
+                            tmpLines = tmpReadLine.trim().split("\\s+");
+                            double x = Double.parseDouble(tmpLines[2]);
+                            double y = Double.parseDouble(tmpLines[3]);
+                            double z = Double.parseDouble(tmpLines[4]);
+                            this.coordinateList2[i][j][k] = 
+                                    new double[]{x, y, z};
+                            tmpConnectionSize = tmpLines.length - 6;
                             if(i == 0 && j == 0) {
-                                this.elementList2[k] = tmpReadLineArray[1];
+                                this.elementList2[k] = tmpLines[1];
                                 this.atomTypeList2[k] = Integer.
-                                        parseInt(tmpReadLineArray[5]);
+                                        parseInt(tmpLines[5]);
                                 this.connectionList2[k] = 
                                         new int[tmpConnectionSize];
                                 for (int l = 0; l < tmpConnectionSize; l++) {
                                         this.connectionList2[k][l] = Integer
-                                                .parseInt(tmpReadLineArray[l + 6]);
+                                                .parseInt(tmpLines[l + 6]);
                                 }
+                                
                             }
                         }
+                        
                     }
 
                     if (i < anIterationSize) {
@@ -1394,6 +1394,92 @@ public class TinkerXYZ implements Cloneable {
         }
         
         return tmpResult;
+    }
+    
+    /**
+     * Clone method for 2d-array
+     * 
+     * @param AnOriginal Original 2d-array
+     * @return Cloned deep copied 2d-array
+     */
+    private double[][] clone2DArray(double[][] AnOriginal) {
+        if (AnOriginal == null) {
+            return null;
+        }
+        double[][] tmpCopy = new double[AnOriginal.length][];
+
+        for (int i = 0; i < AnOriginal.length; i++) {
+            if (AnOriginal[i] != null) {
+                tmpCopy[i] = AnOriginal[i].clone();
+            }
+        }
+
+        return tmpCopy;
+    }
+    
+    /**
+     * Clone method for 3d-array
+     * 
+     * @param AnOriginal Original 3d-array
+     * @return Cloned deep copied 3d-array
+     */
+    private double[][][] clone3DArray(double[][][] AnOriginal) {
+        if (AnOriginal == null) {
+            return null;
+        }
+
+        double[][][] tmpCopy = new double[AnOriginal.length][][];
+
+        for (int i = 0; i < AnOriginal.length; i++) {
+            if (AnOriginal[i] != null) {
+                tmpCopy[i] = new double[AnOriginal[i].length][];
+
+                for (int j = 0; j < AnOriginal[i].length; j++) {
+                    if (AnOriginal[i][j] != null) {
+                        tmpCopy[i][j] = AnOriginal[i][j].clone();
+                    }
+                }
+                
+            }
+        }
+
+        return tmpCopy;
+    }
+    
+    /**
+     * Clone method for 4d-array
+     * 
+     * @param AnOriginal Original 4d-array
+     * @return Cloned deep copied 4d-array
+     */
+    private double[][][][] clone4DArray(double[][][][] AnOriginal) {
+        if (AnOriginal == null) {
+            return null;
+        }
+
+        double[][][][] tmpCopy = new double[AnOriginal.length][][][];
+
+        for (int i = 0; i < AnOriginal.length; i++) {
+            if (AnOriginal[i] != null) {
+                tmpCopy[i] = new double[AnOriginal[i].length][][];
+
+                for (int j = 0; j < AnOriginal[i].length; j++) {
+                    if (AnOriginal[i][j] != null) {
+                        tmpCopy[i][j] = AnOriginal[i][j].clone();
+                    }
+                    
+                    for (int k = 0; k < AnOriginal[i][j].length; k++) {
+                        if (AnOriginal[i][j][k] != null) {
+                            tmpCopy[i][j][k] = AnOriginal[i][j][k].clone();
+                        }
+                    }
+                    
+                }
+                
+            }
+        }
+
+        return tmpCopy;
     }
     
     // </editor-fold>
@@ -1748,34 +1834,32 @@ public class TinkerXYZ implements Cloneable {
      */
     @Override
     public TinkerXYZ clone() {
-        TinkerXYZ tmpTinkerXYZ;
-        
         try {
-            tmpTinkerXYZ = (TinkerXYZ)super.clone();
-            if (tmpTinkerXYZ == null) {
-                throw new InternalError("TinkerXYZ is null.");
+            TinkerXYZ cloned = (TinkerXYZ) super.clone();
+            
+            if (this.atomicMassList1 != null) {
+                cloned.atomicMassList1 = this.atomicMassList1.clone();
+            } 
+            if (this.atomTypeList1 != null) {
+                cloned.atomTypeList1 = this.atomTypeList1.clone();
             }
-            tmpTinkerXYZ.header = this.header;
-            tmpTinkerXYZ.forcefieldName = this.forcefieldName;
-            tmpTinkerXYZ.particleName1 = this.particleName1;
-            tmpTinkerXYZ.atomNumber = this.atomNumber;
-            tmpTinkerXYZ.atomSize1 = this.atomSize1;
-            tmpTinkerXYZ.atomicMassList1 = this.atomicMassList1.clone();
-            tmpTinkerXYZ.coordinateList1 = this.coordinateList1.clone();
-            tmpTinkerXYZ.atomTypeList1 = this.atomTypeList1.clone();
-            tmpTinkerXYZ.connectionList1 = this.connectionList1.clone();
-            if (atomSize2 > 0) {
-                tmpTinkerXYZ.particleName2 = this.particleName2;
-                tmpTinkerXYZ.atomSize2 = this.atomSize2;
-                tmpTinkerXYZ.atomicMassList2 = this.atomicMassList2.clone();
-                tmpTinkerXYZ.coordinateList2 = this.coordinateList2.clone();
-                tmpTinkerXYZ.atomTypeList2 = this.atomTypeList2.clone();
-                tmpTinkerXYZ.connectionList2 = this.connectionList2.clone();
-                tmpTinkerXYZ.distances = this.distances.clone();
+            if (this.coordinateList1 != null) {
+                cloned.coordinateList1 = clone3DArray(this.coordinateList1);
+            } 
+            if (this.atomSize2 > 0) {
+                if (this.atomicMassList2 != null) 
+                    cloned.atomicMassList2 = this.atomicMassList2.clone();
+                if (this.atomTypeList2 != null) 
+                    cloned.atomTypeList2 = this.atomTypeList2.clone();
+                if (this.coordinateList2 != null) 
+                    cloned.coordinateList2 = clone4DArray(this.coordinateList2);
+                if (this.distances != null) 
+                    cloned.distances = this.clone2DArray(this.distances);
             }
-            return tmpTinkerXYZ;
+
+            return cloned;
         } catch (final CloneNotSupportedException ex) {
-            throw new InternalError(ex.getMessage());
+            throw new AssertionError("Cloning failed.", ex);
         }
     }
     
