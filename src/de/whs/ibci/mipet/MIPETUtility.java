@@ -988,23 +988,18 @@ public class MIPETUtility{
      */
     public Boolean isTooClose(double[][] aCoord1, double[][] aCoord2, 
             double aMinDist) {
-        
-        double tmpXDelta;
-        double tmpYDelta;
-        double tmpZDelta;
+
         double tmpDistanceQ;
         double tmpMinDistQ;
         
         tmpMinDistQ = aMinDist * aMinDist;
         
-        for (double[] coord11 : aCoord1) {
-            for (double[] coord21 : aCoord2) {
-                tmpXDelta = coord11[0] - coord21[0];
-                tmpYDelta = coord11[1] - coord21[1];
-                tmpZDelta = coord11[2] - coord21[2];
-                tmpDistanceQ = tmpXDelta * tmpXDelta 
-                        + tmpYDelta * tmpYDelta 
-                        + tmpZDelta * tmpZDelta;
+        for (double[] p1 : aCoord1) {
+            for (double[] p2 : aCoord2) {
+                double dx = p1[0] - p2[0];
+                double dy = p1[1] - p2[1];
+                double dz = p1[2] - p2[2];
+                tmpDistanceQ = dx * dx + dy * dy + dz * dz;
                 if(tmpDistanceQ < tmpMinDistQ){
                     return true;
                 }
