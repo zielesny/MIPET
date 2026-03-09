@@ -2427,8 +2427,6 @@ public class MIPET {
         String tmpPrmName1;
         String tmpParticleName;
         String tmpSearch;
-        String[] tmpLines;
-        String[] tmpTokens;
         StringBuilder tmpPrm2;
         
         tmpParticlesLength = particleNames.size();
@@ -3209,7 +3207,8 @@ public class MIPET {
                 tmpEnergyDatas = new double[1];
                 tmpEnergyDatas[0] = Collections.min(tmpDistEnergies);
                 tmpWgtEmins[i] = tmpSumWgtxE / tmpSumWgt;
-                if (Double.isNaN(tmpWgtEmins[i])) {
+                if (Double.isNaN(tmpWgtEmins[i]) || 
+                        Double.isInfinite(tmpWgtEmins[i])) {
                     tmpWgtEmins[i] = 100.;
                 } 
                 tmpSumWgt = 0;
@@ -3232,7 +3231,8 @@ public class MIPET {
 
                 tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
                         tmpEnergyDataFraction) / MIPETUTIL.sum(tmpWeights);
-                if (Double.isNaN(tmpWgtEmins[i])) {
+                if (Double.isNaN(tmpWgtEmins[i]) 
+                        || Double.isInfinite(tmpWgtEmins[i])) {
                     tmpWgtEmins[i] = 100.;
                 } 
             }
@@ -3731,40 +3731,37 @@ public class MIPET {
                 try {
                     BWParticleDat = new BufferedWriter(
                             new FileWriter(tmpDatFileName));
-                    /*
-                      BufferedWriter for log contents
-                     */
-                    BufferedWriter BWParticleLog = new BufferedWriter(
-                            new FileWriter(tmpParticleLogFileName));
-                    if (Files.exists(tmpSourceFile2) && !tmpHasCNHeadLine) {
-                        Files.move(tmpSource, tmpTarget, 
-                                StandardCopyOption.ATOMIC_MOVE);
-                        BWParticleLog.append(LINESEPARATOR);
-                        BWParticleLog.append("*** Coordination number ***");
-                        BWParticleLog.append(LINESEPARATOR);
+                    // BufferedWriter for log contents
+                    try (BufferedWriter BWParticleLog = new BufferedWriter(
+                             new FileWriter(tmpParticleLogFileName))) {
+                        if (Files.exists(tmpSourceFile2) && !tmpHasCNHeadLine) {
+                            Files.move(tmpSource, tmpTarget,
+                                    StandardCopyOption.ATOMIC_MOVE);
+                            BWParticleLog.append(LINESEPARATOR)
+                                    .append("*** Coordination number ***")
+                                    .append(LINESEPARATOR);
+                        }
+                        BWParticleLog.append("Time for solvent box minimization via Tinker \"Minimize\" [s]: ")
+                                .append(Double.toString(
+                                        (double) (System.currentTimeMillis()
+                                                - boxMinimizationTime) / 1000))
+                                .append(LINESEPARATOR);
                     }
-                    BWParticleLog.append("Time for solvent box minimization via Tinker \"Minimize\" [s]: ");
-                    BWParticleLog.append(Double.toString( 
-                            (double) (System.currentTimeMillis()
-                                    - boxMinimizationTime) / 1000));
-                    BWParticleLog.append(LINESEPARATOR);
-                    BWParticleLog.close();
                     if (!tmpIsSameParticle) {
-                        BWParticleDat.append("VdWVolume(");
-                        BWParticleDat.append(tmpParticle1);
-                        BWParticleDat.append(") [" + ANGSTROM + SUPERSCRIPTTHREE 
-                                +"] = ");
-                        BWParticleDat.append(Double
-                                .toString(tmpVdWSolutVolumes[tmpJobIndex]));
-                        BWParticleDat.append(LINESEPARATOR);
+                        BWParticleDat.append("VdWVolume(")
+                                .append(tmpParticle1)
+                                .append(") [" + ANGSTROM + SUPERSCRIPTTHREE 
+                                        +"] = ")
+                                .append(Double.toString(tmpVdWSolutVolumes[tmpJobIndex]))
+                                .append(LINESEPARATOR);
                     }
-                    BWParticleDat.append("VdWVolume(");
-                    BWParticleDat.append(tmpParticle2);
-                    BWParticleDat.append(") [" + ANGSTROM + SUPERSCRIPTTHREE 
-                                +"] = ");
-                    BWParticleDat.append(String.format("%.4f", 
-                            tmpVdWSolventVolumes[tmpJobIndex]));
-                    BWParticleDat.append(LINESEPARATOR);
+                    BWParticleDat.append("VdWVolume(")
+                            .append(tmpParticle2)
+                            .append(") [" + ANGSTROM + SUPERSCRIPTTHREE 
+                                    +"] = ")
+                            .append(String.format("%.4f", 
+                                    tmpVdWSolventVolumes[tmpJobIndex]))
+                            .append(LINESEPARATOR);
                     BWParticleDat.close();
                 } catch(IOException ex) {
                     LOGGER.log(Level.SEVERE, 
@@ -4288,94 +4285,94 @@ public class MIPET {
             if (!forceField_CN.isEmpty() || tmpOutputIteration <= 3) {
                 try (BufferedWriter tmpBW = Files.newBufferedWriter(
                         Paths.get(tmpFileName))) {
-                    tmpBW.append("# Particle set for MFSim created by MIPET\n");
-                    tmpBW.append("# Force Field for energy calculation: ");
-                    tmpBW.append(forceField_IE);
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Force Field for coordination number calculation: ");
+                    tmpBW.append("# Particle set for MFSim created by MIPET\n")
+                            .append("# Force Field for energy calculation: ")
+                            .append(forceField_IE)
+                            .append(LINESEPARATOR)
+                            .append("# Force Field for coordination number calculation: ");
                     if (forceField_CN.isEmpty()) {
                         tmpBW.append("Not calculated");
                     } else {
                         tmpBW.append(forceField_CN);
                     }
-                    tmpBW.append(forceField_CN);
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Water model: ")
-                            .append(waterModel);
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# CPU cores: ");
-                    tmpBW.append(Integer.toString(cpuCoreNumber));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Temperature: ");
-                    tmpBW.append(Double.toString(temperature));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere nodes calculated with Fibonacci algorithm: ");
-                    tmpBW.append(Boolean.toString(isFibonacciSphereAlgorithm));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere node number 1: ");
-                    tmpBW.append(Integer.toString(sphereNodeNumber1));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere node number 2: ");
-                    tmpBW.append(Integer.toString(sphereNodeNumber2));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere node number 3: ");
-                    tmpBW.append(Integer.toString(sphereNodeNumber3));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Sphere node number 4: ");
-                    tmpBW.append(Integer.toString(sphereNodeNumber4));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Rotation number 1: ");
-                    tmpBW.append(Integer.toString(rotationNumber1));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Rotation number 2: ");
-                    tmpBW.append(Integer.toString(rotationNumber2));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Rotation number 3: ");
-                    tmpBW.append(Integer.toString(rotationNumber3));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Rotation number 4: ");
-                    tmpBW.append(Integer.toString(rotationNumber4));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Conformational analysis: ");
-                    tmpBW.append(Boolean.toString(isConformationalAnalysis));
-                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append(forceField_CN)
+                            .append(LINESEPARATOR)
+                            .append("# Water model: ")
+                            .append(waterModel)
+                            .append(LINESEPARATOR)
+                            .append("# CPU cores: ")
+                            .append(Integer.toString(cpuCoreNumber))
+                            .append(LINESEPARATOR)
+                            .append("# Temperature: ")
+                            .append(Double.toString(temperature))
+                            .append(LINESEPARATOR)
+                            .append("# Sphere nodes calculated with Fibonacci algorithm: ")
+                            .append(Boolean.toString(isFibonacciSphereAlgorithm))
+                            .append(LINESEPARATOR)
+                            .append("# Sphere node number 1: ")
+                            .append(Integer.toString(sphereNodeNumber1))
+                            .append(LINESEPARATOR)
+                            .append("# Sphere node number 2: ")
+                            .append(Integer.toString(sphereNodeNumber2))
+                            .append(LINESEPARATOR)
+                            .append("# Sphere node number 3: ")
+                            .append(Integer.toString(sphereNodeNumber3))
+                            .append(LINESEPARATOR)
+                            .append("# Sphere node number 4: ")
+                            .append(Integer.toString(sphereNodeNumber4))
+                            .append(LINESEPARATOR)
+                            .append("# Rotation number 1: ")
+                            .append(Integer.toString(rotationNumber1))
+                            .append(LINESEPARATOR)
+                            .append("# Rotation number 2: ")
+                            .append(Integer.toString(rotationNumber2))
+                            .append(LINESEPARATOR)
+                            .append("# Rotation number 3: ")
+                            .append(Integer.toString(rotationNumber3))
+                            .append(LINESEPARATOR)
+                            .append("# Rotation number 4: ")
+                            .append(Integer.toString(rotationNumber4))
+                            .append(LINESEPARATOR)
+                            .append("# Conformational analysis: ")
+                            .append(Boolean.toString(isConformationalAnalysis))
+                            .append(LINESEPARATOR);
                     switch (tmpOutputIteration) {
                         case 0, 4 -> {
-                            tmpBW.append("# Boltzmann averaging: Yes");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# Boltzmann averaging: Yes")
+                                    .append(LINESEPARATOR);}
                         case 1, 2, 3, 5, 6, 7 -> {
-                            tmpBW.append("# Boltzmann averaging: No");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# Boltzmann averaging: No")
+                                    .append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
                         case 1, 6 -> {
-                            tmpBW.append("# Optimize sampled E(min) configuration: Yes");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# Optimize sampled E(min) configuration: Yes")
+                                    .append(LINESEPARATOR);}
                         case 0, 2, 3, 4, 5, 7 -> {
-                            tmpBW.append("# Optimize sampled E(min) configuration: No");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# Optimize sampled E(min) configuration: No")
+                                    .append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
                         case 2, 6 -> {
-                            tmpBW.append("# Tinker's 'optrigid' used: Yes");        
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# Tinker's 'optrigid' used: Yes")
+                                    .append(LINESEPARATOR);}
                     }
                     switch (tmpOutputIteration) {
                         case 0, 1, 2, 3 -> {
-                            tmpBW.append("# CN = 1 for all particle pairs");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append("# CN = 1 for all particle pairs")
+                                    .append(LINESEPARATOR);}
                     }
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[Title]\n")
+                    tmpBW.append(LINESEPARATOR)
+                            .append("[Title]\n")
                             .append(aTitle)
-                            .append("\n[/Title]\n\n");
-                    tmpBW.append("[Version]\n" 
-                            + VERSION_NUMBER 
-                            + "\n[/Version]\n\n");
+                            .append("\n[/Title]\n\n")
+                            .append("[Version]\n" 
+                                    + VERSION_NUMBER 
+                                    + "\n[/Version]\n\n");
 
                     // Particle description
-                    tmpBW.append("[Particle Description]");
-                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append("[Particle Description]")
+                            .append(LINESEPARATOR);
                     tmpBW.append("""
                                  # Columns:
                                  # 1. Particle (abbreviation)
@@ -4399,24 +4396,24 @@ public class MIPET {
                         tmpBW.append(LINESEPARATOR);
 
                         for(String tmpDescription : tmpParticleDescList){
-                            tmpBW.append(tmpDescription);
-                            tmpBW.append(" ");
+                            tmpBW.append(tmpDescription)
+                                    .append(" ");
                         }
 
                     }
 
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[/Particle Description]");
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append(LINESEPARATOR)
+                            .append("[/Particle Description]")
+                            .append(LINESEPARATOR)
+                            .append(LINESEPARATOR);
 
                      // Particle interactions
-                    tmpBW.append("[Particle interactions]");
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Repulsion parameters a(ij) for particle pairs for different temperatures (in K)");
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("Pair");
-                    tmpBW.append(" ")
+                    tmpBW.append("[Particle interactions]")
+                            .append(LINESEPARATOR)
+                            .append("# Repulsion parameters a(ij) for particle pairs for different temperatures (in K)")
+                            .append(LINESEPARATOR)
+                            .append("Pair")
+                            .append(" ")
                             .append(Integer.toString((int) temperature));
                     switch (tmpOutputIteration) {
                         case 0, 1, 2, 3 -> {
@@ -4426,8 +4423,8 @@ public class MIPET {
                     }
 
                     for(String tmpKey : tmpKeySet) {
-                        tmpBW.append(LINESEPARATOR);
-                        tmpBW.append(tmpKey);
+                        tmpBW.append(LINESEPARATOR)
+                                .append(tmpKey);
                         switch (tmpOutputIteration) {
                             case 0, 1, 2, 3 -> {
                                 tmpAij = tmpAijMap1.get(tmpKey);}
@@ -4437,10 +4434,10 @@ public class MIPET {
                         tmpBW.append(" ").append(String.format("%.2f", tmpAij));
                     }
 
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[/Particle interactions]");
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.append(LINESEPARATOR)
+                            .append("[/Particle interactions]")
+                            .append(LINESEPARATOR)
+                            .append(LINESEPARATOR);
 
                     // Coordination numbers
                     switch (tmpOutputIteration) {
@@ -4457,29 +4454,29 @@ public class MIPET {
                                         cnList.get(j).cnValue()));
                             }
 
-                            tmpBW.append(LINESEPARATOR);
-                            tmpBW.append("[/Coordination numbers]");
-                            tmpBW.append(LINESEPARATOR);}
+                            tmpBW.append(LINESEPARATOR)
+                                    .append("[/Coordination numbers]")
+                                    .append(LINESEPARATOR);}
                     }
 
                     // SMILES
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[SMILES]");
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("# Particle and corresponding SMILES of fragment molecule");
+                    tmpBW.append(LINESEPARATOR)
+                            .append("[SMILES]")
+                            .append(LINESEPARATOR)
+                            .append("# Particle and corresponding SMILES of fragment molecule");
                     tmpKeySet = smiles.keySet();
 
                     for(String tmpKey : tmpKeySet){
                         if (tmpParticleNames.contains(tmpKey)) {
-                            tmpBW.append(LINESEPARATOR);
-                            tmpBW.append(tmpKey); 
-                            tmpBW.append(" ");
-                            tmpBW.append(smiles.get(tmpKey));
+                            tmpBW.append(LINESEPARATOR)
+                                    .append(tmpKey)
+                                    .append(" ")
+                                    .append(smiles.get(tmpKey));
                         }
                     }
 
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append("[/SMILES]");
+                    tmpBW.append(LINESEPARATOR)
+                            .append("[/SMILES]");
                 } catch (IOException anException) {
                     LOGGER.log(Level.SEVERE, anException.toString());
                 }
