@@ -63,7 +63,7 @@ public class TestTinkerXYZ {
         // Test with only one particle
         TinkerXYZ txyz;
         txyz = new TinkerXYZ("./testdata/Me.txyz", 5);
-        int atomNumber = txyz.getAtomNumber();
+        int atomNumber = txyz.getN_atom();
         Assert.assertEquals(5, atomNumber);
         
         double[][][] coord = txyz.getCoordinateList1();
@@ -88,10 +88,10 @@ public class TestTinkerXYZ {
         
         // Test with two sorts of particles
         txyz = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
-        atomNumber = txyz.getAtomNumber();
+        atomNumber = txyz.getN_atom();
         Assert.assertEquals(75, atomNumber);
-        Assert.assertEquals(3, txyz.getAtomSize1());
-        Assert.assertEquals(8, txyz.getAtomSize2());
+        Assert.assertEquals(3, txyz.getN_atom1());
+        Assert.assertEquals(8, txyz.getN_atom2());
         double[] expectedCoord11 = new double[] {0.0, 0.0, 0.110440};
         double[] expectedCoord12 = new double[]{0.0, 0.777553, -0.448220};
         double[] expectedCoord13 = new double[]{0.0, -0.777553, -0.448220};
@@ -142,7 +142,7 @@ public class TestTinkerXYZ {
                 txyzFileName2);
         txyz = new TinkerXYZ(tmpTxyz1, tmpTxyz2, true);
         int tmpExpectedAtomSize = 8;
-        int tmpAtomSize = txyz.getAtomNumber();
+        int tmpAtomSize = txyz.getN_atom();
         Assert.assertEquals(tmpExpectedAtomSize, tmpAtomSize);
         
         tmpExpectedElementList = new String[]{"O", "H", "H"};

@@ -194,7 +194,7 @@ public class MIPETCN implements Callable<int[]> {
                 tmpCurrentDir + tmpParticle1 + ".xyz");
         tmpBoxLength = MIPET4JUtil.getBoxLength(tmpCurrentDir 
                 + tmpParticlePair + ".xyz");
-        tmpAtomNumber1 = tmpTxyz1.getAtomNumber();
+        tmpAtomNumber1 = tmpTxyz1.getN_atom();
         tmpElements1 = tmpTxyz1.getElementList1();
         if (tmpIsSameParticle) {
             tmpAtomNumber2 = tmpAtomNumber1;
@@ -204,7 +204,7 @@ public class MIPETCN implements Callable<int[]> {
             tmpTxyz2 = new TinkerXYZ(tmpForcefield,
                     tmpParticle2,
                     tmpXyzFileName2);
-            tmpAtomNumber2 = tmpTxyz2.getAtomNumber();
+            tmpAtomNumber2 = tmpTxyz2.getN_atom();
             tmpElements2 = tmpTxyz2.getElementList1();
         }
         if (this.ISTINKER9) {

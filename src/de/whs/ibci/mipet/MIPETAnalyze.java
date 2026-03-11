@@ -234,8 +234,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpParticle1 = this.TINKERXYZ.getParticleName1();
         tmpParticle2 = this.TINKERXYZ.getParticleName2();
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
-        tmpAtomSize1 = tmpTinkerXYZ.getAtomSize1();
-        tmpAtomSize2 = tmpTinkerXYZ.getAtomSize2();
+        tmpAtomSize1 = tmpTinkerXYZ.getN_atom1();
+        tmpAtomSize2 = tmpTinkerXYZ.getN_atom2();
         tmpID1 = 0;
         tmpID2 = 0;
         tmpMinEnergy = 1E10;

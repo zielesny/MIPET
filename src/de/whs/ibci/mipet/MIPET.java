@@ -834,7 +834,7 @@ public class MIPET {
         int tmpXyz1ID;
         int tmpXyz2ID;
         int tmpDistSize;
-        int tmpAtomSize1;
+        int tmpN_atom1;
         int tmpPrmID1;
         int tmpPrmID2;
         long tmpEnergyCalcTime;
@@ -1312,7 +1312,7 @@ public class MIPET {
                             }
 
                             // Start optimize
-                            tmpAtomSize1 =tmpTinkerXYZ1.getAtomSize1();
+                            tmpN_atom1 =tmpTinkerXYZ1.getN_atom1();
                             tmpProcess = null;
                             tmpPB = new ProcessBuilder();
                             tmpPB.redirectErrorStream(true);
@@ -1360,7 +1360,7 @@ public class MIPET {
                                 if (tmpParticleName1.equals("H2O")) {
                                     tmpIndex = 1;
                                 } else {
-                                    tmpIndex = tmpAtomSize1 + 1;
+                                    tmpIndex = tmpN_atom1 + 1;
                                 }
                                 MIPETUTIL.fixTinkerXYZ_H2O(tmpFileName, tmpIndex);
                             }
@@ -1624,8 +1624,8 @@ public class MIPET {
                             + "output.0";
                     String tmpOptFileName;
                     String tmpRgdFileName;
-                    int tmpAtomNumber1 = tmpTinkerXYZ1.getAtomSize1();
-                    int tmpAtomNumber2 = tmpTinkerXYZ2.getAtomSize1();
+                    int tmpAtomNumber1 = tmpTinkerXYZ1.getN_atom1();
+                    int tmpAtomNumber2 = tmpTinkerXYZ2.getN_atom1();
                     tmpElementList1 = tmpTinkerXYZ1.getElementList1();
                     tmpElementList2 = tmpTinkerXYZ2.getElementList1();
                     TinkerXYZ tmpTinkerXyz = 
@@ -3083,7 +3083,7 @@ public class MIPET {
                 tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, 
                         tmpTinkerXyz2,
                         isTinkerOn);
-                tmpAtomNumber = tmpTinkerXYZ.getAtomNumber();
+                tmpAtomNumber = tmpTinkerXYZ.getN_atom();
                 if (tmpChunkNumber == 1) {
                     tmpRot2EndIndex = aRotData2.length;
                 } else {

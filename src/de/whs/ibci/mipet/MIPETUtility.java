@@ -862,7 +862,7 @@ public class MIPETUtility{
         double[][] tmpCoordinates;
         String[] tmpElements;
         
-        tmpAtomSize = aTinkerXYZ.getAtomSize1();
+        tmpAtomSize = aTinkerXYZ.getN_atom1();
         tmpElements = aTinkerXYZ.getElementList1();
         tmpCoordinates = aTinkerXYZ.getCoordinateList1()[0];
         tmpMaxDistanceQ = 0.0;
