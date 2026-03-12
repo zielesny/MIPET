@@ -33,6 +33,8 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -1010,41 +1012,25 @@ public class MIPETUtility{
     
     /**
      * Returns all Lines with aSearchString
-     * @param aFileName
+     * @param fileName
      *   A Text file
-     * @param aSearchString
+     * @param searchString
      *   A search string
      * @return 
      *   All lines with aSearchString in it as a list.
      */
-    public List<String> findList(String aFileName, String aSearchString) {
-        int tmpLineNum;
-        Path tmpFile = Paths.get(aFileName);
-        List<String> tmpList = new LinkedList<>();
-        String tmpLine;
-            
-        tmpLineNum = 0;
-        try{
-            Scanner tmpScanner = new Scanner(tmpFile);
-            
-            while(tmpScanner.hasNextLine()){
-                tmpLine = tmpScanner.nextLine();
-                tmpLineNum++;
-                if(tmpLine.contains(aSearchString)){
-                   tmpList.add(tmpLine);
-                }
-            }
-            
-        } catch (FileNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "FileNotFoundException in findList.", ex);
+    public List<String> findList(String fileName, String searchString) {
+        Path filePath = Paths.get(fileName);
+        try (Stream<String> lines = Files.lines(filePath)) {
+            return lines.filter(line -> line.contains(searchString))
+                    .collect(Collectors.toList());
+
         } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException in findList.", ex);
+            LOGGER.log(Level.SEVERE, "IOException in findList.", ex);
+            return new ArrayList<>();
         }
-        return tmpList;
     }
-    
+
     /**
      * Calculates the sum of the array elements.
      * 

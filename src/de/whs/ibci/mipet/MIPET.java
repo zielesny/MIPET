@@ -35,6 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -576,7 +578,7 @@ public class MIPET {
         
         // <editor-fold defaultstate="collapsed" desc="Initialize and read .job file">
         Locale.setDefault(Locale.ENGLISH);
-        long tmpTotalTime = System.currentTimeMillis();
+        Instant startTime = Instant.now();
         System.out.println("Initializing...");
         initialize();
         System.out.println("Reading job file...");
@@ -1914,35 +1916,41 @@ public class MIPET {
         //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
         System.out.println("Exporting parameterset...");
-        float tmpTotalTimeSec;
-        tmpTotalTimeSec = (float) (System.currentTimeMillis() - tmpTotalTime)
-                / 1000;
+        Instant endTime = Instant.now();
+        Duration duration = Duration.between(startTime, endTime);
+        float totalTimeSeconds = duration.toMillis() / 1000f;
         try {
-            BFGblLog.append(LINESEPARATOR);
-            BFGblLog.append("Entire calculation Time: ");
-            BFGblLog.append(String.valueOf(tmpTotalTimeSec)).append(" s ");
-            if (tmpTotalTimeSec > 3600) {
+            BFGblLog.append(LINESEPARATOR)
+                    .append("Entire calculation Time: ")
+                    .append(String.valueOf(totalTimeSeconds)).append(" s ");
+            if (totalTimeSeconds > 3600) {
                 BFGblLog.append("(")
-                        .append(decimal2.format(tmpTotalTimeSec / 3600))
+                        .append(decimal2.format(totalTimeSeconds / 3600f))
                         .append(" h)");
-            } else if (tmpTotalTimeSec > 60) {
+            } else if (totalTimeSeconds > 60) {
                 BFGblLog.append("(")
-                        .append(decimal2.format(tmpTotalTimeSec / 60))
+                        .append(decimal2.format(totalTimeSeconds / 60f))
                         .append(" min)");
             }       
-            BFGblLog.close();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "IOException during writing log file.", 
                     ex);
+        } finally {
+            if (BFGblLog != null) {
+                try {
+                    BFGblLog.close();
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, "Failed to close log file.", e);
+                }
+            }
         }
-        
         exportParticleSetForMFSim(tmpJobTaskRecordList, 
                 parameterSetTitle, 
                 parameterSetTitleAbr);
         System.out.println("Ready.");
         
         //</editor-fold>
-    } 
+    }
     
     //</editor-fold>
     //</editor-fold>
@@ -3338,7 +3346,7 @@ public class MIPET {
         LinkedList<MIPETCN> tmpTaskList = new LinkedList<>();
         
         tmpJobTaskLength = aJobTaskRecordList.size();
-        tmpTotalCNTime = System.currentTimeMillis();
+        Instant startTime = Instant.now();
         tmpJobNumber = 0;
         
         // <editor-fold defaultstate="collapsed" desc="Make directories and copy .xyz datas">
@@ -3649,7 +3657,7 @@ public class MIPET {
                 // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Add MAXITER to .key file">
-                boxMinimizationTime = System.currentTimeMillis();
+                boxMinimizationTime = System.nanoTime();
                 tmpKeyMaxiter = "MAXITER " + minimizeMaxIteration;
                 try (BufferedWriter tmpBW = new BufferedWriter(
                         new FileWriter(tmpKeyFileName, true))) {
@@ -3743,8 +3751,8 @@ public class MIPET {
                         }
                         BWParticleLog.append("Time for solvent box minimization via Tinker \"Minimize\" [s]: ")
                                 .append(Double.toString(
-                                        (double) (System.currentTimeMillis()
-                                                - boxMinimizationTime) / 1000))
+                                        (System.nanoTime()
+                                                - boxMinimizationTime) / 1000d))
                                 .append(LINESEPARATOR);
                     }
                     if (!tmpIsSameParticle) {
@@ -3831,7 +3839,7 @@ public class MIPET {
             }
         }
 
-        tmpDynamicWarmUpTime = System.currentTimeMillis();
+        tmpDynamicWarmUpTime = System.nanoTime();
         tmpExecutor = Executors.newFixedThreadPool(cpuCoreNumber);
         try {
             tmpExecutor.invokeAll(tmpTaskList);
@@ -3841,8 +3849,8 @@ public class MIPET {
         tmpExecutor.shutdown();
         String[][] tmpLabelValues = new String[1][2];
         tmpLabelValues[0][0] = "Time for solvent box warm up via Tinker \"Dynamic\" [s]: ";
-        tmpLabelValues[0][1] = Double.toString((double)
-                (System.currentTimeMillis() - tmpDynamicWarmUpTime) / 1000);
+        tmpLabelValues[0][1] = Double.toString((System.nanoTime() 
+                - tmpDynamicWarmUpTime) / 1000d);
         MIPETUTIL.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
         
         // </editor-fold>
@@ -3893,7 +3901,7 @@ public class MIPET {
             }
         }
         
-        long tmpArcEvaluationTime = System.currentTimeMillis();
+        long tmpArcEvaluationTime = System.nanoTime();
         if (tmpJobNumber > 0) {
             tmpExecutor = Executors.newFixedThreadPool(cpuCoreNumber);
             try {
@@ -3904,11 +3912,13 @@ public class MIPET {
             tmpExecutor.shutdown();
             tmpLabelValues = new String[2][2];
             tmpLabelValues[0][0] = "Time for solvent box analysis (includes \".arc-evaluation\" and \"MIPETCN\") [s]: ";
-            tmpLabelValues[0][1] = Double.toString((double)
-                    (System.currentTimeMillis() - tmpArcEvaluationTime) / 1000);
+            tmpLabelValues[0][1] = Double.toString(
+                    (System.nanoTime() - tmpArcEvaluationTime) / 1000d);
             tmpLabelValues[1][0] = "Total time for determining the coordination number [s]: ";
-            tmpLabelValues[1][1] = String.valueOf((System
-                    .currentTimeMillis() - tmpTotalCNTime) / 1000);
+            Instant endTime = Instant.now();
+            Duration duration = Duration.between(startTime, endTime);
+            float totalTimeSeconds = duration.toMillis() /1000f;
+            tmpLabelValues[1][1] = String.valueOf(totalTimeSeconds);
             MIPETUTIL.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
             String tmpLabel = "Mean neighbor (" + temperature + " K): ";
             String[] tmpValues = new String[tmpCN.size()];
