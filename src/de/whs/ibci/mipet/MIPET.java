@@ -333,7 +333,7 @@ public class MIPET {
     /**
      * Directory name of particle data
      */
-    private static String sourceDirectory;
+    private static String moleculeDirectory;
     
     /**
      * Directory name of optimized xyz data
@@ -798,7 +798,7 @@ public class MIPET {
             
             // Copy .xyz file to optXYZ directory
             for (String tmpParticleName : particleNames) {
-                tmpSourceName = sourceDirectory
+                tmpSourceName = moleculeDirectory
                         + FILESEPARATOR 
                         + tmpForcefield 
                         + FILESEPARATOR 
@@ -2049,26 +2049,34 @@ public class MIPET {
             throw new IllegalArgumentException("IOException during"
                     + "reading job file.");
         }
-        
-        // <editor-fold defaultstate="collapsed" desc="Read water model">
-        // There is no specific water model anymore
-        /* String tmpH2OFileName;
-        
-        tmpH2OFileName = sourceDirectory 
-                + FILESEPARATOR
-                + forceField_IE
-                + FILESEPARATOR
-                + "H2O.xyz";
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpH2OFileName))) {
-            tmpLine = tmpBR.readLine();
-            waterModel = tmpLine.trim().split("\\s+")[1];
-        } catch (IOException ex) {
-            throw new IllegalArgumentException("IOException during reading H2O.xyz file.");
+        if (forceField_IE.equals("OPLSAALIGPARGEN")) {
+            for (String particle : particleNames) {
+                if (!smiles.containsKey(particle)) {
+                    System.out.println(particle + " was not found in Smiles.dat");
+                    System.exit(1);
+                }
+
+                // Check whether .xyz file exists
+                Path xyzPath = Path.of(moleculeDirectory, 
+                         FILESEPARATOR,
+                         "OPLSAALIGPARGEN",
+                         particle + ".xyz");
+                if (!Files.exists(xyzPath)) {
+                    System.out.println(particle + ".xyz was not found.");
+                    System.exit(1);
+                }
+                
+                // Check whether .prm file exists
+                Path prmPath = Path.of(parameterDirectory, 
+                         FILESEPARATOR, 
+                         "OPLSAALIGPARGEN",
+                         particle + ".prm");
+                if (!Files.exists(prmPath)) {
+                    System.out.println(particle + ".prm was not found.");
+                    System.exit(1);
+                }
+            }
         }
-        */
-        
-        // </editor-fold>
     }
     
     /**
@@ -2177,7 +2185,7 @@ public class MIPET {
                 "MIPET.Directory.calculation");
         resultDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.result");
-        sourceDirectory = MIPETUTIL.getResourceString(
+        moleculeDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.source");
         optXYZDirectory = tmpCalcDirectory + "/OptXYZ";
         optDistDirectory = tmpCalcDirectory + "/OptDist";
@@ -2319,7 +2327,7 @@ public class MIPET {
             
             // Read .xyz files
             if (anIsOriginal) {
-                tmpXyzName1 = sourceDirectory
+                tmpXyzName1 = moleculeDirectory
                         + FILESEPARATOR
                         + aForcefield
                         + FILESEPARATOR
@@ -2435,14 +2443,12 @@ public class MIPET {
         String tmpPrmName1;
         String tmpParticleName;
         String tmpSearch;
-        StringBuilder tmpPrm2;
         
         tmpParticlesLength = particleNames.size();
         tmpSearch = "Partial charge correction factor:";
         prmContent1 = new String[tmpParticlesLength];
         prmContent2 = new String[tmpParticlesLength];
         chargeCorr = new double[tmpParticlesLength];
-        tmpPrm2 = new StringBuilder(100000);
                 
         for (int i = 0; i < tmpParticlesLength; i++) {
             tmpParticleName = particleNames.get(i);
@@ -2683,7 +2689,7 @@ public class MIPET {
                         + FILESEPARATOR
                         + tmpParticleXyzName);
                 if (!Files.exists(tmpOptXyzFile)) {
-                    tmpSourceName = sourceDirectory
+                    tmpSourceName = moleculeDirectory
                             + FILESEPARATOR
                             + tmpForcefield
                             + FILESEPARATOR

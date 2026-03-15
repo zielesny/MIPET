@@ -184,7 +184,12 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
          * Avogadro constant in 1/mole
          */
         double AVOGADRO = 6.02214076E23;
-        final double REZIPTEMPGASCONST = 1 / (this.TEMP * GASCONST);
+        
+        /*
+        * Inverse of R*T
+        */
+        final double INV_RT = 1 / (GASCONST * this.TEMP);
+        
         boolean tmpIs2Close;
         int tmpRot1Size;
         int tmpRot2Size;
@@ -292,6 +297,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpChunkIndex = 0;
         tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
+            // <editor-fold defaultstate="collapsed" desc="Use Tinker">
             tmpArcFileName = this.SCRATCH_DIR
                     + FILESEPARATOR 
                     + tmpParticlePair 
@@ -354,8 +360,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                 tmpValue = Double
                                        .parseDouble(tmpValueCandidate);
                                 if (ISFRACTIONONE) {
-                                    tmpWgt = Math.exp(-tmpValue * 
-                                            REZIPTEMPGASCONST);
+                                    tmpWgt = Math.exp(-tmpValue * INV_RT);
                                     tmpWgtxE = tmpWgt * tmpValue;
                                     tmpSumWgt += tmpWgt;
                                     tmpSumWgtxE += tmpWgtxE;
@@ -404,7 +409,10 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during deleting files in scratch directory.", ex);
             }
+            
+            // </editor-fold>
         } else {
+            // <editor-fold defaultstate="collapsed" desc="Don't use Tinker">
             // Pre-computation of sigma and epsilon
             double[] tmpSigma3_1 = new double[tmpAtomSize1];
             double[] tmpSqrtEps1 = new double[tmpAtomSize1];
@@ -458,7 +466,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                 tmpDist = tmpDistances[k][m];
                                 tmpInvDist = 1.0 / tmpDist;
                                 
-                                // Lennard-Jones Logic without Math.sqrt()
+                                // Lennard-Jones logic without Math.sqrt()
                                 tmpInvDist2 = tmpInvDist * tmpInvDist;
                                 tmpInvDist6 = tmpInvDist2 * tmpInvDist2 
                                         * tmpInvDist2;
@@ -479,8 +487,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                             if (tmpValue > 20) {
                                 tmpWgt = 0.0;
                             } else {
-                                tmpWgt = Math.exp(-tmpValue 
-                                        * REZIPTEMPGASCONST);
+                                tmpWgt = Math.exp(-tmpValue * INV_RT);
                             }
                             tmpWgtxE = tmpWgt * tmpValue;
                             tmpSumWgt += tmpWgt;
@@ -510,6 +517,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             
             tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
         }
+        
+        // </editor-fold> 
+        
         if (ISFRACTIONONE) {
             tmpEnergyList.add(tmpMinEnergy);
             return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE);
