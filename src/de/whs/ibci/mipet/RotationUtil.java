@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
  * The RotationModel class provides methods to calculate rotation matrices
  * and import 3D coordinates from text files in the resource folder.
  *
- * @author Veit Hucke, Felix Baensch
+ * @author Veit Hucke, Felix Baensch, Mirco Daniel
  */
 public class RotationUtil {
 
@@ -72,13 +73,6 @@ public class RotationUtil {
         File tmpFile = new File(aFilePath);
         try (BufferedReader tmpReader = new BufferedReader(
                 new FileReader(tmpFile))) {
-         
-        // Use this for the deployment
-//        InputStream tmpInputStream = RotationUtil.class
-//                .getResourceAsStream(aFilePath);
-//        try (BufferedReader tmpReader = new BufferedReader(
-//                new InputStreamReader(tmpInputStream))) {
-            
             String tmpNewSubString;
             String tmpLine;
             String[] tmpStringTokens;
@@ -130,27 +124,41 @@ public class RotationUtil {
     //<editor-fold defaultstate="collapsed" desc="Properties">
     /**
      * Calculates the rotation matrix to rotate around an axis by given radians.
-     *
-     * @param anAngle Angle to rotate by (in radians).
-     * @param aRotationAxis Axis to rotate around.
+     *  It uses direct calculation (Rodrigues formular)
+     * @param angle Angle to rotate by (in radians).
+     * @param rotationAxis Axis to rotate around.
      * @return The rotation matrix.
      */
-    public static double[][] getRotationMatrix(double anAngle, 
-            double[] aRotationAxis) {
+    public static double[][] getRotationMatrix(double angle, 
+            double[] rotationAxis) {
         try {
-            double[] tmpUnitAxis = VectorUtil.normalizeVector(aRotationAxis);
-            double[][] tmpDyadic = VectorUtil.dyadicProduct(tmpUnitAxis);
-            double[][] tmpSkewSymmetricMatrix = VectorUtil
-                    .generateSkewSymmetricMatrix(tmpUnitAxis);
-            return MatrixUtil.add(
-                    (MatrixUtil.multiplyWithScalar(Math.cos(anAngle), 
-                            MatrixUtil.UNIT_MATRIX_3D)),
-                    (MatrixUtil.multiplyWithScalar((1 - Math.cos(anAngle)), 
-                            tmpDyadic)),
-                    (MatrixUtil.multiplyWithScalar(Math.sin(anAngle), 
-                            tmpSkewSymmetricMatrix)));
+            // Normalize axis
+            double[] u = VectorUtil.normalizeVector(rotationAxis);
+            double x = u[0];
+            double y = u[1];
+            double z = u[2];
+            
+            // Calculate trigonometry
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double oneMinusCos = 1.0 - cos;
+            
+            // Calculate often used values
+            double xyC = x * y * oneMinusCos;
+            double xzC = x * z * oneMinusCos;
+            double yzC = y * z * oneMinusCos;
+            double xSin = x * sin;
+            double ySin = y * sin;
+            double zSin = z * sin;
+            
+            return new double[][] {
+                {cos + x * x * oneMinusCos, xyC - zSin, xzC + ySin},
+                {xyC + zSin, cos + y * y * oneMinusCos, yzC - xSin},
+                {xzC - ySin, yzC + xSin, cos + z * z * oneMinusCos}
+            };
         } catch(IllegalArgumentException anException) {
-            RotationUtil.LOGGER.log(Level.SEVERE, "Matrices could not be added.", anException);
+            RotationUtil.LOGGER.log(Level.SEVERE, 
+                    "Matrices could not be calculated.", anException);
             return null;
         }
     }
@@ -158,23 +166,35 @@ public class RotationUtil {
     /**
      * Calculates the rotation matrix to map vector1 on vector2.
      *
-     * @param aVector1 Vector to map onto another vector.
-     * @param aVector2 Vector to be mapped on.
+     * @param vector1 Vector to map onto another vector.
+     * @param vector2 Vector to be mapped on.
      * @return The rotation matrix.
      */
-    public static double[][] getRotationMatrix(double[] aVector1, double[] aVector2) {
-        try {
-            double[] tmpUnitVector1 = VectorUtil.normalizeVector(aVector1);
-            double[] tmpUnitVector2 = VectorUtil.normalizeVector(aVector2);
-            double tmpAngle = Math.acos(VectorUtil.dotProduct(tmpUnitVector1, 
-                    tmpUnitVector2)); //Angle between v1 and v2, only for unit vectors!
-            double[] tmpRotationAxis = VectorUtil
-                    .crossProduct(aVector1, aVector2); //Axis to rotate around (vector n is perpendicular to v1 and v2)
-            return RotationUtil.getRotationMatrix(tmpAngle, tmpRotationAxis);
-        } catch(IllegalArgumentException anException) {
-            RotationUtil.LOGGER.log(Level.SEVERE, "Vectors may not have the same dimension.", anException);
+    public static double[][] getRotationMatrix(double[] vector1, double[] vector2) {
+        if (vector1 == null || vector2 == null || 
+                vector1.length != vector2.length) {
+            RotationUtil.LOGGER.log(Level.SEVERE, 
+                    "Vectors must be non-null and have the same size");
             return null;
         }
+        if (vector1.length != 3) {
+            RotationUtil.LOGGER.log(Level.SEVERE, 
+                    "Vectors must be 3-dimensional for cross product.");
+        return null;
+        }
+        
+        double[] unitV1 = VectorUtil.normalizeVector(vector1);
+        double[] unitV2 = VectorUtil.normalizeVector(vector2);
+        
+        // Calculate skalarproduct and clipping (prevent NaN-Bug)
+        double dotProduct = VectorUtil.dotProduct(unitV1, unitV2);
+        double clampedDot = Math.max(-1.0, Math.min(1.0, dotProduct)); 
+        double angle = Math.acos(clampedDot);
+        
+        // Cross produkt
+        double[] rotationAxis = VectorUtil.crossProduct(unitV1, unitV2); 
+
+        return RotationUtil.getRotationMatrix(angle, rotationAxis);
     }
 
     /**
@@ -184,7 +204,7 @@ public class RotationUtil {
      * @param aVector Vector to map the sphere coordinates on.
      * @return List of all rotation matrices.
      */
-    public static LinkedList<double[][]> getRotationMatrices1(
+    public static List<double[][]> getRotationMatrices1(
             List<double[]> sphereNodeCoordinates, double[] aVector) {
         LinkedList<double[][]> tmpRotationMatrixList = new LinkedList<>();
         
@@ -199,138 +219,144 @@ public class RotationUtil {
     /**
      * Get the coordinatates of particle1 and particle2
      * 
-     * @param aSphereNodeNumber: Sphere node number
-     * @param aRotNumber: Rotation node number
-     * @param aXyzData1: Original coordinates of particle1
-     * @param aXyzData2: Original coordinates of particle2
-     * @param aIsFibonacciSphereAlgorithm: Flag whether fibonaccis phere algorithm is used
+     * @param sphereNodeNumber: Sphere node number
+     * @param rotNumber: Rotation node number
+     * @param xyzData1: Original coordinates of particle1
+     * @param xyzData2: Original coordinates of particle2
+     * @param isFibonacciSphereAlgorithm: Flag whether fibonaccis phere algorithm is used
      * @return Coordinates of particle1 after rotations
      */
-    public static LinkedList<double[][][]> getRotationsCoords(
-            int aSphereNodeNumber,
-            int aRotNumber, 
-            double[][] aXyzData1,
-            double[][] aXyzData2,
-            boolean aIsFibonacciSphereAlgorithm) {
-        int tmpConfNumber1;
-        int tmpConfNumber2;
-        int tmpAtomSize1;
-        int tmpAtomSize2;
-        double[][][] tmpXyzRotData1;
-        double[][][] tmpXyzRotData2;
-        LinkedList<double[][]> tmpRotMatrices1;
-        LinkedList<double[][]> tmpRotMatrices2;
-        LinkedList<double[]> tmpSphereNodeCoord;
-        LinkedList<double[][][]> tmpResult;
+    public static List<double[][][]> getRotationsCoords(
+            int sphereNodeNumber,
+            int rotNumber, 
+            double[][] xyzData1,
+            double[][] xyzData2,
+            boolean isFibonacciSphereAlgorithm) {
+        int confCount1;
+        int confCount2;
+        int atomSize1;
+        int atomSize2;
+        double[][][] rotatedXyzData1;
+        double[][][] rotatedXyzData2;
+        List<double[][]> rotationMatrices1;
+        List<double[][]> rotationMatrices2;
+        List<double[]> sphereNodeCoord;
+        List<double[][][]> result;
         
-        tmpAtomSize1 = aXyzData1.length;
-        tmpAtomSize2 = aXyzData2.length;
-        tmpConfNumber1 = aSphereNodeNumber;
-        tmpConfNumber2 = aSphereNodeNumber * aRotNumber;
-        tmpXyzRotData1 = new double[tmpConfNumber1][aXyzData1.length][3];
-        tmpXyzRotData2 = new double[tmpConfNumber2][aXyzData2.length][3];
+        atomSize1 = xyzData1.length;
+        atomSize2 = xyzData2.length;
+        confCount1 = sphereNodeNumber;
+        confCount2 = sphereNodeNumber * rotNumber;
+        rotatedXyzData1 = new double[confCount1][xyzData1.length][3];
+        rotatedXyzData2 = new double[confCount2][xyzData2.length][3];
         
         // Determine rotation matrices used to rotate 
         //   the particle/atom coordinates
-        if (aIsFibonacciSphereAlgorithm) {
-            tmpSphereNodeCoord = FibonacciSphere
-                    .getSphereNodes(aSphereNodeNumber);
+        if (isFibonacciSphereAlgorithm) {
+            sphereNodeCoord = FibonacciSphere
+                    .getSphereNodes(sphereNodeNumber);
         } else {
             //<editor-fold defaultstate="collapsed" desc="Load surface coordinates">
             /* The coordinates for equidistantly distributed points on a sphere 
                 from Technical University of Dortmund are used, thanks to 
                 J. Fliege and U. Maier
                 http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
-
-
-            // Development version
-//            String tmpFileNameSphereNode = 
-//                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
-//                    + aSphereNodeNumber + ".txt";
-
-            // Distribution version
-          String tmpFileNameSphereNode = 
+            String fileNameSphereNode = 
                   "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                  + aSphereNodeNumber + ".txt";
-            Path tmpNodeFile = Paths.get(tmpFileNameSphereNode);
-            if (!Files.exists(tmpNodeFile)) {
-                LOGGER.log(Level.SEVERE, "No NodeFile found.");
+                  + sphereNodeNumber + ".txt";
+            Path nodePath = Paths.get(fileNameSphereNode);
+            if (!Files.exists(nodePath)) {
+                fileNameSphereNode = 
+                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+                    + sphereNodeNumber + ".txt";
             } 
-            tmpSphereNodeCoord = RotationUtil
-                    .readSphereNodes (tmpFileNameSphereNode);
+            sphereNodeCoord = RotationUtil
+                    .readSphereNodes (fileNameSphereNode);
 
             //</editor-fold>
         }
-        if (tmpAtomSize1 == 1) {
-            tmpXyzRotData1 = new double[1][1][];
-            tmpXyzRotData1[0][0] = new double[] {0., 0., 0.};
+        if (atomSize1 == 1) {
+            rotatedXyzData1 = new double[][][] {{{0., 0., 0.}}};
         } else {
-            tmpRotMatrices1 = RotationUtil
-                    .getRotationMatrices1 (tmpSphereNodeCoord, 
-                            new double[] {1., 0., 0.});
+            final double[] xAxisVector = {1.0, 0.0, 0.0};
+            rotationMatrices1 = RotationUtil
+                    .getRotationMatrices1 (sphereNodeCoord, xAxisVector);
+            rotatedXyzData1 = 
+                    new double[confCount1][xyzData1.length][];
 
-            for (int i = 0; i < tmpConfNumber1; i++) {
+            for (int i = 0; i < confCount1; i++) {
+                double[][] currRotationMatrix = rotationMatrices1.get(i);
 
-                for (int j = 0; j < aXyzData1.length; j++) {
-                    tmpXyzRotData1[i][j] = MatrixUtil
-                            .multiply(tmpRotMatrices1.get(i), aXyzData1[j]);
-
+                for (int j = 0; j < xyzData1.length; j++) {
+                    rotatedXyzData1[i][j] = MatrixUtil
+                            .multiply(currRotationMatrix, xyzData1[j]);
                 }
 
             }
 
         }
-        if (tmpAtomSize2 == 1) {
-            tmpXyzRotData2 = new double[1][1][];
-            tmpXyzRotData2[0][0] = new double[] {0., 0., 0.};
+        if (atomSize2 == 1) {
+            rotatedXyzData2 = new double[][][] {{{0., 0., 0.}}};
         } else {
-            tmpRotMatrices2 = RotationUtil
-                    .getRotationMatrices2 (tmpSphereNodeCoord, 
-                            new double[] {-1., 0., 0.}, aRotNumber);
+            final double[] xAxisVector = {-1.0, 0.0, 0.0};
+            rotationMatrices2 = RotationUtil.getRotationMatrices2 (
+                    sphereNodeCoord, xAxisVector, rotNumber);
 
-            for (int i = 0; i < tmpConfNumber2; i++) {
+            for (int i = 0; i < confCount2; i++) {
+                double[][] currRotationMatrix = rotationMatrices2.get(i);
 
-                for (int j = 0; j < aXyzData2.length; j++) {
-                    tmpXyzRotData2[i][j] = MatrixUtil
-                            .multiply(tmpRotMatrices2.get(i), aXyzData2[j]);
+                for (int j = 0; j < xyzData2.length; j++) {
+                    rotatedXyzData2[i][j] = MatrixUtil
+                            .multiply(currRotationMatrix, xyzData2[j]);
                 }
 
             }
 
         }
-        tmpResult = new LinkedList<>();
-        tmpResult.add(tmpXyzRotData1);
-        tmpResult.add(tmpXyzRotData2);
-        return tmpResult;
+        result = new LinkedList<>();
+        result.add(rotatedXyzData1);
+        result.add(rotatedXyzData2);
+        return result;
     }
     
     /**
      * Gets the matrices to perform all necessary rotations. Here, the sphere additionally rotates around the input vector.
      *
      * @param sphereNodeCoordinates Coordinates of the sphere nodes.
-     * @param aVector Vector to map the sphere coordinates on.
-     * @param aRotationNumber Number of equal rotations around itself.
+     * @param vector Vector to map the sphere coordinates on.
+     * @param rotationNumber Number of equal rotations around itself.
      * @return List of all rotation matrices.
      */
-    public static LinkedList<double[][]> getRotationMatrices2(
+    public static List<double[][]> getRotationMatrices2(
             List<double[]> sphereNodeCoordinates, 
-            double[] aVector, 
-            int aRotationNumber){
-        LinkedList<double[][]> tmpRotationMatrixList = new LinkedList<>();
-        int tmpSphereNodeNumber;
-        
-        tmpSphereNodeNumber = sphereNodeCoordinates.size();
+            double[] vector, 
+            int rotationNumber){
+        // Caculate capacity
+        int nodeCount = sphereNodeCoordinates.size();
+        int totalMatrices = nodeCount * rotationNumber;
+        List<double[][]> rotationMatrixList = new ArrayList<>(totalMatrices);
         try {
+            // Precalculation of angle rotations
+            double[][][] angleRotations = new double[rotationNumber][][];
             
-            for (int i = 0; i < tmpSphereNodeNumber; i++) {
-                for (int j = 0; j < aRotationNumber; j++) {
-                    tmpRotationMatrixList.add(MatrixUtil.multiply(
-                            RotationUtil.getRotationMatrix(((2 * Math.PI * (j + 1)) / aRotationNumber), aVector),
-                            RotationUtil.getRotationMatrix(sphereNodeCoordinates.get(i), aVector)));
-                }
+            for (int i = 0; i < rotationNumber; i++) {
+                double angle = (2.0 * Math.PI * (i + 1)) / rotationNumber;
+                angleRotations[i] = RotationUtil
+                        .getRotationMatrix(angle, vector);
             }
             
-            return tmpRotationMatrixList;
+            for (int i = 0; i < nodeCount; i++) {
+                double[][] nodeRotation = RotationUtil.getRotationMatrix(
+                        sphereNodeCoordinates.get(i), vector);
+                
+                for (int j = 0; j < rotationNumber; j++) {
+                    rotationMatrixList.add(MatrixUtil.multiply(
+                            angleRotations[j], nodeRotation));
+                }
+                
+            }
+            
+            return rotationMatrixList;
         } catch(IllegalArgumentException | NullPointerException anException){
             RotationUtil.LOGGER.log(Level.SEVERE,"Matrices could not be multiplied." ,anException);
             return null;

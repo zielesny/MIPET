@@ -52,7 +52,6 @@ public class TinkerToPdbConverter {
             int tmpAtomId;
             String tmpAtomName;
             String tmpElement;
-            String tmpPdbLine;
             String tmpRecordType;
             String tmpPdbElementColumn;
             String[] tmpFirstLineTokens;

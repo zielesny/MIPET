@@ -855,7 +855,7 @@ public class MIPET {
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
         LinkedList<Distance_EnergyRecord> tmpDistEminRecords;
-        LinkedList<double[][][]> tmpRotCoords;
+        List<double[][][]> tmpRotCoords;
         
         //</editor-fold>
         
