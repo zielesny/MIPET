@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 /**
  * This class provides basic vector algebra functionalities.
  *
- * @author Veit Hucke
+ * @author Veit Hucke, Mirco Daniel
  */
 public class VectorUtil {
     //<editor-fold desc="Private final class constants" defaultstate="collapsed">
@@ -68,23 +68,19 @@ public class VectorUtil {
     /**
      * Method to calculate the Cross product of two vectors.
      *
-     * @param aVector1 First vector.
-     * @param aVector2 Second vector.
-     * @throws IllegalArgumentException If vectors do not have the same dimension.
-     * @return A new vector orthogonal to the first and second vector.
+     * @param v1 First 3D vector.
+     * @param v2 Second 3D vector.
+     * @return A new array representing the normal vector (cross product).
      */
-    public static double[] crossProduct(double[] aVector1, double[] aVector2) throws IllegalArgumentException {
-        //cave: magnitude of n equals the sine of the angle between v1 and v2!
-        int tmpVector1Dim = aVector1.length;
-        int tmpVector2Dim = aVector2.length;
-        if (tmpVector1Dim != tmpVector2Dim) {
-            throw new IllegalArgumentException("Vectors do not have the same dimension.");
+    public static double[] crossProduct(double[] v1, double[] v2) {
+        if (v1.length != 3 || v2.length != 3) {
+            throw new IllegalArgumentException("Both vectors must have exactly 3 dimensions.");
         }
-        double[] tmpNormalVector = new double[3];
-        tmpNormalVector[0] = (aVector1[1] * aVector2[2]) - (aVector1[2] * aVector2[1]);
-        tmpNormalVector[1] = (aVector1[2] * aVector2[0]) - (aVector1[0] * aVector2[2]);
-        tmpNormalVector[2] = (aVector1[0] * aVector2[1]) - (aVector1[1] * aVector2[0]);
-        return tmpNormalVector;
+        return new double[] {
+            (v1[1] * v2[2]) - (v1[2] * v2[1]),
+            (v1[2] * v2[0]) - (v1[0] * v2[2]),
+            (v1[0] * v2[1]) - (v1[1] * v2[0])
+        };
     }
 
     /**
@@ -96,7 +92,7 @@ public class VectorUtil {
     public static double normOfVector(double[] aVector) {
         double tmpNormSquared = 0;
         for(double element : aVector) {
-            tmpNormSquared += Math.pow(element, 2);
+            tmpNormSquared += element * element;
         }
         return Math.sqrt(tmpNormSquared);
     }
@@ -153,23 +149,19 @@ public class VectorUtil {
     /**
      * Calculates the new vector which is moved in x-direction by aXLength
      * 
-     * @param aVectorMoveTo A vector to be moved
-     * @param aXLength Length in x-direction
-     * @return New vectors which are moved in x-direction by aXLength
+     * @param vectors A 2D array containing the vectors to be moved (format: n x 3).
+     * @param xLength The distance by which the vectors should be moved along the X-axis.
+     * @return A new 2D array containing the moved vectors.
      */
-    public static double[][] moveX(double[][] aVectorMoveTo, double aXLength) {
-        int tmpDim = aVectorMoveTo.length;
-        double[][] tmpNewVectorList = new double[tmpDim][3];
+    public static double[][] moveX(double[][] vectors, double xLength) {
+        double[][] newVectors = new double[vectors.length][3];
         
-        for (int i = 0; i < tmpDim; i++) {
-            
-            for (int j = 0; j < 3; j++) {
-                tmpNewVectorList[i][0] = aVectorMoveTo[i][0] + aXLength;
-                tmpNewVectorList[i][1] = aVectorMoveTo[i][1];
-                tmpNewVectorList[i][2] = aVectorMoveTo[i][2];
-            }
+        for (int i = 0; i < vectors.length; i++) {
+            newVectors[i][0] = vectors[i][0] + xLength;
+            newVectors[i][1] = vectors[i][1];
+            newVectors[i][2] = vectors[i][2];
         }
-        return tmpNewVectorList;
+        return newVectors;
     } 
 
     /**
