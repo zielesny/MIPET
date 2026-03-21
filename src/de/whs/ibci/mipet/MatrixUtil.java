@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 /**
  * This class provides basic matrix algebra functionalities.
  *
- * @author Veit Hucke
+ * @author Veit Hucke, Mirco Daniel
  */
 public class MatrixUtil {
     //<editor-fold desc="private final class constants" defaultstate="collapsed">
@@ -111,52 +111,77 @@ public class MatrixUtil {
     /**
      * Calculates the product of two matrices.
      *
-     * @param aMatrix1 First Matrix.
-     * @param aMatrix2 Second Matrix.
+     * @param matrixA First Matrix.
+     * @param matrixB Second Matrix.
      * @return Product of two matrices.
-     * @throws IllegalArgumentException If matrices cannot be multiplied 
-     *   (rows and columns do not match).
      */
-    public static double[][] multiply(double[][] aMatrix1, double[][] aMatrix2) 
-            throws IllegalArgumentException {
-        int tmpMatrix1Rows = aMatrix1.length;
-        int tmpMatrix1Columns = aMatrix1[0].length;
-        int tmpMatrix2Rows = aMatrix2.length;
-        int tmpMatrix2Columns = aMatrix2[0].length;
-        if(tmpMatrix1Columns != tmpMatrix2Rows) {
-            throw new IllegalArgumentException("Rows of Matrix1 do not match columns of Matrix2.");
+    public static double[][] multiply(double[][] matrixA, double[][] matrixB) {
+        int rowsA = matrixA.length;
+        int colsA = matrixA[0].length;
+        int rowsB = matrixB.length;
+        int colsB = matrixB[0].length;
+        
+        if(colsA != rowsB) {
+            throw new IllegalArgumentException("Columns of Matrix A do not match rows of Matrix B.");
         }
-        double[][] tmpNewMatrix = new double[tmpMatrix1Rows][tmpMatrix2Columns];
-        for(int i = 0; i < tmpMatrix1Rows; i++) {
-            for(int j = 0; j < tmpMatrix2Columns; j++) {
-                for(int k = 0; k < tmpMatrix1Columns; k++) {
-                    tmpNewMatrix[i][j] += aMatrix1[i][k] * aMatrix2[k][j];
+        
+        double[][] resultMatrix = new double[rowsA][colsB];
+        
+        // Optimized loop order: i->k->j
+        for(int i = 0; i < rowsA; i++) {
+            double[] rowA = matrixA[i]; // Cache current row from A
+            double[] rowResult = resultMatrix[i];
+            
+            for(int k = 0; k < colsB; k++) {
+                double aVal = rowA[k];
+                double[] rowB = matrixB[k]; // Cache current row from B
+                
+                // Innerst loop accesses memory sequentially
+                for(int j = 0; j < colsB; j++) {
+                    rowResult[j] += aVal * rowB[j];
                 }
+                
             }
+            
         }
-        return tmpNewMatrix;
+        return resultMatrix;
     }
     
     /**
      * Overloaded method for multiply (dot product) a matrix and a vector
      *   in the order mentioned.
-     * @param aMatrix
+     * @param matrix
      *   Rotation matrix
-     * @param aVector
+     * @param vector
      *   A vector
      * @return 
      *   Dot product of rotation matrix and a vector.
      */
-    public static double[] multiply(double[][] aMatrix, double[] aVector) {
-        double[] tmpResult = new double[3];
+    public static double[] multiply(double[][] matrix, double[] vector) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
         
-        for(int i = 0; i < 3; i++) {
-            
-            for(int j = 0; j < 3; j++) {
-                tmpResult[i] += aMatrix[i][j] * aVector[j];
-            }
+        // Security check
+        if (cols != vector.length) {
+            throw new IllegalArgumentException("Matrix columns (" + cols 
+                    + ") must match vector length (" + vector.length + ").");
         }
-        return tmpResult;
+        
+        double[] result = new double[rows];
+        
+        for(int i = 0; i < rows; i++) {
+            double[] row = matrix[i]; // Cache current row
+            double sum = 0.0; // Local accumulator
+            
+            for(int j = 0; j < cols; j++) {
+                sum += row[j] * vector[j];
+            }
+            
+            result[i] = sum;
+        }
+        
+        return result;
     }
+    
     //</editor-fold>
 }

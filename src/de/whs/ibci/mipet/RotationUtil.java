@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -247,7 +248,6 @@ public class RotationUtil {
         atomSize2 = xyzData2.length;
         confCount1 = sphereNodeNumber;
         confCount2 = sphereNodeNumber * rotNumber;
-        rotatedXyzData1 = new double[confCount1][xyzData1.length][3];
         rotatedXyzData2 = new double[confCount2][xyzData2.length][3];
         
         // Determine rotation matrices used to rotate 
@@ -331,10 +331,23 @@ public class RotationUtil {
             List<double[]> sphereNodeCoordinates, 
             double[] vector, 
             int rotationNumber){
+        
+        // Checks 
+        if (sphereNodeCoordinates == null || vector == null) {
+            LOGGER.log(Level.SEVERE, 
+                    "Input parameters (coordinates or vector) must not be null.");
+            return Collections.emptyList();
+        }
+        if (rotationNumber <= 0) {
+            LOGGER.log(Level.SEVERE, "rotationNumber must be strictly positive.");
+            return Collections.emptyList();
+        }
+        
         // Caculate capacity
         int nodeCount = sphereNodeCoordinates.size();
         int totalMatrices = nodeCount * rotationNumber;
         List<double[][]> rotationMatrixList = new ArrayList<>(totalMatrices);
+        
         try {
             // Precalculation of angle rotations
             double[][][] angleRotations = new double[rotationNumber][][];
@@ -357,9 +370,10 @@ public class RotationUtil {
             }
             
             return rotationMatrixList;
-        } catch(IllegalArgumentException | NullPointerException anException){
-            RotationUtil.LOGGER.log(Level.SEVERE,"Matrices could not be multiplied." ,anException);
-            return null;
+        } catch(IllegalArgumentException e){
+            LOGGER.log(Level.SEVERE, "Math/Matrix operation failed: " 
+                    + e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
     //</editor-fold>
