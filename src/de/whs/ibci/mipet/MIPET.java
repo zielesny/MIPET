@@ -972,25 +972,25 @@ public class MIPET {
                 }
 
                 /* Write .key file */
-                tmpKeyContent = keyFileStringOrigin 
-                        + "DIELECTRIC\t" 
-                        + dielectricConstant 
-                        + LINESEPARATOR
-                        + "NONBONDTERM ONLY"
-                        + LINESEPARATOR
-                        + "OPENMP-THREADS 1"
-                        + LINESEPARATOR;
-                tmpKeyPathName = scratchDirectory
-                        + FILESEPARATOR 
-                        + tmpParticlePair 
-                        + ".key";
-                if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
-                    tmpKeyContent += prmContent1[tmpPrmID1];
+                Path keyPath = Paths.get(scratchDirectory,
+                        tmpParticlePair + ".key");
+                StringBuilder keyContent = new StringBuilder(
+                        keyFileStringOrigin)
+                        .append("DIELECTRIC\t")
+                        .append(dielectricConstant)
+                        .append(LINESEPARATOR)
+                        .append("NONBONDTERM ONLY")
+                        .append(LINESEPARATOR)
+                        .append("OPENMP-THREADS 1")
+                        .append(LINESEPARATOR);
+                
+                if ("OPLSAALIGPARGEN".equals(tmpForcefield)) {
+                    keyContent.append(prmContent1[tmpPrmID1]);
                     if (!tmpIsSameParticle) {
-                        tmpKeyContent += prmContent2[tmpPrmID2];
+                        keyContent.append(prmContent2[tmpPrmID2]);
                     }
                 }
-                MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
+                MIPETUTIL.writeKeyFile(keyPath, keyContent.toString());
 
                 for (int i = 0; i < tmpDistSize; i++) {
                     tmpDistanceCandidate = lowerBoundary + i * prescanStepSize;
@@ -1284,9 +1284,7 @@ public class MIPET {
 
                         // Determining opt. Emin
                         tmpKeyFileName = tmpParticlePair + ".key";
-                        tmpKeyPathName = scratchDirectory 
-                                + FILESEPARATOR 
-                                + tmpKeyFileName;
+                        keyPath = Paths.get(scratchDirectory, tmpKeyFileName);
                         tmpKeyContent = tmpKeyFileString;
                         if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
                             tmpKeyContent += prmContent1[tmpPrmID1];
@@ -1294,7 +1292,7 @@ public class MIPET {
                                 tmpKeyContent += prmContent2[tmpPrmID2];
                             }
                         }
-                        MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
+                        MIPETUTIL.writeKeyFile(keyPath, tmpKeyContent);
 
                         for (int i = 0; i < 2; i++) {
                             if (i == 0) {
@@ -2621,7 +2619,6 @@ public class MIPET {
     private static void scanParticle() {
         String tmpForcefieldName;
         String tmpKeyContent;
-        String tmpKeyPathName;
         String tmpParticleXyzName;
         String tmpOptXyzDirName;
         String tmpOptXyzLogName;
@@ -2710,11 +2707,9 @@ public class MIPET {
                     tmpTinkerXYZ = new TinkerXYZ(tmpForcefield,
                             tmpParticle,
                             tmpTargetName);
-                    tmpKeyPathName = tmpOptXyzDirName 
-                            + FILESEPARATOR 
-                            + tmpParticle 
-                            + ".key";
-                    if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+                    Path keyPath = Paths.get(tmpOptXyzDirName, 
+                            tmpParticle + ".key");
+                    if ("OPLSAALIGPARGEN".equals(tmpForcefield)) {
                         tmpForcefieldName = "oplsaa";
                     } else {
                         tmpForcefieldName = tmpForcefield;
@@ -2739,7 +2734,7 @@ public class MIPET {
                     }
                     
                     // Write .key file
-                    MIPETUTIL.writeKeyFile(tmpKeyPathName, tmpKeyContent);
+                    MIPETUTIL.writeKeyFile(keyPath, tmpKeyContent);
                     
                     // Create optimized .xyz files for the particles via Tinker optimize.
                     try {
@@ -3390,11 +3385,9 @@ public class MIPET {
                 }
 
                 // Create directory in scratch directory
-                tmpTargetDir = Paths.get(scratchDirectory 
-                        + FILESEPARATOR 
-                        + forceField_CN
-                        + FILESEPARATOR 
-                        + tmpParticlePair);
+                tmpTargetDir = Paths.get(scratchDirectory, 
+                        forceField_CN,
+                        tmpParticlePair);
                 if (!Files.exists(tmpTargetDir)) {
                     try {
                         Files.createDirectories(tmpTargetDir);
@@ -3406,14 +3399,10 @@ public class MIPET {
                 }
                 
                 // Copy .xyz files
-                tmpTarget = Paths.get(scratchDirectory
-                        + FILESEPARATOR
-                        + forceField_CN
-                        + FILESEPARATOR 
-                        + tmpParticlePair
-                        + FILESEPARATOR 
-                        + tmpParticle1
-                        + ".xyz");
+                tmpTarget = Paths.get(scratchDirectory,
+                        forceField_CN,
+                        tmpParticlePair,
+                        tmpParticle1 + ".xyz");
                 try {
                     Files.writeString(tmpTarget, xyzContent1[tmpXyzID1]);
                 } catch (IOException ex) {
@@ -3421,14 +3410,10 @@ public class MIPET {
                             "IOException during copying files to scratch.", ex);
                 }
                 if (!tmpIsSameParticle) {
-                    tmpTarget = Paths.get(scratchDirectory
-                            + FILESEPARATOR
-                            + forceField_CN
-                            + FILESEPARATOR 
-                            + tmpParticlePair
-                            + FILESEPARATOR 
-                            + tmpParticle2
-                            + ".xyz");
+                    tmpTarget = Paths.get(scratchDirectory,
+                            forceField_CN,
+                            tmpParticlePair,
+                            tmpParticle2 + ".xyz");
                     try {
                         Files.writeString(tmpTarget, xyzContent1[tmpXyzID2]);
                     } catch (IOException ex) {
@@ -3548,7 +3533,8 @@ public class MIPET {
                         tmpKeyContent += prmContent2[tmpPrm2ID];
                     } 
                 }
-                MIPETUTIL.writeKeyFile(tmpKeyFileName, tmpKeyContent);
+                MIPETUTIL.writeKeyFile(Paths.get(tmpKeyFileName), 
+                        tmpKeyContent);
 
                 // </editor-fold>
 

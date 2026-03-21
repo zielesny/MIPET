@@ -1541,15 +1541,16 @@ public class MIPETUtility{
     
     /**
      * Save .key file
-     * @param aKeyFileName
-     *   Key file name
+     * @param keyPath
+     *   Key path name
      * @param aContent
      *   Content of .key file
      */
-    public void writeKeyFile(String aKeyFileName, String aContent) {
+    public void writeKeyFile(Path keyPath, String aContent) {
         
         // Write .key file
-        try (PrintWriter tmpOut = new PrintWriter(aKeyFileName)) {
+        try (PrintWriter tmpOut = new PrintWriter(Files
+                .newBufferedWriter(keyPath, StandardCharsets.UTF_8))) {
             tmpOut.print(aContent);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
