@@ -1011,6 +1011,25 @@ public class MIPETUtility{
     }
     
     /**
+     * Checks if a path is empty or not
+     * 
+     * @param path Directory name
+     * @return true: is empty, false: isn't empty
+     */
+    public boolean isDirectoryEmpty(String path){
+        Path directory = Paths.get(path);
+        if (Files.isDirectory(directory)) {
+            try (Stream<Path> entries = Files.list(directory)) {
+                return !entries.findFirst().isPresent();
+            } catch (IOException ex) {
+                System.err.println("Error during access to the directory: " 
+                    + ex.getMessage());
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Returns all Lines with aSearchString
      * @param fileName
      *   A Text file

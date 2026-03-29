@@ -1960,6 +1960,7 @@ public class MIPET {
      * Initialize method
      */
     private static void initialize() {
+        
         setParameters();
         
         // <editor-fold defaultstate="collapsed" desc="Check and create directories">
@@ -1980,6 +1981,24 @@ public class MIPET {
         }
         if (!new File(optDistDirectory).isFile()) {
             new File(optDistDirectory).mkdirs();
+        }
+        
+        // Checks if directory is empty
+        if (!MIPETUTIL.isDirectoryEmpty(scratchDirectory)) {
+            System.out.println(scratchDirectory + " is not empty.");
+            System.exit(-1);
+        }
+        if (!MIPETUTIL.isDirectoryEmpty(resultDirectory)) {
+            System.out.println(resultDirectory + " is not empty.");
+            System.exit(-1);
+        }
+        if (!MIPETUTIL.isDirectoryEmpty(optXYZDirectory)) {
+            System.out.println(optXYZDirectory + " is not empty.");
+            System.exit(-1);
+        }
+        if (!MIPETUTIL.isDirectoryEmpty(optDistDirectory)) {
+            System.out.println(optDistDirectory + " is not empty.");
+            System.exit(-1);
         }
         smiles = MIPETUTIL
                 .getSmilesData(smilesDirectory + "/Smiles.dat");
