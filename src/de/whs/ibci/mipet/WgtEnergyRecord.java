@@ -31,9 +31,12 @@ import java.util.ArrayList;
  *   Sum of weights
  * @param sumWgtxE
  *   Sum of weight * energy value
+ * @param tinkerXYZ
+ *   TinkerXYZ object with local lowest energy
  */
 public record WgtEnergyRecord(
         ArrayList<Double> energys,
         double sumWgt,
-        double sumWgtxE) {
+        double sumWgtxE,
+        TinkerXYZ minTinkerXYZ) {
 }

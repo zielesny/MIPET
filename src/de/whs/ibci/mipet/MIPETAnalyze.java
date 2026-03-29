@@ -204,17 +204,14 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         int tmpMinIndex;
         double tmpChargeQ; // in C^2
         double tmpFactor; // in kcal * m / (mole * C^2)
-        double[][] tmpDistances; // in Angstrom
         double[] tmpEpsilons1;
         double[] tmpEpsilons2;
         double[] tmpSigmas1;
         double[] tmpSigmas2;
         double[] tmpCharges1;
         double[] tmpCharges2;
-        double tmpCoulombEnergy; // in kcal/mole
-        double tmpLJEnergy; // in kcal/mole
         double tmpValue;
-        double tmpMinEnergy; // in kcal/mole
+        double localMinEnergy; // in kcal/mole
         double tmpWgt;
         double tmpWgtxE;
         double tmpSumWgt;
@@ -228,22 +225,22 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         String tmpArcFileName;
         String tmpMinFileName;
         String tmpValueCandidate;
-        TinkerXYZ tmpTinkerXYZ;
+        TinkerXYZ tinkerXYZ;
         TinkerXYZ tmpTinkerXYZMin;
 
         tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
         tmpFactor = AVOGADRO * j_CAL * tmpChargeQ * COULOMB * 1E7;
-        tmpTinkerXYZ = this.TINKERXYZ;
+        tinkerXYZ = this.TINKERXYZ;
         tmpTinkerXYZMin = new TinkerXYZ();
-        tmpForcefield = tmpTinkerXYZ.getForcefieldName();
+        tmpForcefield = tinkerXYZ.getForcefieldName();
         tmpParticle1 = this.TINKERXYZ.getParticleName1();
         tmpParticle2 = this.TINKERXYZ.getParticleName2();
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
-        tmpAtomSize1 = tmpTinkerXYZ.getN_atom1();
-        tmpAtomSize2 = tmpTinkerXYZ.getN_atom2();
+        tmpAtomSize1 = tinkerXYZ.getN_atom1();
+        tmpAtomSize2 = tinkerXYZ.getN_atom2();
         tmpID1 = 0;
         tmpID2 = 0;
-        tmpMinEnergy = 1E10;
+        localMinEnergy = Double.MAX_VALUE;
         tmpMinIndex = -1;
         tmpConfigIndex = -1;
         tmpSigmas1 = null;
@@ -295,7 +292,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpChunkSize = tmpRot1Size * tmpRot2Size;
         tmpEnergyList = new ArrayList<>(tmpChunkSize);
         tmpChunkIndex = 0;
-        tmpTinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
+        tinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
             // <editor-fold defaultstate="collapsed" desc="Use Tinker">
             tmpArcFileName = this.SCRATCH_DIR
@@ -310,7 +307,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                     StandardCharsets.UTF_8)) {
 
                 for (int i = 0; i < tmpRot1Size; i++) {
-                    tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
+                    tinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
                             ISTINKERON);
 
                     for (int j = 0; j < tmpRot2Size; j++) {
@@ -319,9 +316,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                 this.ROTDATA2[j], 
                                 this.MINATOMDISTANCE);
                         if (!tmpIs2Close) {
-                            tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
+                            tinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
                                     ISTINKERON);
-                            tmpBW.append(tmpTinkerXYZ.getFileContent());
+                            tmpBW.append(tinkerXYZ.getFileContent());
                         } 
                         tmpChunkIndex++;
                     }
@@ -368,8 +365,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                     tmpEnergyList.add(tmpValue);
                                 }
                                 tmpConfigIndex++;
-                                if (tmpValue < tmpMinEnergy) {
-                                    tmpMinEnergy = tmpValue;
+                                if (tmpValue < localMinEnergy) {
+                                    localMinEnergy = tmpValue;
                                     tmpMinIndex = tmpConfigIndex;
                                 }
                             }
@@ -413,6 +410,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             // </editor-fold>
         } else {
             // <editor-fold defaultstate="collapsed" desc="Don't use Tinker">
+            Flat3DArray flatRot1 = Flat3DArray.createFrom(this.ROTDATA1);
+            Flat3DArray flatRot2 = Flat3DArray.createFrom(this.ROTDATA2);
+            
             // Pre-computation of sigma and epsilon
             double[] tmpSigma3_1 = new double[tmpAtomSize1];
             double[] tmpSqrtEps1 = new double[tmpAtomSize1];
@@ -430,104 +430,246 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                 tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
             }
             
-            double tmp_kSigma3;
-            double tmp_kSqrtEps;
-            double tmp_kCoulombBase;
-            double tmpDist;
-            double tmpInvDist;
-            double tmpInvDist2;
-            double tmpInvDist6;
-            double tmpRatio6;
-            double tmpEpsilonProd;
-            int tmpBestRot1Index = -1;
-            int tmpBestRot2Index = -1;
-            
+            int localBestRot1 = -1;
+            int localBestRot2 = -1;
+
             for (int i = 0; i < tmpRot1Size; i++) {
-                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], ISTINKERON);
-
+                
                 for (int j = 0; j < tmpRot2Size; j++) {
-                    tmpIs2Close = MIPETUTIL.isTooClose(
-                            this.ROTDATA1[i], 
-                            this.ROTDATA2[j], 
-                            this.MINATOMDISTANCE);
-                    if (!tmpIs2Close) {
-                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
-                                ISTINKERON);
-                        tmpTinkerXYZ.setDistances();
-                        tmpDistances = tmpTinkerXYZ.getDistances();
-                        tmpValue = 0.;
-                        
-                        for (int k = 0; k < tmpAtomSize1; k++) {
-                            tmp_kSigma3 = tmpSigma3_1[k];
-                            tmp_kSqrtEps = tmpSqrtEps1[k];
-                            tmp_kCoulombBase = tmpFactor * tmpCharges1[k];
-                            
-                            for (int m = 0; m < tmpAtomSize2; m++) {
-                                tmpDist = tmpDistances[k][m];
-                                tmpInvDist = 1.0 / tmpDist;
-                                
-                                // Lennard-Jones logic without Math.sqrt()
-                                tmpInvDist2 = tmpInvDist * tmpInvDist;
-                                tmpInvDist6 = tmpInvDist2 * tmpInvDist2 
-                                        * tmpInvDist2;
-                                tmpRatio6 = (tmp_kSigma3 * tmpSigma3_2[m]) 
-                                        * tmpInvDist6;
-                                tmpEpsilonProd = tmp_kSqrtEps * tmpSqrtEps2[m];
-                                tmpLJEnergy = 4.0 * tmpEpsilonProd * tmpRatio6 
-                                        * (tmpRatio6 - 1.0);
-                                tmpCoulombEnergy = tmp_kCoulombBase 
-                                        * tmpCharges2[m] * tmpInvDist;
-                                tmpValue += tmpCoulombEnergy + tmpLJEnergy;
-                            }
-                                
-                        }
-                        
-                        if (ISFRACTIONONE) {
-                            // simplify very small value
-                            if (tmpValue > 20) {
-                                tmpWgt = 0.0;
-                            } else {
-                                tmpWgt = Math.exp(-tmpValue * INV_RT);
-                            }
-                            tmpWgtxE = tmpWgt * tmpValue;
-                            tmpSumWgt += tmpWgt;
-                            tmpSumWgtxE += tmpWgtxE;
-                        } else {
-                            tmpEnergyList.add(tmpValue);
-                        }
-                        if (tmpValue < tmpMinEnergy) {
-                            tmpMinEnergy = tmpValue;
-                            tmpBestRot1Index = i;
-                            tmpBestRot2Index = j;
-                            
-                        }
-                    }
-                    tmpChunkIndex++;
-                }
 
+                    // Fast distance check
+                    if (isTooCloseFlat3D(flatRot1, i, flatRot2, j, tmpAtomSize1, tmpAtomSize2, MINATOMDISTANCE)) {
+                        continue;
+                    }
+
+                    double energyValue = 0.0;
+
+                    // Main calculation: double loop over the atoms
+                    for (int k = 0; k < tmpAtomSize1; k++) {
+                        // Coordinates of the molecule 1 (dyretly from the flattend array)
+                        double ax = flatRot1.get(i, k, 0);
+                        double ay = flatRot1.get(i, k, 1);
+                        double az = flatRot1.get(i, k, 2);
+
+                        double k_Sigma3 = tmpSigma3_1[k];
+                        double k_SqrtEps = tmpSqrtEps1[k];
+                        double k_CoulombBase = tmpFactor * tmpCharges1[k];
+
+                        for (int m = 0; m < tmpAtomSize2; m++) {
+                            // Distance calculation
+                            double dx = ax - flatRot2.get(j, m, 0);
+                            double dy = ay - flatRot2.get(j, m, 1);
+                            double dz = az - flatRot2.get(j, m, 2);
+
+                            double r2 = dx * dx + dy * dy + dz * dz;
+                            double invR2 = 1.0 / r2;
+
+                            // Lennard-Jones Optimierung (r6 aus invR2)
+                            double invR6 = invR2 * invR2 * invR2;
+                            double sigma6 = k_Sigma3 * tmpSigma3_2[m];
+                            double ratio6 = sigma6 * invR6;
+                            double epsProd = k_SqrtEps * tmpSqrtEps2[m];
+                            double lj = 4.0 * epsProd * ratio6 * (ratio6 - 1.0);
+                            double coulomb = k_CoulombBase * tmpCharges2[m] 
+                                    * Math.sqrt(invR2);
+                            energyValue += lj + coulomb;
+                        }
+                        
+                    }
+
+                    if (ISFRACTIONONE) {
+                        // Ignore very small values
+                        if (energyValue <= 20.0) {
+                            double wgt = Math.exp(-energyValue * INV_RT);
+                            tmpSumWgt += wgt;
+                            tmpSumWgtxE += wgt * energyValue;
+                        }
+                    } else {
+                        tmpEnergyList.add(energyValue); 
+                    }
+
+                    if (energyValue < localMinEnergy) {
+                        localMinEnergy = energyValue;
+                        localBestRot1 = i;
+                        localBestRot2 = j;
+                    }
+                }
+                
             }
             
-            if (tmpBestRot1Index != -1 && tmpBestRot2Index != -1) {
-                tmpTinkerXYZ.setCoordinateList1(
-                        this.ROTDATA1[tmpBestRot1Index], ISTINKERON);
-                tmpTinkerXYZ.setCoordinateList2(
-                        this.ROTDATA2[tmpBestRot2Index], ISTINKERON);
-                tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
+            if (localBestRot1 != -1 && localBestRot2 != -1) {
+                tinkerXYZ.setCoordinateList1(
+                        this.ROTDATA1[localBestRot1], ISTINKERON);
+                tinkerXYZ.setCoordinateList2(
+                        this.ROTDATA2[localBestRot2], ISTINKERON);
+                tmpTinkerXYZMin = tinkerXYZ.clone(); 
             }
             
-            tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
+            //tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
         }
         
-        // </editor-fold> 
-        
+        // </editor-fold>
         if (ISFRACTIONONE) {
-            tmpEnergyList.add(tmpMinEnergy);
-            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE);
+            tmpEnergyList.add(localMinEnergy);
+            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE, 
+                    tmpTinkerXYZMin);
         } else {
             tmpEnergyList.sort(Comparator.naturalOrder());
-            return new WgtEnergyRecord(tmpEnergyList, 0, 0);
+            return new WgtEnergyRecord(tmpEnergyList, 0, 0, tmpTinkerXYZMin);
         }
     }
-    
     // </editor-fold>
+            
+//            // Pre-computation of sigma and epsilon
+//            double[] tmpSigma3_1 = new double[tmpAtomSize1];
+//            double[] tmpSqrtEps1 = new double[tmpAtomSize1];
+//            
+//            for (int i = 0; i < tmpAtomSize1; i++) {
+//                tmpSigma3_1[i] = tmpSigmas1[i] * tmpSigmas1[i] *tmpSigmas1[i];
+//                tmpSqrtEps1[i] = Math.sqrt(tmpEpsilons1[i]);
+//            }
+//            
+//            double[] tmpSigma3_2 = new double[tmpAtomSize2];
+//            double[] tmpSqrtEps2 = new double[tmpAtomSize2];
+//            
+//            for (int i = 0; i < tmpAtomSize2; i++) {
+//                tmpSigma3_2[i] = tmpSigmas2[i] * tmpSigmas2[i] *tmpSigmas2[i];
+//                tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
+//            }
+//            
+//            double tmp_kSigma3;
+//            double tmp_kSqrtEps;
+//            double tmp_kCoulombBase;
+//            double tmpDist;
+//            double tmpInvDist;
+//            double tmpInvDist2;
+//            double tmpInvDist6;
+//            double tmpRatio6;
+//            double tmpEpsilonProd;
+//            int tmpBestRot1Index = -1;
+//            int tmpBestRot2Index = -1;
+//            
+//            for (int i = 0; i < tmpRot1Size; i++) {
+//                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], ISTINKERON);
+//
+//                for (int j = 0; j < tmpRot2Size; j++) {
+//                    tmpIs2Close = MIPETUTIL.isTooClose(
+//                            this.ROTDATA1[i], 
+//                            this.ROTDATA2[j], 
+//                            this.MINATOMDISTANCE);
+//                    if (!tmpIs2Close) {
+//                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
+//                                ISTINKERON);
+//                        tmpTinkerXYZ.setDistances();
+//                        tmpDistances = tmpTinkerXYZ.getDistances();
+//                        tmpValue = 0.;
+//                        
+//                        for (int k = 0; k < tmpAtomSize1; k++) {
+//                            tmp_kSigma3 = tmpSigma3_1[k];
+//                            tmp_kSqrtEps = tmpSqrtEps1[k];
+//                            tmp_kCoulombBase = tmpFactor * tmpCharges1[k];
+//                            
+//                            for (int m = 0; m < tmpAtomSize2; m++) {
+//                                tmpDist = tmpDistances[k][m];
+//                                tmpInvDist = 1.0 / tmpDist;
+//                                
+//                                // Lennard-Jones logic without Math.sqrt()
+//                                tmpInvDist2 = tmpInvDist * tmpInvDist;
+//                                tmpInvDist6 = tmpInvDist2 * tmpInvDist2 
+//                                        * tmpInvDist2;
+//                                tmpRatio6 = (tmp_kSigma3 * tmpSigma3_2[m]) 
+//                                        * tmpInvDist6;
+//                                tmpEpsilonProd = tmp_kSqrtEps * tmpSqrtEps2[m];
+//                                tmpLJEnergy = 4.0 * tmpEpsilonProd * tmpRatio6 
+//                                        * (tmpRatio6 - 1.0);
+//                                tmpCoulombEnergy = tmp_kCoulombBase 
+//                                        * tmpCharges2[m] * tmpInvDist;
+//                                tmpValue += tmpCoulombEnergy + tmpLJEnergy;
+//                            }
+//                                
+//                        }
+//                        
+//                        if (ISFRACTIONONE) {
+//                            // simplify very small value
+//                            if (tmpValue > 20) {
+//                                tmpWgt = 0.0;
+//                            } else {
+//                                tmpWgt = Math.exp(-tmpValue * INV_RT);
+//                            }
+//                            tmpWgtxE = tmpWgt * tmpValue;
+//                            tmpSumWgt += tmpWgt;
+//                            tmpSumWgtxE += tmpWgtxE;
+//                        } else {
+//                            tmpEnergyList.add(tmpValue);
+//                        }
+//                        if (tmpValue < tmpMinEnergy) {
+//                            tmpMinEnergy = tmpValue;
+//                            tmpBestRot1Index = i;
+//                            tmpBestRot2Index = j;
+//                            
+//                        }
+//                    }
+//                    tmpChunkIndex++;
+//                }
+//
+//            }
+//            
+//            if (tmpBestRot1Index != -1 && tmpBestRot2Index != -1) {
+//                tmpTinkerXYZ.setCoordinateList1(
+//                        this.ROTDATA1[tmpBestRot1Index], ISTINKERON);
+//                tmpTinkerXYZ.setCoordinateList2(
+//                        this.ROTDATA2[tmpBestRot2Index], ISTINKERON);
+//                tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
+//            }
+//            
+//            tmpTinkerXYZMin.makeArcFile(tmpMiFnileName);
+//        }
+//        
+//        // </editor-fold> 
+//        
+//        if (ISFRACTIONONE) {
+//            tmpEnergyList.add(tmpMinEnergy);
+//            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE);
+//        } else {
+//            tmpEnergyList.sort(Comparator.naturalOrder());
+//            return new WgtEnergyRecord(tmpEnergyList, 0, 0);
+//        }
+    // </editor-fold>
+    
+   
+    
+    /**
+     * 
+     * 
+     * @param c1
+     * @param i
+     * @param c2
+     * @param j
+     * @param size1
+     * @param size2
+     * @param minDist
+     * @return 
+     */
+    private boolean isTooCloseFlat3D(Flat3DArray c1, int i, 
+            Flat3DArray c2, int j, int size1, int size2, double minDist) {
+        double minDist2 = minDist * minDist;
+        
+        for (int k = 0; k < size1; k++) {
+            double ax = c1.get(i, k, 0);
+            double ay = c1.get(i, k, 1);
+            double az = c1.get(i, k, 2);
+            
+            for (int m = 0; m < size2; m++) {
+                double dx = ax - c2.get(j, m, 0);
+                double dy = ay - c2.get(j, m, 1);
+                double dz = az - c2.get(j, m, 2);
+                if ((dx*dx + dy*dy + dz*dz) < minDist2) {
+                    return true;
+                }
+            }
+            
+        }
+        
+        return false;
+    }
 }

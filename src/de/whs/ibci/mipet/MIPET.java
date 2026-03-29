@@ -3252,41 +3252,35 @@ public class MIPET {
             tmpDistEnergies.clear();
         }
         
-        if (tmpFutures != null) {
-            tmpFutures.clear();
-        }
-        
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Export .xyz file with the lowest intermolecular energy">
         tmpEmin = tmpAllDistMinEnergy;
         if (tmpAllDistMinEnergy < aMinEnergy) {
-            String tmpSourceFileName;
-            String tmpExportFileName;
-            Path tmpSource;
-            Path tmpTarget;
-            
-            tmpSourceFileName = scratchDirectory
-                    + FILESEPARATOR
-                    + aParticlePair
-                    + "_"
-                    + tmpDistMinIndex
-                    + "_"
-                    + tmpChunkMinIndex
-                    + ".0";
-            tmpExportFileName = scratchDirectory 
+            String targetFileName;
+            int minTaskIndex = tmpChunkNumber * tmpDistMinIndex 
+                    + tmpChunkMinIndex;
+            TinkerXYZ minTinkerXYZ = null;
+            try{
+                if (tmpFutures != null) {
+                    minTinkerXYZ = tmpFutures.get(minTaskIndex).get()
+                            .minTinkerXYZ();
+                }
+            } catch (InterruptedException | ExecutionException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "InterruptException during handling tmpFuture object.",
+                        ex);
+            } 
+            targetFileName = scratchDirectory 
                     + FILESEPARATOR 
                     + aParticlePair
                     + ".0";
-            tmpSource = Paths.get(tmpSourceFileName);
-            tmpTarget = Paths.get(tmpExportFileName);
-            try {
-                Files.copy(tmpSource, tmpTarget, 
-                        StandardCopyOption.REPLACE_EXISTING);
-            } catch(IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "IOException during copying .0 file.", ex);
+            if (minTinkerXYZ != null) {
+                minTinkerXYZ.makeArcFile(targetFileName);
             }
+        }
+        if (tmpFutures != null) {
+            tmpFutures = null;
         }
         
         //</editor-fold>
