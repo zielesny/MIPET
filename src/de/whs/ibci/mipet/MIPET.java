@@ -878,6 +878,7 @@ public class MIPET {
         //</editor-fold>
         
         while (!tmpIsExitCondition) {
+            
             // Exit condition is true when all particle pair combinations
             //   were calculated.
             if (tmpJobTaskRecordList.get(tmpCurrentIndex).hasEnergieJob()) {
@@ -899,6 +900,7 @@ public class MIPET {
                         tmpH2OPos = 2;
                     }
                 }
+                System.out.print("\rCalculating " + tmpParticlePair);
             
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Create log file">
@@ -1913,7 +1915,7 @@ public class MIPET {
         
         //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
-        System.out.println("Exporting parameterset...");
+        System.out.print("\rExporting parameterset...");
         Instant endTime = Instant.now();
         Duration duration = Duration.between(startTime, endTime);
         float totalTimeSeconds = duration.toMillis() / 1000f;
@@ -3148,9 +3150,9 @@ public class MIPET {
         int tmpTaskIndex;
         int tmpFractionToMax;
         double tmpDistMinEnergy;
-        double tmpAllDistMinEnergy;
+        double allDistMinEnergy;
         double tmpEmin;
-        double tmpRezipTempGasconst;
+        double RezipRT;
         double tmpWgtEmin;
         double tmpSumWgt;
         double tmpSumWgtxE;
@@ -3166,13 +3168,13 @@ public class MIPET {
         tmpSumWgt = 0;
         tmpSumWgtxE = 0;
         tmpDistMinEnergy = 1E10;
-        tmpAllDistMinEnergy = 1E10;
+        allDistMinEnergy = 1E10;
         List<Future<WgtEnergyRecord>> tmpFutures = null;
         Future<WgtEnergyRecord> tmpFuture;
         ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
         tmpEmins = new double[tmpDistanceNumber];
         tmpWgtEmins = new double[tmpDistanceNumber];
-        tmpRezipTempGasconst = 1 / (temperature * GASCONST);
+        RezipRT = 1 / (temperature * GASCONST);
         tmpWgtEmin = 100.;
         
         try {            
@@ -3198,8 +3200,8 @@ public class MIPET {
                             tmpSumWgtxE += tmpFuture.get().sumWgtxE();
                         }
                     }
-                    if (tmpDistMinEnergy < tmpAllDistMinEnergy) {
-                        tmpAllDistMinEnergy = tmpDistMinEnergy;
+                    if (tmpDistMinEnergy < allDistMinEnergy) {
+                        allDistMinEnergy = tmpDistMinEnergy;
                         tmpDistMinIndex = i;
                         tmpChunkMinIndex = j;
                     }
@@ -3234,8 +3236,7 @@ public class MIPET {
                     tmpEnergyDataFraction[j] = tmpEnergyDatas[j];
 
                     // tmpEmin cancel out after factor out
-                    tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] 
-                            * tmpRezipTempGasconst);
+                    tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] * RezipRT);
                 }
 
                 tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
@@ -3255,33 +3256,32 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Export .xyz file with the lowest intermolecular energy">
-        tmpEmin = tmpAllDistMinEnergy;
-        if (tmpAllDistMinEnergy < aMinEnergy) {
-            String targetFileName;
+        tmpEmin = allDistMinEnergy;
+        if (allDistMinEnergy < aMinEnergy) {
             int minTaskIndex = tmpChunkNumber * tmpDistMinIndex 
                     + tmpChunkMinIndex;
             TinkerXYZ minTinkerXYZ = null;
-            try{
-                if (tmpFutures != null) {
+            
+            if (tmpFutures != null && minTaskIndex >= 0 
+                    && minTaskIndex < tmpFutures.size()) {
+                try {
                     minTinkerXYZ = tmpFutures.get(minTaskIndex).get()
                             .minTinkerXYZ();
-                }
-            } catch (InterruptedException | ExecutionException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "InterruptException during handling tmpFuture object.",
-                        ex);
+                } catch (InterruptedException ex) {
+                    LOGGER.log(Level.SEVERE,
+                        "Thread interrupted during future retrieval.", ex);
+                } catch (ExecutionException ex) {
+                    LOGGER.log(Level.SEVERE,
+                        "Calculation failed in future task.", ex);
+                } 
             } 
-            targetFileName = scratchDirectory 
-                    + FILESEPARATOR 
-                    + aParticlePair
-                    + ".0";
             if (minTinkerXYZ != null) {
-                minTinkerXYZ.makeArcFile(targetFileName);
+                Path targetPath = Paths.get(scratchDirectory, 
+                        aParticlePair + ".0");
+                minTinkerXYZ.makeArcFile(targetPath.toString());
             }
         }
-        if (tmpFutures != null) {
-            tmpFutures = null;
-        }
+        tmpFutures = null;
         
         //</editor-fold>
 
