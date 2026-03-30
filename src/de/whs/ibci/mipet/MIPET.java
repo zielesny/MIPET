@@ -900,7 +900,7 @@ public class MIPET {
                         tmpH2OPos = 2;
                     }
                 }
-                System.out.print("\rCalculating " + tmpParticlePair);
+                MIPETUtility.updateStatus("Calculating " + tmpParticlePair);
             
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Create log file">

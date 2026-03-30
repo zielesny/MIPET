@@ -33,6 +33,8 @@ MeCl			CCl
 MeNH2     CN
 MeOH			CO
 MeP       O=P(OC)(O)O
+Me2Pa			O=P(OC)(O)O
+Me2Pb			O=P(OC)(O)O
 MeSH      CS
 Na+       [Na+]
 Ph        c1ccccc1

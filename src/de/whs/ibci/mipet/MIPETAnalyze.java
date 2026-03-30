@@ -520,135 +520,19 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     }
     // </editor-fold>
             
-//            // Pre-computation of sigma and epsilon
-//            double[] tmpSigma3_1 = new double[tmpAtomSize1];
-//            double[] tmpSqrtEps1 = new double[tmpAtomSize1];
-//            
-//            for (int i = 0; i < tmpAtomSize1; i++) {
-//                tmpSigma3_1[i] = tmpSigmas1[i] * tmpSigmas1[i] *tmpSigmas1[i];
-//                tmpSqrtEps1[i] = Math.sqrt(tmpEpsilons1[i]);
-//            }
-//            
-//            double[] tmpSigma3_2 = new double[tmpAtomSize2];
-//            double[] tmpSqrtEps2 = new double[tmpAtomSize2];
-//            
-//            for (int i = 0; i < tmpAtomSize2; i++) {
-//                tmpSigma3_2[i] = tmpSigmas2[i] * tmpSigmas2[i] *tmpSigmas2[i];
-//                tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
-//            }
-//            
-//            double tmp_kSigma3;
-//            double tmp_kSqrtEps;
-//            double tmp_kCoulombBase;
-//            double tmpDist;
-//            double tmpInvDist;
-//            double tmpInvDist2;
-//            double tmpInvDist6;
-//            double tmpRatio6;
-//            double tmpEpsilonProd;
-//            int tmpBestRot1Index = -1;
-//            int tmpBestRot2Index = -1;
-//            
-//            for (int i = 0; i < tmpRot1Size; i++) {
-//                tmpTinkerXYZ.setCoordinateList1(this.ROTDATA1[i], ISTINKERON);
-//
-//                for (int j = 0; j < tmpRot2Size; j++) {
-//                    tmpIs2Close = MIPETUTIL.isTooClose(
-//                            this.ROTDATA1[i], 
-//                            this.ROTDATA2[j], 
-//                            this.MINATOMDISTANCE);
-//                    if (!tmpIs2Close) {
-//                        tmpTinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
-//                                ISTINKERON);
-//                        tmpTinkerXYZ.setDistances();
-//                        tmpDistances = tmpTinkerXYZ.getDistances();
-//                        tmpValue = 0.;
-//                        
-//                        for (int k = 0; k < tmpAtomSize1; k++) {
-//                            tmp_kSigma3 = tmpSigma3_1[k];
-//                            tmp_kSqrtEps = tmpSqrtEps1[k];
-//                            tmp_kCoulombBase = tmpFactor * tmpCharges1[k];
-//                            
-//                            for (int m = 0; m < tmpAtomSize2; m++) {
-//                                tmpDist = tmpDistances[k][m];
-//                                tmpInvDist = 1.0 / tmpDist;
-//                                
-//                                // Lennard-Jones logic without Math.sqrt()
-//                                tmpInvDist2 = tmpInvDist * tmpInvDist;
-//                                tmpInvDist6 = tmpInvDist2 * tmpInvDist2 
-//                                        * tmpInvDist2;
-//                                tmpRatio6 = (tmp_kSigma3 * tmpSigma3_2[m]) 
-//                                        * tmpInvDist6;
-//                                tmpEpsilonProd = tmp_kSqrtEps * tmpSqrtEps2[m];
-//                                tmpLJEnergy = 4.0 * tmpEpsilonProd * tmpRatio6 
-//                                        * (tmpRatio6 - 1.0);
-//                                tmpCoulombEnergy = tmp_kCoulombBase 
-//                                        * tmpCharges2[m] * tmpInvDist;
-//                                tmpValue += tmpCoulombEnergy + tmpLJEnergy;
-//                            }
-//                                
-//                        }
-//                        
-//                        if (ISFRACTIONONE) {
-//                            // simplify very small value
-//                            if (tmpValue > 20) {
-//                                tmpWgt = 0.0;
-//                            } else {
-//                                tmpWgt = Math.exp(-tmpValue * INV_RT);
-//                            }
-//                            tmpWgtxE = tmpWgt * tmpValue;
-//                            tmpSumWgt += tmpWgt;
-//                            tmpSumWgtxE += tmpWgtxE;
-//                        } else {
-//                            tmpEnergyList.add(tmpValue);
-//                        }
-//                        if (tmpValue < tmpMinEnergy) {
-//                            tmpMinEnergy = tmpValue;
-//                            tmpBestRot1Index = i;
-//                            tmpBestRot2Index = j;
-//                            
-//                        }
-//                    }
-//                    tmpChunkIndex++;
-//                }
-//
-//            }
-//            
-//            if (tmpBestRot1Index != -1 && tmpBestRot2Index != -1) {
-//                tmpTinkerXYZ.setCoordinateList1(
-//                        this.ROTDATA1[tmpBestRot1Index], ISTINKERON);
-//                tmpTinkerXYZ.setCoordinateList2(
-//                        this.ROTDATA2[tmpBestRot2Index], ISTINKERON);
-//                tmpTinkerXYZMin = tmpTinkerXYZ.clone(); 
-//            }
-//            
-//            tmpTinkerXYZMin.makeArcFile(tmpMiFnileName);
-//        }
-//        
-//        // </editor-fold> 
-//        
-//        if (ISFRACTIONONE) {
-//            tmpEnergyList.add(tmpMinEnergy);
-//            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE);
-//        } else {
-//            tmpEnergyList.sort(Comparator.naturalOrder());
-//            return new WgtEnergyRecord(tmpEnergyList, 0, 0);
-//        }
     // </editor-fold>
     
-   
-    
     /**
+     * Checks whether two molecules are too close each other
      * 
-     * 
-     * @param c1
-     * @param i
-     * @param c2
-     * @param j
-     * @param size1
-     * @param size2
-     * @param minDist
-     * @return 
+     * @param c1 Flatarray of molecule A
+     * @param i Configuration index of molecule A
+     * @param c2 Flatarray of molecule B
+     * @param j Configuration index of molecule B
+     * @param size1 Atom number of molecule A
+     * @param size2 Atom number of molecule B
+     * @param minDist Minimum distance of atom of molecule A and atom of molecule B
+     * @return Whether two molecules are too close (true) or not (false)
      */
     private boolean isTooCloseFlat3D(Flat3DArray c1, int i, 
             Flat3DArray c2, int j, int size1, int size2, double minDist) {

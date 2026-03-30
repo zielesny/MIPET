@@ -67,12 +67,12 @@ public class MIPETUtility{
      /**
      * Line separator
      */
-    final private String LINESEPARATOR = System.lineSeparator();
+    private static final String LINESEPARATOR = System.lineSeparator();
     
     /**
      * File separator
      */
-    final private String FILESEPARATOR = FileSystems
+    private static final String FILESEPARATOR = FileSystems
             .getDefault().getSeparator();
     
     //</editor-fold>
@@ -1291,6 +1291,17 @@ public class MIPETUtility{
     }
     
     /**
+     * Write status message in console
+     * 
+     * @param message Status message
+     */
+    public static void updateStatus(String message) {
+        // \r Goto start position, \u001b[K Clear the rest
+        System.out.print("\r\u001b[K" + message);
+        System.out.flush(); // Force immediatly output
+    }
+    
+    /**
      * Read a part of .arc file and returns the content as StringBuilder object.
      * 
      * @param aFileName
@@ -1302,8 +1313,8 @@ public class MIPETUtility{
      * @return 
      * Content of the selected part of .arc file
      */
-    public StringBuilder readPartArcFile(String aFileName, int aStartIndex, 
-            int aEndIndex) {
+    public static StringBuilder readPartArcFile(String aFileName, 
+            int aStartIndex, int aEndIndex) {
         String tmpLine;
         int tmpIndex = 0;
         StringBuilder tmpSB = new StringBuilder();
@@ -1333,7 +1344,7 @@ public class MIPETUtility{
      * @param aLabelValues
      *   0: Label 1: Value
      */
-    public void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
+    public static void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String[][] aLabelValues) {
         int tmpJobTaskLength;
         String tmpParticle1;
