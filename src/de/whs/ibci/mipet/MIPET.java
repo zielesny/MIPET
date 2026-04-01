@@ -3051,11 +3051,6 @@ public class MIPET {
         int tmpConfigNumber;
         int tmpChunkNumber; // Number of chunks
         int tmpChunkSize; // Number of aRotData2 configurations
-        int tmpChunkRemainder; // Number of aRotData2 configuration in the last chunk (only when there is a remainder)
-        int tmpChunkIndex;
-        int tmpRot2StartIndex;
-        int tmpRot2EndIndex;
-        int tmpDivider;
         double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
@@ -3069,27 +3064,12 @@ public class MIPET {
         tmpIsFractionOne = boltzmannFraction == 1.0;
         tmpDistanceNumber = aDistances.length;
         tmpConfigNumber = aRotData1.length * aRotData2.length;
-        tmpDivider = 1;
-        if (tmpConfigNumber < 1000) {
-            tmpChunkNumber = 1;
-            tmpChunkSize = tmpConfigNumber;
-            tmpChunkRemainder = 0;
-        } else {
-            tmpChunkNumber = cpuCoreNumber;
-            tmpChunkSize = aRotData2.length / tmpChunkNumber;
-            tmpChunkRemainder = aRotData2.length % tmpChunkNumber;
-            if (tmpChunkSize > 1000) {
-                while (tmpChunkSize > 1000) {
-                    tmpDivider++;
-                    tmpChunkNumber = cpuCoreNumber * tmpDivider;
-                    tmpChunkSize = aRotData2.length / tmpChunkNumber;
-                    tmpChunkRemainder = aRotData2.length % tmpChunkNumber;
-                }
-            }
-            if (tmpChunkRemainder > 0) {
-                tmpChunkNumber++;
-            }
-        }
+        int totalElements = aRotData2.length;
+        int maxChunkSize = 1000;
+        int minChunks = (totalElements + maxChunkSize - 1) / maxChunkSize;
+        tmpChunkNumber = ((minChunks + cpuCoreNumber - 1) / cpuCoreNumber) 
+                * cpuCoreNumber;
+        tmpChunkSize = (totalElements + tmpChunkNumber - 1) / tmpChunkNumber;
         
         //</editor-fold>
 
@@ -3103,53 +3083,41 @@ public class MIPET {
                 + FILESEPARATOR 
                 + aParticlePair 
                 + ".arc";
+        int chunkIdx = 0;
         
         for (int i = 0; i < tmpDistanceNumber; i++) {
             tmpRotData2 = VectorUtil.moveX(aRotData2, aDistances[i]);
-            tmpChunkIndex = 0;
-            tmpRot2StartIndex = 0;
             
-            while (tmpChunkIndex < tmpChunkNumber) {
-                tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, 
-                        tmpTinkerXyz2,
+            for (int tmpRot2StartIdx = 0; tmpRot2StartIdx < totalElements; 
+                    tmpRot2StartIdx += tmpChunkSize) {
+                int tmpRot2EndIndex = Math.min(tmpRot2StartIdx + tmpChunkSize, 
+                        totalElements);
+                tmpTinkerXYZ = new TinkerXYZ(tmpTinkerXyz1, tmpTinkerXyz2, 
                         isTinkerOn);
                 tmpAtomNumber = tmpTinkerXYZ.getN_atom();
-                if (tmpChunkNumber == 1) {
-                    tmpRot2EndIndex = aRotData2.length;
-                } else {
-                    if (tmpChunkIndex < tmpChunkNumber - 1) { 
-                        tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
-                    } else {
-                        if (tmpChunkRemainder > 0 ) { 
-                            tmpRot2EndIndex = tmpRot2StartIndex 
-                                    + tmpChunkRemainder;
-                        } else {
-                            tmpRot2EndIndex = tmpRot2StartIndex + tmpChunkSize;
-                        }
-                    }
-                }
-                double[][][] tmpRotPart2;
-                tmpRotPart2 = Arrays.copyOfRange(tmpRotData2,
-                        tmpRot2StartIndex,
-                        tmpRot2EndIndex);
-                tmpCmdList = new String[]{tinkerAnalyze, tmpPath + i + "_"
-                        + tmpChunkIndex, "E"};
+                // This is for chunking tmpRotData2 to avoid memory issues within the thread
+                double[][][] tmpRotPart2 = Arrays.copyOfRange(tmpRotData2, 
+                        tmpRot2StartIdx, tmpRot2EndIndex);
+
+                tmpCmdList = new String[]{tinkerAnalyze, tmpPath + i + "_" 
+                        + chunkIdx, "E"};
                 tmpTaskList.add(new MIPETAnalyze(
-                        tmpTinkerXYZ,
-                        isTinkerOn,
-                        i,
-                        tmpChunkIndex,
+                        tmpTinkerXYZ, 
+                        isTinkerOn, 
+                        i, 
+                        chunkIdx, 
                         tmpAtomNumber,
-                        minAtomDistance,
-                        tmpRotData1,
-                        tmpRotPart2,
+                        minAtomDistance, 
+                        tmpRotData1, 
+                        tmpRotPart2, 
                         scratchDirectory,
-                        tmpCmdList,
-                        molecules,
-                        tmpIsFractionOne,
-                        temperature));
-                tmpChunkIndex++;
-                tmpRot2StartIndex = tmpRot2EndIndex;
+                        tmpCmdList, 
+                        molecules, 
+                        tmpIsFractionOne, 
+                        temperature
+                ));
+
+                chunkIdx++;
             }
             
         }
