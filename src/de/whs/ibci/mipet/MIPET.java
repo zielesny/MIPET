@@ -3087,6 +3087,8 @@ public class MIPET {
         
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
+        Flat3DArray sharedFlatRot1 = Flat3DArray.createFrom(aRotData1);
+        
         executor = Executors.newFixedThreadPool(cpuCoreNumber);
         tmpTaskList = new ArrayList<>(3000);
         tmpPath = scratchDirectory 
@@ -3108,7 +3110,8 @@ public class MIPET {
                 // This is for chunking tmpRotData2 to avoid memory issues within the thread
                 double[][][] tmpRotPart2 = Arrays.copyOfRange(tmpRotData2, 
                         tmpRot2StartIdx, tmpRot2EndIndex);
-
+                Flat3DArray sharedFlatRot2 = Flat3DArray
+                        .createFrom(tmpRotPart2);
                 tmpCmdList = new String[]{tinkerAnalyze, tmpPath + i + "_" 
                         + chunkIdx, "E"};
                 tmpTaskList.add(new MIPETAnalyze(
@@ -3118,8 +3121,8 @@ public class MIPET {
                         chunkIdx, 
                         tmpAtomNumber,
                         minAtomDistance, 
-                        aRotData1, 
-                        tmpRotPart2, 
+                        sharedFlatRot1, 
+                        sharedFlatRot2, 
                         scratchDirectory,
                         tmpCmdList, 
                         rec1,

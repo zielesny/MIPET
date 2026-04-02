@@ -43,11 +43,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     
     // <editor-fold defaultstate="collapsed" desc="Final Class variables">
     /**
-     * Instance object of MIPETUtility
-     */
-    private static final MIPETUtility MIPETUTIL = new MIPETUtility();
-    
-    /**
      * Logger of this class
      */
     private static final Logger LOGGER = Logger
@@ -64,11 +59,36 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      */
     private final TinkerXYZ TINKERXYZ;
     
+    /**
+     * Whether Tinker is used (true) or not (false)
+     */
     private final boolean ISTINKERON;
+    
+    /**
+     * Whether Fraction is used (true) or not (false, all data will be used)
+     */
     private final boolean ISFRACTIONONE;
+    
+    /**
+     * Minimum of atom to atom distance
+     */
     private final double MINATOMDISTANCE;
-    private final double[][][] ROTDATA1;
-    private final double[][][] ROTDATA2;
+    
+    /**
+     * Flattened coordinates of molecule 1
+     */
+    private final Flat3DArray FLAT_ROT1;
+    
+    /**
+     * Flattened coordinates of molecule 2
+     */
+    private final Flat3DArray FLAT_ROT2;
+    
+    /**
+     * Number of Configurations (atoms) from molecule 1 and 2
+     */
+    private final int NUM_ROT1, NUM_ATOMS1;
+    private final int NUM_ROT2, NUM_ATOMS2;
     
     /**
      * Index number (zero-based) of current distance
@@ -101,6 +121,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     private final MoleculeRecord MOLECULE_1;
     private final MoleculeRecord MOLECULE_2;
     
+    /**
+     * Temperature in K
+     */
     private final double TEMP;
 
     // </editor-fold>
@@ -116,10 +139,10 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      * @param aChunkIndex: Chunk index
      * @param anAtomNumber: Atom number
      * @param aScratchDir: Scratch directory name
+     * @param aFlatRot1: Flattened coordinates of molecule 1
+     * @param aFlatRot2: Flattened coordinates of molecule 2
      * @param aMinAtomDistance: Minimum atom to atom distance (if smaller it will not be calculated)
-     * @param aRotData1: Coordinates of first particle
      * @param aCommandList: Command list for tinker's analyze.exe
-     * @param aRotData2: Coordinatdes of sendond particle
      * @param aMolRec1: Molecule datas of molecule1
      * @param aMolRec2: Molecule datas of molecule2
      * @param aIsFractionOne: Whether Boltzmann fraction = 1.0 (true) or not (false)
@@ -132,8 +155,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             int aChunkIndex,
             int anAtomNumber,
             double aMinAtomDistance,
-            double[][][] aRotData1,
-            double[][][] aRotData2,
+            Flat3DArray aFlatRot1,
+            Flat3DArray aFlatRot2,
             String aScratchDir,
             String[] aCommandList,
             MoleculeRecord aMolRec1,
@@ -146,14 +169,18 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         this.CHUNKINDEX = aChunkIndex;
         this.ATOMNUMBER = anAtomNumber;
         this.MINATOMDISTANCE = aMinAtomDistance;
-        this.ROTDATA1 = aRotData1;
-        this.ROTDATA2 = aRotData2;
+        this.FLAT_ROT1 = aFlatRot1;
+        this.FLAT_ROT2 = aFlatRot2;
         this.SCRATCH_DIR = aScratchDir;
         this.COMMAND_LIST = aCommandList;
         this.MOLECULE_1 = aMolRec1;
         this.MOLECULE_2 = aMolRec2;
         this.ISFRACTIONONE = aIsFractionOne;
         this.TEMP = aTemperature;
+        this.NUM_ATOMS1 = aTinkerXYZ.getN_atom1();
+        this.NUM_ATOMS2 = aTinkerXYZ.getN_atom2();
+        this.NUM_ROT1 = aFlatRot1.dim1;
+        this.NUM_ROT2 = aFlatRot2.dim1;
     }
     
     // </editor-fold>
@@ -193,12 +220,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         final double INV_RT = 1 / (GASCONST * this.TEMP);
         
         boolean tmpIs2Close;
-        int tmpRot1Size;
-        int tmpRot2Size;
         int tmpChunkSize;
         int tmpChunkIndex;
-        int tmpAtomSize1;
-        int tmpAtomSize2;
         int tmpConfigIndex;
         int tmpMinIndex;
         int energyCount = 0; // Counter for the valid calculations of energy
@@ -236,8 +259,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpParticle1 = this.TINKERXYZ.getParticleName1();
         tmpParticle2 = this.TINKERXYZ.getParticleName2();
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
-        tmpAtomSize1 = tinkerXYZ.getN_atom1();
-        tmpAtomSize2 = tinkerXYZ.getN_atom2();
         localMinEnergy = Double.MAX_VALUE;
         tmpMinIndex = -1;
         tmpConfigIndex = -1;
@@ -267,9 +288,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         
         // Check if the particles are not too close together
         // Save .arc file in scratch directory
-        tmpRot1Size = this.ROTDATA1.length;
-        tmpRot2Size = this.ROTDATA2.length;
-        tmpChunkSize = tmpRot1Size * tmpRot2Size;
+        tmpChunkSize = NUM_ROT1 * NUM_ROT2;
         energyArray = new double[tmpChunkSize];
         tmpChunkIndex = 0;
         tinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
@@ -285,26 +304,27 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             Path tmpPath = Paths.get(tmpArcFileName);
             try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
                     StandardCharsets.UTF_8)) {
+                
+                for (int i = 0; i < NUM_ROT1; i++) {
+                    double[][] currentCoords1 = extractSingleConf(FLAT_ROT1, i, 
+                            NUM_ATOMS1);
+                    tinkerXYZ.setCoordinateList1(currentCoords1, ISTINKERON);
 
-                for (int i = 0; i < tmpRot1Size; i++) {
-                    tinkerXYZ.setCoordinateList1(this.ROTDATA1[i], 
-                            ISTINKERON);
+                    for (int j = 0; j < NUM_ROT2; j++) {
+                        tmpIs2Close = isTooCloseFlat(FLAT_ROT1, i, FLAT_ROT2, j, 
+                                NUM_ATOMS1, NUM_ATOMS2, MINATOMDISTANCE);
 
-                    for (int j = 0; j < tmpRot2Size; j++) {
-                        tmpIs2Close = MIPETUTIL.isTooClose(
-                                this.ROTDATA1[i], 
-                                this.ROTDATA2[j], 
-                                this.MINATOMDISTANCE);
                         if (!tmpIs2Close) {
-                            tinkerXYZ.setCoordinateList2(this.ROTDATA2[j], 
+                            double[][] currentCoords2 = 
+                                    extractSingleConf(FLAT_ROT2, j, NUM_ATOMS2);
+                            tinkerXYZ.setCoordinateList2(currentCoords2, 
                                     ISTINKERON);
                             tmpBW.append(tinkerXYZ.getFileContent());
                         } 
                         tmpChunkIndex++;
                     }
-
                 }
-
+                
             } catch(IOException ex) {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during making .arc file.", ex);
@@ -319,7 +339,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             tmpPBuilder = new ProcessBuilder();
             tmpPBuilder.redirectErrorStream(true);
             tmpPBuilder.command(this.COMMAND_LIST);
-            if (tmpAtomSize1 == 1 && tmpAtomSize2 == 1) {
+            if (NUM_ATOMS1 == 1 && NUM_ATOMS2 == 1) {
                 tmpSearch = "Total Potential Energy";
             } else {
                 tmpSearch = "Intermolecular Energy";
@@ -376,7 +396,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                     + this.DISTANCEINDEX 
                     + "_" 
                     + this.CHUNKINDEX;
-            tmpPartArc = MIPETUTIL.readPartArcFile(tmpArcFileName, 
+            tmpPartArc = MIPETUtility.readPartArcFile(tmpArcFileName, 
                     tmpStartIndex, tmpEndIndex);
             TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
 
@@ -391,22 +411,19 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             // </editor-fold>
         } else {
             // <editor-fold defaultstate="collapsed" desc="Don't use Tinker">
-            Flat3DArray flatRot1 = Flat3DArray.createFrom(this.ROTDATA1);
-            Flat3DArray flatRot2 = Flat3DArray.createFrom(this.ROTDATA2);
-            
             // Pre-computation of sigma and epsilon
-            double[] tmpSigma3_1 = new double[tmpAtomSize1];
-            double[] tmpSqrtEps1 = new double[tmpAtomSize1];
+            double[] tmpSigma3_1 = new double[NUM_ATOMS1];
+            double[] tmpSqrtEps1 = new double[NUM_ATOMS1];
             
-            for (int i = 0; i < tmpAtomSize1; i++) {
+            for (int i = 0; i < NUM_ATOMS1; i++) {
                 tmpSigma3_1[i] = tmpSigmas1[i] * tmpSigmas1[i] *tmpSigmas1[i];
                 tmpSqrtEps1[i] = Math.sqrt(tmpEpsilons1[i]);
             }
             
-            double[] tmpSigma3_2 = new double[tmpAtomSize2];
-            double[] tmpSqrtEps2 = new double[tmpAtomSize2];
+            double[] tmpSigma3_2 = new double[NUM_ATOMS2];
+            double[] tmpSqrtEps2 = new double[NUM_ATOMS2];
             
-            for (int i = 0; i < tmpAtomSize2; i++) {
+            for (int i = 0; i < NUM_ATOMS2; i++) {
                 tmpSigma3_2[i] = tmpSigmas2[i] * tmpSigmas2[i] *tmpSigmas2[i];
                 tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
             }
@@ -414,33 +431,34 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             int localBestRot1 = -1;
             int localBestRot2 = -1;
 
-            for (int i = 0; i < tmpRot1Size; i++) {
+            for (int i = 0; i < NUM_ROT1; i++) {
                 
-                for (int j = 0; j < tmpRot2Size; j++) {
+                for (int j = 0; j < NUM_ROT2; j++) {
 
                     // Fast distance check
-                    if (isTooCloseFlat3D(flatRot1, i, flatRot2, j, tmpAtomSize1, tmpAtomSize2, MINATOMDISTANCE)) {
+                    if (isTooCloseFlat(this.FLAT_ROT1, i, this.FLAT_ROT2, j, 
+                            NUM_ATOMS1, NUM_ATOMS2, MINATOMDISTANCE)) {
                         continue;
                     }
 
                     double energyValue = 0.0;
 
                     // Main calculation: double loop over the atoms
-                    for (int k = 0; k < tmpAtomSize1; k++) {
+                    for (int k = 0; k < NUM_ATOMS2; k++) {
                         // Coordinates of the molecule 1 (dyretly from the flattend array)
-                        double ax = flatRot1.get(i, k, 0);
-                        double ay = flatRot1.get(i, k, 1);
-                        double az = flatRot1.get(i, k, 2);
+                        double ax = this.FLAT_ROT1.get(i, k, 0);
+                        double ay = this.FLAT_ROT1.get(i, k, 1);
+                        double az = this.FLAT_ROT1.get(i, k, 2);
 
                         double k_Sigma3 = tmpSigma3_1[k];
                         double k_SqrtEps = tmpSqrtEps1[k];
                         double k_CoulombBase = tmpFactor * tmpCharges1[k];
 
-                        for (int m = 0; m < tmpAtomSize2; m++) {
+                        for (int m = 0; m < NUM_ATOMS2; m++) {
                             // Distance calculation
-                            double dx = ax - flatRot2.get(j, m, 0);
-                            double dy = ay - flatRot2.get(j, m, 1);
-                            double dz = az - flatRot2.get(j, m, 2);
+                            double dx = ax - this.FLAT_ROT2.get(j, m, 0);
+                            double dy = ay - this.FLAT_ROT2.get(j, m, 1);
+                            double dz = az - this.FLAT_ROT2.get(j, m, 2);
 
                             double r2 = dx * dx + dy * dy + dz * dz;
                             double invR2 = 1.0 / r2;
@@ -480,10 +498,12 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             }
             
             if (localBestRot1 != -1 && localBestRot2 != -1) {
-                tinkerXYZ.setCoordinateList1(
-                        this.ROTDATA1[localBestRot1], ISTINKERON);
-                tinkerXYZ.setCoordinateList2(
-                        this.ROTDATA2[localBestRot2], ISTINKERON);
+                double[][] bestCoords1 = extractSingleConf(FLAT_ROT1, 
+                        localBestRot1, NUM_ATOMS1);
+                double[][] bestCoords2 = extractSingleConf(FLAT_ROT2, 
+                        localBestRot2, NUM_ATOMS2);
+                tinkerXYZ.setCoordinateList1(bestCoords1, ISTINKERON);
+                tinkerXYZ.setCoordinateList2(bestCoords2, ISTINKERON);
                 tmpTinkerXYZMin = tinkerXYZ.clone(); 
             }
             
@@ -518,7 +538,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      * @param minDist Minimum distance of atom of molecule A and atom of molecule B
      * @return Whether two molecules are too close (true) or not (false)
      */
-    private boolean isTooCloseFlat3D(Flat3DArray c1, int i, 
+    private boolean isTooCloseFlat(Flat3DArray c1, int i, 
             Flat3DArray c2, int j, int size1, int size2, double minDist) {
         double minDist2 = minDist * minDist;
         
@@ -539,5 +559,51 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         }
         
         return false;
+    }
+    
+    /**
+     * Converts flat array to double[][][] array
+     * 
+     * @param flat Flat array
+     * @param numRot Number of conformation
+     * @param numAtoms Number of atoms
+     * @return Coordinate datas in double[][][] array
+     */
+    private double[][][] inflate(double[] flat, int numRot, int numAtoms) {
+        double[][][] inflated = new double[numRot][numAtoms][3];
+        
+        for (int r = 0; r < numRot; r++) {
+            
+            for (int a = 0; a < numAtoms; a++) {
+                int base = (r * numAtoms + a) * 3;
+                inflated[r][a][0] = flat[base];
+                inflated[r][a][1] = flat[base + 1];
+                inflated[r][a][2] = flat[base + 2];
+            }
+            
+        }
+        
+        return inflated;
+    }
+    
+    /**
+     * Converts best configuration (in flat array) to double[][]
+     * 
+     * @param flat Flat array
+     * @param bestConfIdx Index of the best configuration
+     * @param numAtoms Number of atoms
+     * @return Coodinates in double[][]
+     */
+    private double[][] extractSingleConf(Flat3DArray flat, int bestConfIdx, 
+            int numAtoms) {
+        double [][] result = new double[numAtoms][3];
+        
+        for (int a = 0; a < numAtoms; a++) {
+            result[a][0] = flat.get(bestConfIdx, a, 0);
+            result[a][1] = flat.get(bestConfIdx, a, 1);
+            result[a][2] = flat.get(bestConfIdx, a, 2);
+        }
+    
+        return result;
     }
 }
