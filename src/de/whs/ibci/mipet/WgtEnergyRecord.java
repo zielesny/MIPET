@@ -19,8 +19,6 @@
  */
 package de.whs.ibci.mipet;
 
-import java.util.ArrayList;
-
 /**
  * Record for storage weighted intermolecular differential pair interaction 
  *   energies, Sum of Weights and Sum of weight * energy
@@ -35,7 +33,7 @@ import java.util.ArrayList;
  *   TinkerXYZ object with local lowest energy
  */
 public record WgtEnergyRecord(
-        ArrayList<Double> energys,
+        double[] energys,
         double sumWgt,
         double sumWgtxE,
         TinkerXYZ minTinkerXYZ) {

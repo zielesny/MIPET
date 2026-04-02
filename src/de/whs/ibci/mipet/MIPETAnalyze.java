@@ -29,9 +29,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -98,9 +96,10 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     private final String[] COMMAND_LIST;
     
     /**
-     * MoleculeRecord
+     * MoleculeRecords
      */
-    private final LinkedList<MoleculeRecord> MOLECULES;
+    private final MoleculeRecord MOLECULE_1;
+    private final MoleculeRecord MOLECULE_2;
     
     private final double TEMP;
 
@@ -121,7 +120,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      * @param aRotData1: Coordinates of first particle
      * @param aCommandList: Command list for tinker's analyze.exe
      * @param aRotData2: Coordinatdes of sendond particle
-     * @param aMolecules: Molecule datas
+     * @param aMolRec1: Molecule datas of molecule1
+     * @param aMolRec2: Molecule datas of molecule2
      * @param aIsFractionOne: Whether Boltzmann fraction = 1.0 (true) or not (false)
      * @param aTemperature: Temperature [K]
      */
@@ -136,7 +136,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             double[][][] aRotData2,
             String aScratchDir,
             String[] aCommandList,
-            LinkedList<MoleculeRecord> aMolecules,
+            MoleculeRecord aMolRec1,
+            MoleculeRecord aMolRec2,
             boolean aIsFractionOne,
             double aTemperature) {
         this.TINKERXYZ = aTinkerXYZ;
@@ -149,7 +150,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         this.ROTDATA2 = aRotData2;
         this.SCRATCH_DIR = aScratchDir;
         this.COMMAND_LIST = aCommandList;
-        this.MOLECULES = aMolecules;
+        this.MOLECULE_1 = aMolRec1;
+        this.MOLECULE_2 = aMolRec2;
         this.ISFRACTIONONE = aIsFractionOne;
         this.TEMP = aTemperature;
     }
@@ -197,11 +199,9 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         int tmpChunkIndex;
         int tmpAtomSize1;
         int tmpAtomSize2;
-        int tmpMoleculeSize;
-        int tmpID1;
-        int tmpID2;
         int tmpConfigIndex;
         int tmpMinIndex;
+        int energyCount = 0; // Counter for the valid calculations of energy
         double tmpChargeQ; // in C^2
         double tmpFactor; // in kcal * m / (mole * C^2)
         double[] tmpEpsilons1;
@@ -214,10 +214,10 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         double localMinEnergy; // in kcal/mole
         double tmpWgt;
         double tmpWgtxE;
-        double tmpSumWgt;
-        double tmpSumWgtxE;
+        double tmpSumWgt = 0;
+        double tmpSumWgtxE = 0;
         
-        ArrayList<Double> tmpEnergyList;
+        double[] energyArray;
         String tmpForcefield;
         String tmpParticlePair;
         String tmpParticle1;
@@ -238,8 +238,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
         tmpAtomSize1 = tinkerXYZ.getN_atom1();
         tmpAtomSize2 = tinkerXYZ.getN_atom2();
-        tmpID1 = 0;
-        tmpID2 = 0;
         localMinEnergy = Double.MAX_VALUE;
         tmpMinIndex = -1;
         tmpConfigIndex = -1;
@@ -249,32 +247,14 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpEpsilons2 = null;
         tmpCharges1 = null;
         tmpCharges2 = null;
-        tmpSumWgt = 0;
-        tmpSumWgtxE = 0;
         
         if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
-            tmpMoleculeSize = MOLECULES.size();
-            
-            for (int i = 0; i < tmpMoleculeSize; i++) {
-                if (tmpParticle1.equals(MOLECULES.get(i).name())) {
-                    tmpID1 = i;
-                    break;
-                }
-            }
-            
-            for (int i = 0; i < tmpMoleculeSize; i++) {
-                if (tmpParticle2.equals(MOLECULES.get(i).name())) {
-                    tmpID2 = i;
-                    break;
-                }
-            }
-            
-            tmpSigmas1 = MOLECULES.get(tmpID1).sigmas();
-            tmpSigmas2 = MOLECULES.get(tmpID2).sigmas();
-            tmpEpsilons1 = MOLECULES.get(tmpID1).epsilons();
-            tmpEpsilons2 = MOLECULES.get(tmpID2).epsilons();
-            tmpCharges1 = MOLECULES.get(tmpID1).charges();
-            tmpCharges2 = MOLECULES.get(tmpID2).charges();
+            tmpSigmas1 = MOLECULE_1.sigmas();
+            tmpSigmas2 = MOLECULE_2.sigmas();
+            tmpEpsilons1 = MOLECULE_1.epsilons();
+            tmpEpsilons2 = MOLECULE_2.epsilons();
+            tmpCharges1 = MOLECULE_1.charges();
+            tmpCharges2 = MOLECULE_2.charges();
         } 
         tmpMinFileName = this.SCRATCH_DIR
                     + this.FILESEPARATOR
@@ -290,7 +270,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpRot1Size = this.ROTDATA1.length;
         tmpRot2Size = this.ROTDATA2.length;
         tmpChunkSize = tmpRot1Size * tmpRot2Size;
-        tmpEnergyList = new ArrayList<>(tmpChunkSize);
+        energyArray = new double[tmpChunkSize];
         tmpChunkIndex = 0;
         tinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
@@ -362,7 +342,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                     tmpSumWgt += tmpWgt;
                                     tmpSumWgtxE += tmpWgtxE;
                                 } else {
-                                    tmpEnergyList.add(tmpValue);
+                                    energyArray[energyCount] = tmpValue;
+                                    energyCount++;
                                 }
                                 tmpConfigIndex++;
                                 if (tmpValue < localMinEnergy) {
@@ -485,7 +466,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                             tmpSumWgtxE += wgt * energyValue;
                         }
                     } else {
-                        tmpEnergyList.add(energyValue); 
+                        energyArray[energyCount] =energyValue;
+                        energyCount++;
                     }
 
                     if (energyValue < localMinEnergy) {
@@ -510,12 +492,14 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         
         // </editor-fold>
         if (ISFRACTIONONE) {
-            tmpEnergyList.add(localMinEnergy);
-            return new WgtEnergyRecord(tmpEnergyList, tmpSumWgt, tmpSumWgtxE, 
+            double[] resultList = new double[1];
+            resultList[0] = localMinEnergy;
+            return new WgtEnergyRecord(resultList, tmpSumWgt, tmpSumWgtxE, 
                     tmpTinkerXYZMin);
         } else {
-            tmpEnergyList.sort(Comparator.naturalOrder());
-            return new WgtEnergyRecord(tmpEnergyList, 0, 0, tmpTinkerXYZMin);
+            Arrays.sort(energyArray, 0, energyCount);
+            double[] finalEnergies = Arrays.copyOf(energyArray, energyCount);
+            return new WgtEnergyRecord(finalEnergies, 0, 0, tmpTinkerXYZMin);
         }
     }
     // </editor-fold>

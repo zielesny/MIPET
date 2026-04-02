@@ -1947,7 +1947,7 @@ public class MIPET {
         exportParticleSetForMFSim(tmpJobTaskRecordList, 
                 parameterSetTitle, 
                 parameterSetTitleAbr);
-        System.out.println("Ready.");
+        System.out.println("\r\nReady.");
         
         //</editor-fold>
     }
@@ -3048,10 +3048,8 @@ public class MIPET {
         boolean tmpIsFractionOne;
         int tmpAtomNumber;
         int tmpDistanceNumber;
-        int tmpConfigNumber;
         int tmpChunkNumber; // Number of chunks
         int tmpChunkSize; // Number of aRotData2 configurations
-        double[][][] tmpRotData1;
         double[][][] tmpRotData2;
         String tmpPath;
         String[] tmpCmdList;
@@ -3061,9 +3059,10 @@ public class MIPET {
         TinkerXYZ tmpTinkerXYZ;
         ExecutorService executor;
         
+        String particleName1 = aParticlePair.split("_")[0];
+        String particleName2 = aParticlePair.split("_")[1];
         tmpIsFractionOne = boltzmannFraction == 1.0;
         tmpDistanceNumber = aDistances.length;
-        tmpConfigNumber = aRotData1.length * aRotData2.length;
         int totalElements = aRotData2.length;
         int maxChunkSize = 1000;
         int minChunks = (totalElements + maxChunkSize - 1) / maxChunkSize;
@@ -3074,9 +3073,20 @@ public class MIPET {
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="Calculate intermolecular energy using TINKER analyze">
+        MoleculeRecord rec1 = null;
+        MoleculeRecord rec2 = null;
+        
+        for (MoleculeRecord m : molecules) {
+            if (m.name().equals(particleName1)) {
+                rec1 = m;
+            }
+            if (m.name().equals(particleName2)) {
+                rec2 = m;
+            }
+        }
+        
         tmpTinkerXyz1 = aTinkerXYZ1.clone();
         tmpTinkerXyz2 = aTinkerXYZ2.clone();
-        tmpRotData1 = aRotData1;
         executor = Executors.newFixedThreadPool(cpuCoreNumber);
         tmpTaskList = new ArrayList<>(3000);
         tmpPath = scratchDirectory 
@@ -3108,11 +3118,12 @@ public class MIPET {
                         chunkIdx, 
                         tmpAtomNumber,
                         minAtomDistance, 
-                        tmpRotData1, 
+                        aRotData1, 
                         tmpRotPart2, 
                         scratchDirectory,
                         tmpCmdList, 
-                        molecules, 
+                        rec1,
+                        rec2,
                         tmpIsFractionOne, 
                         temperature
                 ));
@@ -3143,7 +3154,6 @@ public class MIPET {
         double tmpWgtEmin;
         double tmpSumWgt;
         double tmpSumWgtxE;
-        double[] tmpEnergyDatas;
         double[] tmpWeights;
         double[] tmpEnergyDataFraction;
         double[] tmpEmins;
@@ -3158,7 +3168,7 @@ public class MIPET {
         allDistMinEnergy = 1E10;
         List<Future<WgtEnergyRecord>> tmpFutures = null;
         Future<WgtEnergyRecord> tmpFuture;
-        ArrayList<Double> tmpDistEnergies = new ArrayList<>(tmpConfigNumber);
+        List<double[]> allResultArrays = new ArrayList<>();
         tmpEmins = new double[tmpDistanceNumber];
         tmpWgtEmins = new double[tmpDistanceNumber];
         RezipRT = 1 / (temperature * GASCONST);
@@ -3173,6 +3183,7 @@ public class MIPET {
         tmpFuture = null;
             
         for (int i = 0; i < tmpDistanceNumber; i++) {
+            int totalSize = 0; // Size of energy values
                         
             for (int j = 0; j < tmpChunkNumber; j++) {
                 if (tmpFutures != null) {
@@ -3180,8 +3191,11 @@ public class MIPET {
                 }
                 try {
                     if (tmpFuture != null) {
-                        tmpDistEnergies.addAll(tmpFuture.get().energys());
-                        tmpDistMinEnergy = tmpFuture.get().energys().getFirst();
+                        // Thread results
+                        double[] res = tmpFuture.get().energys();
+                        allResultArrays.add(res);
+                        totalSize += res.length;
+                        tmpDistMinEnergy = tmpFuture.get().energys()[0];
                         if (tmpIsFractionOne) {
                             tmpSumWgt += tmpFuture.get().sumWgt(); 
                             tmpSumWgtxE += tmpFuture.get().sumWgtxE();
@@ -3200,10 +3214,22 @@ public class MIPET {
                 } 
             }
             
+            // Generate big target array for energy values from threads
+            double[] globalEnergies = new double[totalSize];
+            int currPosition = 0;
+            
+            for (double[] res : allResultArrays) {
+                System.arraycopy(res, 0, 
+                        globalEnergies, currPosition, res.length);
+                currPosition += res.length;
+            }
+            
+            allResultArrays.clear();
+            Arrays.sort(globalEnergies);
+            tmpEmins[i] = globalEnergies[0];
+            
             // Store all energies at same distance to tmpEnergyDatas[i]
             if (tmpIsFractionOne) {
-                tmpEnergyDatas = new double[1];
-                tmpEnergyDatas[0] = Collections.min(tmpDistEnergies);
                 tmpWgtEmins[i] = tmpSumWgtxE / tmpSumWgt;
                 if (Double.isNaN(tmpWgtEmins[i]) || 
                         Double.isInfinite(tmpWgtEmins[i])) {
@@ -3212,18 +3238,14 @@ public class MIPET {
                 tmpSumWgt = 0;
                 tmpSumWgtxE = 0;
             } else {
-                tmpEnergyDatas = MIPETUTIL.toPrimitive(tmpDistEnergies);
-                Arrays.sort(tmpEnergyDatas);
-                tmpFractionToMax = (int)(tmpEnergyDatas.length 
+                tmpFractionToMax = (int)(globalEnergies.length 
                         * boltzmannFraction);
                 tmpEnergyDataFraction = new double[tmpFractionToMax];
                 tmpWeights = new double[tmpFractionToMax];
 
                 for (int j = 0; j < tmpFractionToMax; j++) {
-                    tmpEnergyDataFraction[j] = tmpEnergyDatas[j];
-
-                    // tmpEmin cancel out after factor out
-                    tmpWeights[j] = Math.exp(-tmpEnergyDatas[j] * RezipRT);
+                    tmpEnergyDataFraction[j] = globalEnergies[j];
+                    tmpWeights[j] = Math.exp(-globalEnergies[j] * RezipRT);
                 }
 
                 tmpWgtEmins[i] = MIPETUTIL.productSum(tmpWeights, 
@@ -3233,11 +3255,9 @@ public class MIPET {
                     tmpWgtEmins[i] = 100.;
                 } 
             }
-            tmpEmins[i] = tmpEnergyDatas[0];
             if (tmpWgtEmin > tmpWgtEmins[i]) {
                 tmpWgtEmin = tmpWgtEmins[i];
             }
-            tmpDistEnergies.clear();
         }
         
         //</editor-fold>
