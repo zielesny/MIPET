@@ -291,7 +291,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         tmpChunkSize = NUM_ROT1 * NUM_ROT2;
         energyArray = new double[tmpChunkSize];
         tmpChunkIndex = 0;
-        tinkerXYZ.setHeader(tmpParticlePair, ISTINKERON);
+        tinkerXYZ.setHeader(tmpParticlePair);
         if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
             // <editor-fold defaultstate="collapsed" desc="Use Tinker">
             tmpArcFileName = this.SCRATCH_DIR
