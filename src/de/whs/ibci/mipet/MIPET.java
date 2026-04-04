@@ -1987,19 +1987,17 @@ public class MIPET {
         if (!MIPETUTIL.isDirectoryEmpty(scratchDirectory)) {
             System.out.println(scratchDirectory + " is not empty.");
             System.exit(-1);
-        }
-        if (!MIPETUTIL.isDirectoryEmpty(resultDirectory)) {
+        } else if (!MIPETUTIL.isDirectoryEmpty(resultDirectory)) {
             System.out.println(resultDirectory + " is not empty.");
             System.exit(-1);
-        }
-        if (!MIPETUTIL.isDirectoryEmpty(optXYZDirectory)) {
+        } else if (!MIPETUTIL.isDirectoryEmpty(optXYZDirectory)) {
             System.out.println(optXYZDirectory + " is not empty.");
             System.exit(-1);
-        }
-        if (!MIPETUTIL.isDirectoryEmpty(optDistDirectory)) {
+        }else  if (!MIPETUTIL.isDirectoryEmpty(optDistDirectory)) {
             System.out.println(optDistDirectory + " is not empty.");
             System.exit(-1);
         }
+        
         smiles = MIPETUTIL
                 .getSmilesData(smilesDirectory + "/Smiles.dat");
         

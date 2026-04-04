@@ -75,6 +75,16 @@ public class MIPETUtility{
     private static final String FILESEPARATOR = FileSystems
             .getDefault().getSeparator();
     
+    /**
+     * Cache for calculated VdW volumes (SMILES -> Volume)
+     */
+    private final Map<String, Double> vdwVolumeCache = new HashMap<>();
+
+    /**
+     * Cache for calculated atomic masses (SMILES -> Mass)
+     */
+    private final Map<String, Double> atomicMassCache = new HashMap<>();
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Private class variables">
@@ -140,19 +150,24 @@ public class MIPETUtility{
         if (smilesString == null || smilesString.isEmpty()) {
             throw new IllegalArgumentException("Smiles was null or empty.");
         }
+        // Check Cache
+        if (vdwVolumeCache.containsKey(smilesString)) {
+            return vdwVolumeCache.get(smilesString);
+        }
         
         double vabcVolume = 0.0;
-        IAtomContainer particle;
         try {
             if (!smilesString.equals("[Na+]")) {
-                particle =smilesParser.parseSmiles(smilesString);
+                IAtomContainer particle =smilesParser.parseSmiles(smilesString);
                 AtomContainerManipulator.
                         percieveAtomTypesAndConfigureAtoms(particle);
                 vabcVolume = VABCVolume.calculate(particle);
+                
+                // Save to Cache
+                vdwVolumeCache.put(smilesString, vabcVolume);
             }
         } catch (CDKException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "CDKException was thrown.", ex);
+            LOGGER.log(Level.SEVERE,"CDKException was thrown.", ex);
         }
         return vabcVolume;
     }
@@ -167,11 +182,20 @@ public class MIPETUtility{
      *   Atomic mass of the fragment
      */
     public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
-        double atomicMass = 0;
-        
+        if (aSmilesString == null || aSmilesString.trim().isEmpty()) {
+            return 0;
+        }
         if (aSmilesString.trim().equalsIgnoreCase("lp")) {
             return 0;
         }
+        String cacheKey = (anIsSmiles ? "S_" : "E_") + aSmilesString.trim();
+        
+        // Check cache
+        if (atomicMassCache.containsKey(cacheKey)) {
+            return atomicMassCache.get(cacheKey);
+        }
+        
+        double atomicMass = 0;
         try {
             IAtomContainer particle;
             if (anIsSmiles) {
@@ -182,6 +206,9 @@ public class MIPETUtility{
             AtomContainerManipulator
                     .percieveAtomTypesAndConfigureAtoms(particle);
             atomicMass  = AtomContainerManipulator.getMass(particle);
+            
+            // Save to cach
+            atomicMassCache.put(cacheKey, atomicMass);
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE, 
                     "CDKException was thrown in getAtomicMass.", ex);
@@ -849,12 +876,12 @@ public class MIPETUtility{
      */
     public double getMolecularDiameter(TinkerXYZ aTinkerXYZ) {
         int tmpAtomSize;
-        int tmpAtomicNumber1;
+        final int tmpAtomicNumber1;
         int tmpAtomicNumber2;
         int tmpIndex1;
         int tmpIndex2;
-        double tmpVdW1;
-        double tmpVdW2;
+        final double tmpVdW1;
+        final double tmpVdW2;
         double tmpDeltaX;
         double tmpDeltaY;
         double tmpDeltaZ;

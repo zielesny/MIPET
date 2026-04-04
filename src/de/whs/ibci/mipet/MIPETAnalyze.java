@@ -188,7 +188,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     
     @Override
-    public WgtEnergyRecord call() {
+    public WgtEnergyRecord call() throws CloneNotSupportedException {
         /*
          * Gas constant R [kcal/(mol*K)]
          */

@@ -35,11 +35,10 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Class TinkerXYZ
@@ -48,7 +47,6 @@ import org.apache.commons.lang3.ArrayUtils;
 public class TinkerXYZ implements Cloneable {
     
     //<editor-fold defaultstate="collapsed" desc="Final class variables">
-
     /**
      * Instance object of MIPETUtility
      */
@@ -62,27 +60,26 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Standard capacity for stringbuilder object
      */
-    final int STRINGBUILDER_CAPACITY = 4096;
+    private final int STRINGBUILDER_CAPACITY = 4096;
     
     /**
      * Standard BufferdReader buffersize 
      */
-    final int READER_BUFFERSIZE = 65536;;
+    private final int READER_BUFFERSIZE = 65536;;
     
     /**
      * Line separator
      */
-    final private String LINESEPARATOR = System.lineSeparator();
+    private final String LINESEPARATOR = System.lineSeparator();
     
     /**
      * Atomic mass of elements
      */
-    final private HashMap<String, Double> atomicMassMap = new HashMap<>();
+    private final Map<String, Double> atomicMassMap = new HashMap<>();
 
     //</editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private class variables">
-    
     /**
      * Name of first particle
      */
@@ -263,6 +260,7 @@ public class TinkerXYZ implements Cloneable {
         }
         this.initialize(tmpTxyz, anIterationSize, anAtomSize1, anAtomSize2);
     }
+    
     /**
      * Constructor TinkerXYZ
      * 
@@ -273,7 +271,6 @@ public class TinkerXYZ implements Cloneable {
     public TinkerXYZ(TinkerXYZ aTinkerXYZ1, TinkerXYZ aTinkerXYZ2, 
             boolean aTinkerOn) {
         this.initialize2(aTinkerXYZ1, aTinkerXYZ2);
-        
     }
     
     // </editor-fold>
@@ -1646,7 +1643,7 @@ public class TinkerXYZ implements Cloneable {
      * Clone method for TinkerXYZ class
      */
     @Override
-    public TinkerXYZ clone() throws CloneNotSupportedException {
+    public TinkerXYZ clone() {
         try {
             TinkerXYZ cloned = (TinkerXYZ) super.clone();
             
