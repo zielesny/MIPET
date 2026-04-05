@@ -189,342 +189,322 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     
     @Override
     public WgtEnergyRecord call() throws CloneNotSupportedException {
-        /*
-         * Gas constant R [kcal/(mol*K)]
-         */
-        final double GASCONST = 1.98720425864E-3;
-
-        /*
-         * Conversion factor Joule to Calorie (therm.)
-         */
-        final double j_CAL = 0.2390057361;
-
-        /*
-         * Coulomb constant in N*m^2/C^2
-         */
-        final double COULOMB = 8.9875517862E9;
-
-        /*
-         * Elementary charge in C
-         */
-        final double ELEMENTCHARGE = 1.602176634E-19;
-
-        /*
-         * Avogadro constant in 1/mole
-         */
-        double AVOGADRO = 6.02214076E23;
+        final double GASCONST = 1.98720425864E-3; //Gas constant R [kcal/(mol*K)]
+        final double INV_RT = 1 / (GASCONST * this.TEMP); // Inverse of R*T
+        String forcefield = this.TINKERXYZ.getForcefieldName();
+        String particle1 = this.TINKERXYZ.getParticleName1();
+        String particle2 = this.TINKERXYZ.getParticleName2();
+        String particlePair =  particle1 + "_" + particle2;
+        this.TINKERXYZ.setHeader(particlePair);
         
-        /*
-        * Inverse of R*T
-        */
-        final double INV_RT = 1 / (GASCONST * this.TEMP);
-        
-        boolean tmpIs2Close;
-        int tmpChunkSize;
-        int tmpChunkIndex;
-        int tmpConfigIndex;
-        int tmpMinIndex;
+        if (!forcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
+            // <editor-fold defaultstate="collapsed" desc="Use Tinker">
+            return executeTinker(INV_RT, particlePair);
+            
+            // </editor-fold>
+        } else {
+            // <editor-fold defaultstate="collapsed" desc="Don't use Tinker">
+            return executeInternal(INV_RT);
+            
+            // </editor-fold>
+        }
+    }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc="Private methods">
+    /**
+     * Calculate weighted energies of chunk configurations.
+     *  Use much faster direct calculation.
+     * 
+     * @param INV_RT 1/(RT)
+     * @return Weighted energie datas of chunk configurations
+     */
+    private WgtEnergyRecord executeInternal (double INV_RT) {
+        final double ELEMENTCHARGE = 1.602176634E-19; //Elementary charge in C
+        final double tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE; // in C^2
+        final double AVOGADRO = 6.02214076E23; //Avogadro constant in 1/mole
+        final double j_CAL = 0.2390057361; //Conversion factor Joule to Calorie (therm.)
+        final double COULOMB = 8.9875517862E9; //Coulomb constant in N*m^2/C^2
+        final double tmpFactor = AVOGADRO * j_CAL * tmpChargeQ * COULOMB * 1E7; // in kcal * m / (mole * C^2)
+        final int chunkSize = NUM_ROT1 * NUM_ROT2;
         int energyCount = 0; // Counter for the valid calculations of energy
-        double tmpChargeQ; // in C^2
-        double tmpFactor; // in kcal * m / (mole * C^2)
-        double[] tmpEpsilons1;
-        double[] tmpEpsilons2;
-        double[] tmpSigmas1;
-        double[] tmpSigmas2;
-        double[] tmpCharges1;
-        double[] tmpCharges2;
-        double tmpValue;
-        double localMinEnergy; // in kcal/mole
-        double tmpWgt;
-        double tmpWgtxE;
         double tmpSumWgt = 0;
         double tmpSumWgtxE = 0;
-        
-        double[] energyArray;
-        String tmpForcefield;
-        String tmpParticlePair;
-        String tmpParticle1;
-        String tmpParticle2;
-        String tmpArcFileName;
-        String tmpMinFileName;
-        String tmpValueCandidate;
-        TinkerXYZ tinkerXYZ;
-        TinkerXYZ tmpTinkerXYZMin;
+        double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
+        double[] energyArray = new double[chunkSize];
+        double[] sigmas1 = MOLECULE_1.sigmas();
+        double[] sigmas2 = MOLECULE_2.sigmas();
+        double[] epsilons1 = MOLECULE_1.epsilons();
+        double[] epsilons2 = MOLECULE_2.epsilons();
+        double[] charges1 = MOLECULE_1.charges();
+        double[] charges2 = MOLECULE_2.charges();
+        TinkerXYZ tinkerXYZMin = new TinkerXYZ();
 
-        tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE;
-        tmpFactor = AVOGADRO * j_CAL * tmpChargeQ * COULOMB * 1E7;
-        tinkerXYZ = this.TINKERXYZ;
-        tmpTinkerXYZMin = new TinkerXYZ();
-        tmpForcefield = tinkerXYZ.getForcefieldName();
-        tmpParticle1 = this.TINKERXYZ.getParticleName1();
-        tmpParticle2 = this.TINKERXYZ.getParticleName2();
-        tmpParticlePair =  tmpParticle1 + "_" + tmpParticle2;
-        localMinEnergy = Double.MAX_VALUE;
-        tmpMinIndex = -1;
-        tmpConfigIndex = -1;
-        tmpSigmas1 = null;
-        tmpSigmas2 = null;
-        tmpEpsilons1 = null;
-        tmpEpsilons2 = null;
-        tmpCharges1 = null;
-        tmpCharges2 = null;
+        // Pre-computation of sigma and epsilon
+        double[] sigma3_1 = new double[NUM_ATOMS1];
+        double[] sqrtEps1 = new double[NUM_ATOMS1];
+
+        for (int i = 0; i < NUM_ATOMS1; i++) {
+            sigma3_1[i] = sigmas1[i] * sigmas1[i] * sigmas1[i];
+            sqrtEps1[i] = Math.sqrt(epsilons1[i]);
+        }
+
+        double[] sigma3_2 = new double[NUM_ATOMS2];
+        double[] sqrtEps2 = new double[NUM_ATOMS2];
+
+        for (int i = 0; i < NUM_ATOMS2; i++) {
+            sigma3_2[i] = sigmas2[i] * sigmas2[i] * sigmas2[i];
+            sqrtEps2[i] = Math.sqrt(epsilons2[i]);
+        }
+
+        int localBestRot1 = -1;
+        int localBestRot2 = -1;
+
+        for (int i = 0; i < NUM_ROT1; i++) {
+
+            for (int j = 0; j < NUM_ROT2; j++) {
+
+                // Fast distance check
+                if (isTooCloseFlat(this.FLAT_ROT1, i, this.FLAT_ROT2, j, 
+                        NUM_ATOMS1, NUM_ATOMS2, MINATOMDISTANCE)) {
+                    continue;
+                }
+
+                double energyValue = 0.0;
+
+                // Main calculation: double loop over the atoms
+                for (int k = 0; k < NUM_ATOMS2; k++) {
+                    // Coordinates of the molecule 1 (dyretly from the flattend array)
+                    double ax = this.FLAT_ROT1.get(i, k, 0);
+                    double ay = this.FLAT_ROT1.get(i, k, 1);
+                    double az = this.FLAT_ROT1.get(i, k, 2);
+
+                    double k_Sigma3 = sigma3_1[k];
+                    double k_SqrtEps = sqrtEps1[k];
+                    double k_CoulombBase = tmpFactor * charges1[k];
+
+                    for (int m = 0; m < NUM_ATOMS2; m++) {
+                        // Distance calculation
+                        double dx = ax - this.FLAT_ROT2.get(j, m, 0);
+                        double dy = ay - this.FLAT_ROT2.get(j, m, 1);
+                        double dz = az - this.FLAT_ROT2.get(j, m, 2);
+
+                        double r2 = dx * dx + dy * dy + dz * dz;
+                        double invR2 = 1.0 / r2;
+
+                        // Lennard-Jones optimization (r6 from invR2)
+                        double invR6 = invR2 * invR2 * invR2;
+                        double sigma6 = k_Sigma3 * sigma3_2[m];
+                        double ratio6 = sigma6 * invR6;
+                        double epsProd = k_SqrtEps * sqrtEps2[m];
+                        double lj = 4.0 * epsProd * ratio6 * (ratio6 - 1.0);
+                        double coulomb = k_CoulombBase * charges2[m] 
+                                * Math.sqrt(invR2);
+                        energyValue += lj + coulomb;
+                    }
+
+                }
+
+                if (ISFRACTIONONE) {
+                    // Ignore very small values
+                    if (energyValue <= 20.0) {
+                        double wgt = Math.exp(-energyValue * INV_RT);
+                        tmpSumWgt += wgt;
+                        tmpSumWgtxE += wgt * energyValue;
+                    }
+                } else {
+                    energyArray[energyCount] = energyValue;
+                    energyCount++;
+                }
+
+                if (energyValue < localMinEnergy) {
+                    localMinEnergy = energyValue;
+                    localBestRot1 = i;
+                    localBestRot2 = j;
+                }
+            }
+
+        }
+
+        if (localBestRot1 != -1 && localBestRot2 != -1) {
+            double[][] bestCoords1 = extractSingleConf(FLAT_ROT1, 
+                    localBestRot1, NUM_ATOMS1);
+            double[][] bestCoords2 = extractSingleConf(FLAT_ROT2, 
+                    localBestRot2, NUM_ATOMS2);
+            this.TINKERXYZ.setCoordinateList1(bestCoords1, ISTINKERON);
+            this.TINKERXYZ.setCoordinateList2(bestCoords2, ISTINKERON);
+            tinkerXYZMin = this.TINKERXYZ.clone(); 
+        }
+        if (ISFRACTIONONE) {
+            double[] resultList = new double[1];
+            resultList[0] = localMinEnergy;
+            return new WgtEnergyRecord(resultList, tmpSumWgt, tmpSumWgtxE, 
+                    tinkerXYZMin);
+        } else {
+            Arrays.sort(energyArray, 0, energyCount);
+            double[] finalEnergies = Arrays.copyOf(energyArray, energyCount);
+            return new WgtEnergyRecord(finalEnergies, 0, 0, tinkerXYZMin);
+        }
+    }
+    
+    /**
+     * Calculate weighted energies of chunk configurations.
+     *  Use tinker's tool analyze.exe
+     * 
+     * @param INV_RT 1/(RT)
+     * @param particlePair Particlepair name: particle1_particle2
+     * @return Weighted energie datas of chunk configurations
+     */
+    private WgtEnergyRecord executeTinker (double INV_RT, String particlePair) {
+        int tmpChunkIndex = 0;
+        int chunkSize = NUM_ROT1 * NUM_ROT2;
+        int energyCount = 0; // Counter for the valid calculations of energy
+        int tmpMinIndex = -1;
+        double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
+        double[] energyArray = new double[chunkSize];
         
-        if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
-            tmpSigmas1 = MOLECULE_1.sigmas();
-            tmpSigmas2 = MOLECULE_2.sigmas();
-            tmpEpsilons1 = MOLECULE_1.epsilons();
-            tmpEpsilons2 = MOLECULE_2.epsilons();
-            tmpCharges1 = MOLECULE_1.charges();
-            tmpCharges2 = MOLECULE_2.charges();
-        } 
-        tmpMinFileName = this.SCRATCH_DIR
+        Path tmpPath = Paths.get(this.SCRATCH_DIR,
+                particlePair + ".arc"
+                + this.DISTANCEINDEX + "_"
+                + this.CHUNKINDEX
+        );
+        try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
+                StandardCharsets.UTF_8)) {
+
+            for (int i = 0; i < NUM_ROT1; i++) {
+                double[][] currentCoords1 = extractSingleConf(FLAT_ROT1, i, 
+                        NUM_ATOMS1);
+                this.TINKERXYZ.setCoordinateList1(currentCoords1, 
+                        ISTINKERON);
+
+                for (int j = 0; j < NUM_ROT2; j++) {
+                    boolean tmpIs2Close = isTooCloseFlat(FLAT_ROT1, i, 
+                            FLAT_ROT2, j, NUM_ATOMS1, NUM_ATOMS2, 
+                            MINATOMDISTANCE);
+
+                    if (!tmpIs2Close) {
+                        double[][] currentCoords2 = 
+                                extractSingleConf(FLAT_ROT2, j, NUM_ATOMS2);
+                        this.TINKERXYZ.setCoordinateList2(currentCoords2, 
+                                ISTINKERON);
+                        tmpBW.append(this.TINKERXYZ.getFileContent());
+                    } 
+                    tmpChunkIndex++;
+                }
+            }
+
+        } catch(IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during making .arc file.", ex);
+        }
+            
+        // Start analyze.exe
+        //  read .arc files and find intermolecular energy
+        double tmpSumWgt = 0;
+        double tmpSumWgtxE = 0;
+        ProcessBuilder tmpPBuilder;
+        Process tmpProcess;
+        String tmpSearch;
+        String tmpLine;
+
+        tmpPBuilder = new ProcessBuilder();
+        tmpPBuilder.redirectErrorStream(true);
+        tmpPBuilder.command(this.COMMAND_LIST);
+        if (NUM_ATOMS1 == 1 && NUM_ATOMS2 == 1) {
+            tmpSearch = "Total Potential Energy";
+        } else {
+            tmpSearch = "Intermolecular Energy";
+        }
+        try {
+            tmpProcess = tmpPBuilder.start();
+            try (InputStream tmpInStream = tmpProcess.getInputStream();
+                    BufferedReader tmpBR = new BufferedReader(
+                            new InputStreamReader(tmpInStream))){
+                
+                int tmpConfigIndex = -1;
+                double tmpValue;
+                double tmpWgt;
+                double tmpWgtxE;
+                String tmpValueCandidate;
+
+                while ((tmpLine = tmpBR.readLine()) != null) {
+                    if (tmpLine.contains(tmpSearch)) {
+                        tmpValueCandidate = tmpLine.substring(25, 50);
+                        if (!tmpValueCandidate.contains("D")) {
+                            tmpValue = Double
+                                   .parseDouble(tmpValueCandidate);
+                            if (ISFRACTIONONE) {
+                                tmpWgt = Math.exp(-tmpValue * INV_RT);
+                                tmpWgtxE = tmpWgt * tmpValue;
+                                tmpSumWgt += tmpWgt;
+                                tmpSumWgtxE += tmpWgtxE;
+                            } else {
+                                energyArray[energyCount] = tmpValue;
+                                energyCount++;
+                            }
+                            tmpConfigIndex++;
+                            if (tmpValue < localMinEnergy) {
+                                localMinEnergy = tmpValue;
+                                tmpMinIndex = tmpConfigIndex;
+                            }
+                        }
+                    }
+                }
+
+                tmpProcess.waitFor();
+                tmpProcess.destroy();
+            }
+        } catch(IOException | InterruptedException ex) {
+            LOGGER.log(Level.SEVERE,
+                    "Exception during tinker's analyze.exe", ex);
+        }
+            
+        // Export .xyz file with lowest intermolecular energy
+        int tmpStartIndex;
+        int tmpEndIndex;
+        StringBuilder tmpPartArc;
+
+        tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
+        tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
+        String tmpArcFileName = this.SCRATCH_DIR
+                + this.FILESEPARATOR
+                + particlePair
+                + ".arc" 
+                + this.DISTANCEINDEX 
+                + "_" 
+                + this.CHUNKINDEX;
+        tmpPartArc = MIPETUtility.readPartArcFile(tmpArcFileName, 
+                tmpStartIndex, tmpEndIndex);
+        String tmpMinFileName = this.SCRATCH_DIR
                     + this.FILESEPARATOR
-                    + tmpParticlePair
+                    + particlePair
                     +"_"
                     + this.DISTANCEINDEX 
                     + "_" 
                     + this.CHUNKINDEX
                     + ".0";
-        
-        // Check if the particles are not too close together
-        // Save .arc file in scratch directory
-        tmpChunkSize = NUM_ROT1 * NUM_ROT2;
-        energyArray = new double[tmpChunkSize];
-        tmpChunkIndex = 0;
-        tinkerXYZ.setHeader(tmpParticlePair);
-        if (!tmpForcefield.equals("OPLSAALIGPARGEN") || ISTINKERON) {
-            // <editor-fold defaultstate="collapsed" desc="Use Tinker">
-            tmpArcFileName = this.SCRATCH_DIR
-                    + FILESEPARATOR 
-                    + tmpParticlePair 
-                    + ".arc"
-                    + this.DISTANCEINDEX
-                    + "_"
-                    + this.CHUNKINDEX;
-            Path tmpPath = Paths.get(tmpArcFileName);
-            try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
-                    StandardCharsets.UTF_8)) {
-                
-                for (int i = 0; i < NUM_ROT1; i++) {
-                    double[][] currentCoords1 = extractSingleConf(FLAT_ROT1, i, 
-                            NUM_ATOMS1);
-                    tinkerXYZ.setCoordinateList1(currentCoords1, ISTINKERON);
+        TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
 
-                    for (int j = 0; j < NUM_ROT2; j++) {
-                        tmpIs2Close = isTooCloseFlat(FLAT_ROT1, i, FLAT_ROT2, j, 
-                                NUM_ATOMS1, NUM_ATOMS2, MINATOMDISTANCE);
-
-                        if (!tmpIs2Close) {
-                            double[][] currentCoords2 = 
-                                    extractSingleConf(FLAT_ROT2, j, NUM_ATOMS2);
-                            tinkerXYZ.setCoordinateList2(currentCoords2, 
-                                    ISTINKERON);
-                            tmpBW.append(tinkerXYZ.getFileContent());
-                        } 
-                        tmpChunkIndex++;
-                    }
-                }
-                
-            } catch(IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during making .arc file.", ex);
-            }
-            // Start analyze.exe
-            //  read .arc files and find intermolecular energy
-            ProcessBuilder tmpPBuilder;
-            Process tmpProcess;
-            String tmpSearch;
-            String tmpLine;
-
-            tmpPBuilder = new ProcessBuilder();
-            tmpPBuilder.redirectErrorStream(true);
-            tmpPBuilder.command(this.COMMAND_LIST);
-            if (NUM_ATOMS1 == 1 && NUM_ATOMS2 == 1) {
-                tmpSearch = "Total Potential Energy";
-            } else {
-                tmpSearch = "Intermolecular Energy";
-            }
-            try {
-                tmpProcess = tmpPBuilder.start();
-                try (InputStream tmpInStream = tmpProcess.getInputStream();
-                        BufferedReader tmpBR = new BufferedReader(
-                                new InputStreamReader(tmpInStream))){
-
-                    while ((tmpLine = tmpBR.readLine()) != null) {
-                        if (tmpLine.contains(tmpSearch)) {
-                            tmpValueCandidate = tmpLine.substring(25, 50);
-                            if (!tmpValueCandidate.contains("D")) {
-                                tmpValue = Double
-                                       .parseDouble(tmpValueCandidate);
-                                if (ISFRACTIONONE) {
-                                    tmpWgt = Math.exp(-tmpValue * INV_RT);
-                                    tmpWgtxE = tmpWgt * tmpValue;
-                                    tmpSumWgt += tmpWgt;
-                                    tmpSumWgtxE += tmpWgtxE;
-                                } else {
-                                    energyArray[energyCount] = tmpValue;
-                                    energyCount++;
-                                }
-                                tmpConfigIndex++;
-                                if (tmpValue < localMinEnergy) {
-                                    localMinEnergy = tmpValue;
-                                    tmpMinIndex = tmpConfigIndex;
-                                }
-                            }
-                        }
-                    }
-
-                    tmpProcess.waitFor();
-                    tmpProcess.destroy();
-                }
-            } catch(IOException | InterruptedException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "Exception during tinker's analyze.exe", ex);
-            }
-            
-            // Export .xyz file with lowest intermolecular energy
-            int tmpStartIndex;
-            int tmpEndIndex;
-            StringBuilder tmpPartArc;
-
-            tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
-            tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
-            tmpArcFileName = this.SCRATCH_DIR
-                    + this.FILESEPARATOR
-                    + tmpParticlePair
-                    + ".arc" 
-                    + this.DISTANCEINDEX 
-                    + "_" 
-                    + this.CHUNKINDEX;
-            tmpPartArc = MIPETUtility.readPartArcFile(tmpArcFileName, 
-                    tmpStartIndex, tmpEndIndex);
-            TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
-
-            // Delete .arc files
-            try {
-                Files.delete(Paths.get(tmpArcFileName));
-            } catch(IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during deleting files in scratch directory.", ex);
-            }
-            
-            // </editor-fold>
-        } else {
-            // <editor-fold defaultstate="collapsed" desc="Don't use Tinker">
-            // Pre-computation of sigma and epsilon
-            double[] tmpSigma3_1 = new double[NUM_ATOMS1];
-            double[] tmpSqrtEps1 = new double[NUM_ATOMS1];
-            
-            for (int i = 0; i < NUM_ATOMS1; i++) {
-                tmpSigma3_1[i] = tmpSigmas1[i] * tmpSigmas1[i] *tmpSigmas1[i];
-                tmpSqrtEps1[i] = Math.sqrt(tmpEpsilons1[i]);
-            }
-            
-            double[] tmpSigma3_2 = new double[NUM_ATOMS2];
-            double[] tmpSqrtEps2 = new double[NUM_ATOMS2];
-            
-            for (int i = 0; i < NUM_ATOMS2; i++) {
-                tmpSigma3_2[i] = tmpSigmas2[i] * tmpSigmas2[i] *tmpSigmas2[i];
-                tmpSqrtEps2[i] = Math.sqrt(tmpEpsilons2[i]);
-            }
-            
-            int localBestRot1 = -1;
-            int localBestRot2 = -1;
-
-            for (int i = 0; i < NUM_ROT1; i++) {
-                
-                for (int j = 0; j < NUM_ROT2; j++) {
-
-                    // Fast distance check
-                    if (isTooCloseFlat(this.FLAT_ROT1, i, this.FLAT_ROT2, j, 
-                            NUM_ATOMS1, NUM_ATOMS2, MINATOMDISTANCE)) {
-                        continue;
-                    }
-
-                    double energyValue = 0.0;
-
-                    // Main calculation: double loop over the atoms
-                    for (int k = 0; k < NUM_ATOMS2; k++) {
-                        // Coordinates of the molecule 1 (dyretly from the flattend array)
-                        double ax = this.FLAT_ROT1.get(i, k, 0);
-                        double ay = this.FLAT_ROT1.get(i, k, 1);
-                        double az = this.FLAT_ROT1.get(i, k, 2);
-
-                        double k_Sigma3 = tmpSigma3_1[k];
-                        double k_SqrtEps = tmpSqrtEps1[k];
-                        double k_CoulombBase = tmpFactor * tmpCharges1[k];
-
-                        for (int m = 0; m < NUM_ATOMS2; m++) {
-                            // Distance calculation
-                            double dx = ax - this.FLAT_ROT2.get(j, m, 0);
-                            double dy = ay - this.FLAT_ROT2.get(j, m, 1);
-                            double dz = az - this.FLAT_ROT2.get(j, m, 2);
-
-                            double r2 = dx * dx + dy * dy + dz * dz;
-                            double invR2 = 1.0 / r2;
-
-                            // Lennard-Jones Optimierung (r6 aus invR2)
-                            double invR6 = invR2 * invR2 * invR2;
-                            double sigma6 = k_Sigma3 * tmpSigma3_2[m];
-                            double ratio6 = sigma6 * invR6;
-                            double epsProd = k_SqrtEps * tmpSqrtEps2[m];
-                            double lj = 4.0 * epsProd * ratio6 * (ratio6 - 1.0);
-                            double coulomb = k_CoulombBase * tmpCharges2[m] 
-                                    * Math.sqrt(invR2);
-                            energyValue += lj + coulomb;
-                        }
-                        
-                    }
-
-                    if (ISFRACTIONONE) {
-                        // Ignore very small values
-                        if (energyValue <= 20.0) {
-                            double wgt = Math.exp(-energyValue * INV_RT);
-                            tmpSumWgt += wgt;
-                            tmpSumWgtxE += wgt * energyValue;
-                        }
-                    } else {
-                        energyArray[energyCount] =energyValue;
-                        energyCount++;
-                    }
-
-                    if (energyValue < localMinEnergy) {
-                        localMinEnergy = energyValue;
-                        localBestRot1 = i;
-                        localBestRot2 = j;
-                    }
-                }
-                
-            }
-            
-            if (localBestRot1 != -1 && localBestRot2 != -1) {
-                double[][] bestCoords1 = extractSingleConf(FLAT_ROT1, 
-                        localBestRot1, NUM_ATOMS1);
-                double[][] bestCoords2 = extractSingleConf(FLAT_ROT2, 
-                        localBestRot2, NUM_ATOMS2);
-                tinkerXYZ.setCoordinateList1(bestCoords1, ISTINKERON);
-                tinkerXYZ.setCoordinateList2(bestCoords2, ISTINKERON);
-                tmpTinkerXYZMin = tinkerXYZ.clone(); 
-            }
-            
-            //tmpTinkerXYZMin.makeArcFile(tmpMinFileName);
+        // Delete .arc files
+        try {
+            Files.delete(Paths.get(tmpArcFileName));
+        } catch(IOException ex) {
+            LOGGER.log(Level.SEVERE, 
+                    "IOException during deleting files in scratch directory.", ex);
         }
-        
-        // </editor-fold>
+            
+        TinkerXYZ tinkerXYZMin = new TinkerXYZ();
         if (ISFRACTIONONE) {
             double[] resultList = new double[1];
             resultList[0] = localMinEnergy;
             return new WgtEnergyRecord(resultList, tmpSumWgt, tmpSumWgtxE, 
-                    tmpTinkerXYZMin);
+                    tinkerXYZMin);
         } else {
             Arrays.sort(energyArray, 0, energyCount);
             double[] finalEnergies = Arrays.copyOf(energyArray, energyCount);
-            return new WgtEnergyRecord(finalEnergies, 0, 0, tmpTinkerXYZMin);
+            return new WgtEnergyRecord(finalEnergies, 0, 0, tinkerXYZMin);
         }
     }
-    // </editor-fold>
-            
-    // </editor-fold>
     
     /**
      * Checks whether two molecules are too close each other
@@ -606,4 +586,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     
         return result;
     }
+    
+    // </editor-fold>
 }
