@@ -1955,6 +1955,8 @@ public class MIPET {
     //</editor-fold>
     //</editor-fold>
     
+    // </editor-fold>
+    
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     /**
      * Initialize method
@@ -2279,35 +2281,31 @@ public class MIPET {
      * @return particle pair names
      */
     private static ArrayList<String> getParticlePairs() {
-        
-        int tmpNewParticleLength;
-        int tmpOldParticleLength;
-        ArrayList<String> tmpParticlePairs = new ArrayList<>();
-        
-        tmpNewParticleLength = newParticles.size();
-        tmpOldParticleLength = oldParticles.size();
-       
-        // Same particles
+        int newParticleSize = newParticles.size();
+        int oldParticleSize = oldParticles.size();
+        int initialCapacity = newParticleSize + 
+                (newParticleSize * oldParticleSize) +
+                (newParticleSize * (newParticleSize - 1) / 2);
+        ArrayList<String> tmpParticlePairs = new ArrayList<>(initialCapacity);
         Collections.sort(newParticles);
         Collections.sort(oldParticles);
-        
-        for (int i = 0; i < tmpNewParticleLength; i++) {
-            tmpParticlePairs.add(
-                    newParticles.get(i) + "_" + newParticles.get(i));
+       
+        // Same particles
+        for (String p: newParticles) {
+            tmpParticlePairs.add(p + "_" + p);
         }
         
         // New with old particles
-        for (int i = 0; i < tmpNewParticleLength; i++) {
+        for (String nP : newParticles) {
 
-            for (int j = 0; j < tmpOldParticleLength; j++) {
-                tmpParticlePairs.add(
-                        newParticles.get(i) +"_" + oldParticles.get(j));
+            for (String oP : oldParticles) {
+                tmpParticlePairs.add(nP + "_" + oP);
             }
             
         }
 
         // Different particles
-        for (int i = 0; i < tmpNewParticleLength; i++) {
+        for (int i = 0; i < newParticleSize; i++) {
 
             for (int j = 0; j < i; j++) {
                 tmpParticlePairs.add(
@@ -2323,128 +2321,93 @@ public class MIPET {
      * Method readXyz
      * Read .xyz files and store in xyzContent.
      * If conformational analysis is set xyzContent is overwritten with optimized data.
+     * 
+     * @param anIsOriginal Flag for whether original xyz-file from moleculeDirectory will be used (true)
+     *                    or optimized (wih same chosen forcefield) xyz- file (false)
+     * @param aForcefield Forcefield name
      */
     private static void readXyz(boolean anIsOriginal, String aForcefield) {
-        int tmpParticlesLength;
-        String tmpParticleName;
-        String tmpXyzName1;
-        String tmpOldAtomType;
-        String tmpNewAtomType;
-        String[] tmpLines;
-        String[] tmpTokens;
-        StringBuilder tmpXyz2;
+        int size = particleNames.size();
+        xyzContent1 = new String[size];
+        xyzContent2 = new String[size];
         
-        tmpParticlesLength = particleNames.size();
-        xyzContent1 = new String[tmpParticlesLength];
-        xyzContent2 = new String[tmpParticlesLength];
-        tmpXyz2 = new StringBuilder(2000);
-        
-        for (int i = 0; i < tmpParticlesLength; i++) {
-            tmpParticleName = particleNames.get(i);
+        for (int i = 0; i < size; i++) {
+            String particleName = particleNames.get(i);
+            Path filePath = buildPath(anIsOriginal, aForcefield, particleName);
             
-            // Read .xyz files
-            if (anIsOriginal) {
-                tmpXyzName1 = moleculeDirectory
-                        + FILESEPARATOR
-                        + aForcefield
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + ".xyz";
-            } else {
-                tmpXyzName1 = optXYZDirectory
-                        + FILESEPARATOR
-                        + aForcefield
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + FILESEPARATOR
-                        + tmpParticleName
-                        + ".xyz";
-            }
-            try {
-                if (Files.exists(Paths.get(tmpXyzName1))) {
-                    xyzContent1[i] = Files.readString(Paths
-                            .get(tmpXyzName1));
-                } 
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during reading .xyz file.", ex);
-            }
-            
-            // Change atom type number of 2. particle to avoid redundancy
-            // Yoda condition protects against NullPointerException if aForcefield is null
-            if ("OPLSAALIGPARGEN".equals(aForcefield) && 
-                    xyzContent1[i] != null && !xyzContent1[i].isEmpty()) {
-                StringBuilder tmpParsedXyz = new StringBuilder();
-                String[] lines = xyzContent1[i].lines().toArray(String[]::new);
-
-                // Append the first line (the header) if the file isn't empty
-                if (lines.length > 0) {
-                    tmpParsedXyz.append(lines[0]); 
+            try{
+                String content = Files.readString(filePath);
+                xyzContent1[i] = content;
+                if ("OPLSAALIGPARGEN".equals(aForcefield) && content != null &&
+                        !content.isEmpty()) {
+                    xyzContent2[i] = processXyzContent(content);
+                } else {
+                    xyzContent2[i] = content;
                 }
-
-                for (int j = 1; j < lines.length; j++) {
-                    String tmpCurrentLine = lines[j];
-                    String[] tokens = tmpCurrentLine.trim().split("\\s+");
-
-                    // Safety check: Does the line actually have at least 6 columns?
-                    if (tokens.length >= 6) {
-                        try {
-                            // Safely parse the old atom type (column 6 / index 5) as an integer
-                            int tmpOldType = Integer.parseInt(tokens[5]);
-                            int tmpNewType = tmpOldType + 100;
-
-                            String oldTypeStr = " " + tmpOldType + " ";
-                            String newTypeStr = " " + tmpNewType + " ";
-
-                            // Replace the text 
-                            // (WARNING: As mentioned before, this might accidentally replace the atom ID if it matches the type!)
-                            tmpCurrentLine = tmpCurrentLine
-                                    .replace(oldTypeStr, newTypeStr);
-
-                        } catch (NumberFormatException e) {
-                            // Ignore gracefully if the 6th column is not a valid number (e.g., malformed lines)
-                        }
-                    }
-
-                    tmpParsedXyz.append(LINESEPARATOR).append(tmpCurrentLine);
-                }
-
-                xyzContent2[i] = tmpParsedXyz.toString();
-
-            } else {
-                // Fallback if the forcefield doesn't match or the string is empty
-                xyzContent2[i] = (xyzContent1[i] != null) ? xyzContent1[i] : "";
-            }
-            
-            
-            
-            
-            
-            
-            
-            tmpXyz2.setLength(0);
-            if (aForcefield.equals("OPLSAALIGPARGEN")) {
-                tmpLines = xyzContent1[i].lines().toArray(String[]::new);
-                tmpXyz2.append(tmpLines[0]);
-
-                for (int j = 1; j < tmpLines.length; j++) {
-                    tmpTokens = tmpLines[j].trim().split("\\s+");
-                    tmpOldAtomType = " " + tmpTokens[5] + " ";
-                    tmpNewAtomType = " "
-                            + (Integer.parseInt(tmpTokens[5]) + 100) 
-                            + " ";
-                    tmpLines[j] = tmpLines[j].replace(tmpOldAtomType, 
-                            tmpNewAtomType);
-                    tmpXyz2.append(LINESEPARATOR);
-                    tmpXyz2.append(tmpLines[j]);
-                }
-
-                xyzContent2[i] = tmpXyz2.toString();
-            } else {
-                xyzContent2[i] = xyzContent1[i];
+            } catch(IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error during reading of the file: " + 
+                        filePath, ex);
             }
         }
         
+    }
+    
+    /**
+     * Helping method for readXyz() to change atomnumber if second particle is different
+     * 
+     * @param content xyz-file content
+     * @return Changed xyz-file content
+     */
+    private static String processXyzContent(String content) {
+        StringBuilder sb = new StringBuilder();
+        String[] lines = content.lines().toArray(String[]::new);
+
+        if (lines.length > 0) {
+            sb.append(lines[0]); // Header
+        }
+
+        for (int j = 1; j < lines.length; j++) {
+            String[] tokens = lines[j].trim().split("\\s+");
+            if (tokens.length >= 6) {
+                try {
+                    // Change of the sixth token (index 5)
+                    int newType = Integer.parseInt(tokens[5]) + 100;
+                    tokens[5] = String.valueOf(newType);
+
+                    // Build the line together again 
+                    sb.append(LINESEPARATOR)
+                      .append(String.format("%-3s %12s %12s %12s %5s %5s", 
+                              (Object[]) tokens)); 
+                } catch (NumberFormatException e) {
+                    sb.append(LINESEPARATOR)
+                            .append(lines[j]);
+                }
+            } else {
+                sb.append(System.lineSeparator()).append(lines[j]);
+            }
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Build path from strings
+     * 
+     * @param isOriginal Flag for whether original xyz-file from moleculeDirectory will be used (true)
+     *                    or optimized (wih same chosen forcefield) xyz- file (false)
+     * @param forcefield Chosen forcefield
+     * @param particleName Particle name
+     * @return Path Path name
+     */
+    private static Path buildPath(boolean isOriginal, String forcefield, 
+            String particleName) {
+        if (isOriginal) {
+            return Paths.get(moleculeDirectory, forcefield, 
+                    particleName + ".xyz");
+        } else {
+            return Paths.get(optXYZDirectory, forcefield, particleName, 
+                    particleName + ".xyz");
+        }
     }
     
     /** 
@@ -2454,77 +2417,61 @@ public class MIPET {
      * @param aForcefield Force field name
      */
     private static void readPrm(String aForcefield) {
-        int tmpParticlesLength;
-        int tmpChargeCorrStartPos;
-        int tmpChargeCorrEndPos;
-        String tmpPrmName1;
-        String tmpParticleName;
-        String tmpSearch;
+        final String SEARCH = "Partial charge correction factor:";
+        int particlesSize = particleNames.size();
         
-        tmpParticlesLength = particleNames.size();
-        tmpSearch = "Partial charge correction factor:";
-        prmContent1 = new String[tmpParticlesLength];
-        prmContent2 = new String[tmpParticlesLength];
-        chargeCorr = new double[tmpParticlesLength];
+        prmContent1 = new String[particlesSize];
+        prmContent2 = new String[particlesSize];
+        chargeCorr = new double[particlesSize];
                 
-        for (int i = 0; i < tmpParticlesLength; i++) {
-            tmpParticleName = particleNames.get(i);
+        for (int i = 0; i < particlesSize; i++) {
+            String particleName = particleNames.get(i);
             
-            // Read .prm files
-            if (aForcefield.equals("OPLSAALIGPARGEN")) {
-                tmpPrmName1 = parameterDirectory
-                    + FILESEPARATOR
-                    + aForcefield
-                    + FILESEPARATOR
-                    + tmpParticleName
-                    + ".prm";
-                try {
-                    if (Files.exists(Paths.get(tmpPrmName1))) {
-                        prmContent1[i] = Files.readString(Paths
-                                .get(tmpPrmName1));
-                    } else {
-                        prmContent1[i] = "";
-                    }
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during reading .prm file.", ex);
-                }
-                
-                // Read partial charge correction factor
-                if (prmContent1[i].contains(tmpSearch)) {
-                    tmpChargeCorrStartPos = prmContent1[i]
-                            .indexOf(tmpSearch) + 33;
-                    tmpChargeCorrEndPos = prmContent1[i]
-                            .indexOf("\n", tmpChargeCorrStartPos);
-                    chargeCorr[i] = Double.parseDouble(prmContent1[i]
-                            .substring(tmpChargeCorrStartPos, 
-                                    tmpChargeCorrEndPos));
-                } else {
-                    chargeCorr[i] = 1.;
-                }
-                
+            // Initialize
+            prmContent1[i] = "";
+            prmContent2[i] = "";
+            chargeCorr[i] = 0.0;
+            
+            if (!"OPLSAALIGPARGEN".equals(aForcefield)) {
+                continue;
             }
             
-            // Change atomtype number of 2. particle to avoid redundancy
-            if (aForcefield.equals("OPLSAALIGPARGEN") &&
-                    !prmContent1[i].isEmpty()) {
+            // Read .prm file
+            Path path = Paths.get(parameterDirectory, 
+                    aForcefield, particleName + ".prm");
+            try {
+                if (Files.exists(path)) {
+                    prmContent1[i] = Files.readString(path);
+                }
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, 
+                        "IOException during reading .prm file.", ex);
+            }
+            
+            // Read partial charge correction factor
+            if (prmContent1[i].contains(SEARCH)) {
+                int chargeCorrStartPos = prmContent1[i].indexOf(SEARCH) + 33;
+                int chargeCorrEndPos = prmContent1[i].indexOf("\n", 
+                        chargeCorrStartPos);
+                
+                String valueStr = prmContent1[i].substring(chargeCorrStartPos, 
+                        chargeCorrEndPos).trim();
+                chargeCorr[i] = Double.parseDouble(valueStr);
+            } else {
+                chargeCorr[i] = 1.0;
+            }
+            
+            // Atom type of second particle
+            if (!prmContent1[i].isEmpty()) {
                 prmContent2[i] = prmContent1[i].lines()
                     .dropWhile(line -> !line.contains("Atom Type Definitions"))
                     .map(line -> {
                         String[] tmpTokens1 = line.trim().split("\\s+");
                         if (tmpTokens1.length > 0) {
                             return switch (tmpTokens1[0]) {
-                                case 
-                                    "atom", 
-                                    "vdw", 
-                                    "charge", 
-                                    "bond", 
-                                    "angle", 
-                                    "torsion", 
-                                    "imptors" 
+                                case "atom", "vdw", "charge", "bond", "angle", "torsion", "imptors" 
                                      -> MIPETUTIL.changeAtomType(tmpTokens1);
-                                default 
-                                     -> line;
+                                default -> line;
                             };
                         }
                         return line;
@@ -2532,12 +2479,10 @@ public class MIPET {
                     .filter(line -> !line.isEmpty())
                     .map(line -> line + LINESEPARATOR) 
                     .collect(Collectors.joining());
-            } else {
-                prmContent2[i] = "";
             }
         }
+        
     }
-
 
     /** 
      * Method makeMoleculeRecord
