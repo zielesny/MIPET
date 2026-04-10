@@ -539,8 +539,10 @@ public class MIPET {
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     /**
      * Main method
+     * 
+     * @param args Input arguments
      */
-    public static void main() {
+    public static void main(String[] args) {
         //<editor-fold defaultstate="collapsed" desc="Variables declaration">
         boolean tmpIsExitCondition;
         boolean tmpIsSameParticle;
@@ -580,7 +582,7 @@ public class MIPET {
         Locale.setDefault(Locale.ENGLISH);
         Instant startTime = Instant.now();
         System.out.println("Initializing...");
-        initialize();
+        initialize(args);
         System.out.println("Reading job file...");
         readJobFile();
         
@@ -1960,9 +1962,23 @@ public class MIPET {
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     /**
      * Initialize method
+     * 
+     * @param args Input arguments
      */
-    private static void initialize() {
-        
+    private static void initialize(String args[]) {
+        // Read title/version
+        String appTitle = MIPET.class.getPackage().getImplementationVersion();
+
+        // Fallback for test in NetBeans
+        if (appTitle == null) {
+            appTitle = "MIPET (Version 1.0.6)";
+        }
+
+        // Ask for versionnumber 
+        if (args.length > 0 && (args[0].equals("-v") || args[0].equals("--version"))) {
+            System.out.println(appTitle);
+            return; // Quit the program
+        }
         setParameters();
         
         // <editor-fold defaultstate="collapsed" desc="Check and create directories">
@@ -4234,7 +4250,13 @@ public class MIPET {
             if (!forceField_CN.isEmpty() || tmpOutputIteration <= 3) {
                 try (BufferedWriter tmpBW = Files.newBufferedWriter(
                         Paths.get(tmpFileName))) {
-                    tmpBW.append("# Particle set for MFSim created by MIPET\n")
+                    tmpBW.append("# Particle set for MFSim created by ")
+                            .append(MIPET.class.getPackage()
+                                    .getImplementationTitle())
+                            .append(" ")
+                            .append(MIPET.class.getPackage()
+                                    .getImplementationVersion())
+                            .append(LINESEPARATOR)
                             .append("# Force Field for energy calculation: ")
                             .append(forceField_IE)
                             .append(LINESEPARATOR)
