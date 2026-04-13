@@ -221,17 +221,18 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      */
     private WgtEnergyRecord executeInternal (double INV_RT) {
         final double ELEMENTCHARGE = 1.602176634E-19; //Elementary charge in C
-        final double tmpChargeQ = ELEMENTCHARGE * ELEMENTCHARGE; // in C^2
+        final double ELCHARGEQ = ELEMENTCHARGE * ELEMENTCHARGE; // in C^2
         final double AVOGADRO = 6.02214076E23; //Avogadro constant in 1/mole
-        final double j_CAL = 0.2390057361; //Conversion factor Joule to Calorie (therm.)
+        final double J_CAL = 0.2390057361; //Conversion factor Joule to Calorie (therm.)
         final double COULOMB = 8.9875517862E9; //Coulomb constant in N*m^2/C^2
-        final double tmpFactor = AVOGADRO * j_CAL * tmpChargeQ * COULOMB * 1E7; // in kcal * m / (mole * C^2)
-        final int chunkSize = NUM_ROT1 * NUM_ROT2;
+        final double FACTOR = AVOGADRO * J_CAL * ELCHARGEQ * COULOMB * 1E7; // in kcal * m / (mole * C^2)
+        final int CHUNKSIZE = NUM_ROT1 * NUM_ROT2;
         int energyCount = 0; // Counter for the valid calculations of energy
         double tmpSumWgt = 0;
         double tmpSumWgtxE = 0;
         double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
-        double[] energyArray = new double[chunkSize];
+        double[] energyArray = new double[CHUNKSIZE];
+        
         double[] sigmas1 = MOLECULE_1.sigmas();
         double[] sigmas2 = MOLECULE_2.sigmas();
         double[] epsilons1 = MOLECULE_1.epsilons();
@@ -273,7 +274,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                 double energyValue = 0.0;
 
                 // Main calculation: double loop over the atoms
-                for (int k = 0; k < NUM_ATOMS2; k++) {
+                for (int k = 0; k < NUM_ATOMS1; k++) {
                     // Coordinates of the molecule 1 (dyretly from the flattend array)
                     double ax = this.FLAT_ROT1.get(i, k, 0);
                     double ay = this.FLAT_ROT1.get(i, k, 1);
@@ -281,7 +282,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
 
                     double k_Sigma3 = sigma3_1[k];
                     double k_SqrtEps = sqrtEps1[k];
-                    double k_CoulombBase = tmpFactor * charges1[k];
+                    double k_CoulombBase = FACTOR * charges1[k];
 
                     for (int m = 0; m < NUM_ATOMS2; m++) {
                         // Distance calculation

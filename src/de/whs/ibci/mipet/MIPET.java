@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -171,11 +172,6 @@ public class MIPET {
      */
     private static LinkedList<String> particleNames;
     
-    /** 
-     * MoleculeRecord
-     */
-    private static LinkedList<MoleculeRecord> molecules;
-    
     /**
      * New particles for calculation
      */
@@ -185,6 +181,11 @@ public class MIPET {
      * Old particles already calculated
      */
     private static LinkedList<String> oldParticles;
+    
+    /** 
+     * MoleculeRecord
+     */
+    private static LinkedList<MoleculeRecord> molecules;
     
     /**
      * .xyz content
@@ -584,7 +585,14 @@ public class MIPET {
         System.out.println("Initializing...");
         initialize(args);
         System.out.println("Reading job file...");
-        readJobFile();
+        try {
+            readJobFile();
+            System.out.println("  The job file is OK."  );
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            LOGGER.log(Level.SEVERE, "Critical error during reading job file: " 
+                    + ex.getMessage(), ex);
+            System.err.println("Please verify that all .xyz and .prm files listed in the job file exist.");
+        }
         
         //</editor-fold>
         
@@ -902,7 +910,7 @@ public class MIPET {
                         tmpH2OPos = 2;
                     }
                 }
-                MIPETUtility.updateStatus("Calculating " + tmpParticlePair);
+                MIPETUtility.updateStatus("  Calculating " + tmpParticlePair);
             
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Create log file">
@@ -991,6 +999,7 @@ public class MIPET {
                 if ("OPLSAALIGPARGEN".equals(tmpForcefield)) {
                     keyContent.append(prmContent1[tmpPrmID1]);
                     if (!tmpIsSameParticle) {
+                        keyContent.append(LINESEPARATOR);
                         keyContent.append(prmContent2[tmpPrmID2]);
                     }
                 }
@@ -1442,9 +1451,11 @@ public class MIPET {
                                 while ((tmpLine = tmpBR.readLine()) != null ) {
                                     if (tmpLine.contains(tmpSearch)) {
                                         if (i == 0) {
-                                            tmpOptMinEnergy = Double.parseDouble(tmpLine.substring(25, 50));
+                                            tmpOptMinEnergy = Double
+                                                    .parseDouble(tmpLine.substring(25, 50));
                                         } else {
-                                            tmpRgdMinEnergy = Double.parseDouble(tmpLine.substring(25, 50));
+                                            tmpRgdMinEnergy = Double
+                                                    .parseDouble(tmpLine.substring(25, 50));
                                         }
                                         break;
                                     }
@@ -1975,7 +1986,8 @@ public class MIPET {
         }
 
         // Ask for versionnumber 
-        if (args.length > 0 && (args[0].equals("-v") || args[0].equals("--version"))) {
+        if (args.length > 0 && (args[0].equals("-v") || args[0]
+                .equals("--version"))) {
             System.out.println(appTitle);
             return; // Quit the program
         }
@@ -2026,50 +2038,49 @@ public class MIPET {
      * Read the Job file
      */
     private static void readJobFile() {
-        String tmpLine;
-        String tmpRestString;
-        char tmpFirstChar;
-        
         particleNames = new LinkedList<>();
         newParticles = new LinkedList<>();
         oldParticles = new LinkedList<>();
         
-        try (BufferedReader tmpBR = new BufferedReader(
+        try (BufferedReader reader = new BufferedReader(
                 new FileReader(jobFileName))) {
+            String line;
+            
             // read jobs
-            while ((tmpLine = tmpBR.readLine()) != null ) {
-                if (tmpLine.isEmpty()) {
+            while ((line = reader.readLine()) != null ) {
+                String trimmedLine = line.trim();
+                if (line.isEmpty()) {
                     continue;
                 }
-                tmpFirstChar = tmpLine.trim().charAt(0);
-                tmpRestString = tmpLine.trim().substring(1).trim();
-                switch (tmpFirstChar) {
+                char firstChar = trimmedLine.charAt(0);
+                String restString = trimmedLine.substring(1).trim();
+                switch (firstChar) {
                     case '#' -> {
                      // ignore comment line
                     }
                     case '*' -> {
-                        String[] tmpString = tmpRestString.split("\\s+");
+                        String[] tmpString = restString.split("\\s+");
                         forceField_IE = tmpString[0];
                     }
                     case '$' -> {
-                        String[] tmpString = tmpRestString.split("\\s+");
+                        String[] tmpString = restString.split("\\s+");
                         forceField_CN = tmpString[0];
                     }
                     case '-' -> {
-                        if (!oldParticles.contains(tmpRestString)) {
-                            oldParticles.add(tmpRestString);
+                        if (!oldParticles.contains(restString)) {
+                            oldParticles.add(restString);
                         }
-                        if (!particleNames.contains(tmpRestString)) {
-                            particleNames.add(tmpRestString);
+                        if (!particleNames.contains(restString)) {
+                            particleNames.add(restString);
                         }
                     }
                     default -> {
-                        tmpLine = tmpLine.trim();
-                        if (!newParticles.contains(tmpLine)) {
-                            newParticles.add(tmpLine);
+                        line = line.trim();
+                        if (!newParticles.contains(line)) {
+                            newParticles.add(line);
                         }
-                        if (!particleNames.contains(tmpLine)) {
-                            particleNames.add(tmpLine);
+                        if (!particleNames.contains(line)) {
+                            particleNames.add(line);
                         }
                     }
                 }
@@ -2084,31 +2095,32 @@ public class MIPET {
             throw new IllegalArgumentException("IOException during"
                     + "reading job file.");
         }
-        if (forceField_IE.equals("OPLSAALIGPARGEN")) {
+        if ("OPLSAALIGPARGEN".equals(forceField_IE)) {
             for (String particle : particleNames) {
                 if (!smiles.containsKey(particle)) {
                     System.out.println(particle + " was not found in Smiles.dat");
-                    System.exit(1);
+                    throw new IllegalStateException(particle 
+                            + " was not found in Smiles.dat");
                 }
 
                 // Check whether .xyz file exists
                 Path xyzPath = Path.of(moleculeDirectory, 
-                         FILESEPARATOR,
                          "OPLSAALIGPARGEN",
                          particle + ".xyz");
                 if (!Files.exists(xyzPath)) {
                     System.out.println(particle + ".xyz was not found.");
-                    System.exit(1);
+                    throw new IllegalStateException(particle 
+                            + ".xyz was not found.");
                 }
                 
                 // Check whether .prm file exists
                 Path prmPath = Path.of(parameterDirectory, 
-                         FILESEPARATOR, 
                          "OPLSAALIGPARGEN",
                          particle + ".prm");
                 if (!Files.exists(prmPath)) {
                     System.out.println(particle + ".prm was not found.");
-                    System.exit(1);
+                    throw new IllegalStateException(particle 
+                            + ".prm was not found.");
                 }
             }
         }
