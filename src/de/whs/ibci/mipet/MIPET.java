@@ -553,7 +553,6 @@ public class MIPET {
         String tmpParticlePair;
         String tmpKeyFileString;
         String tmpKeyFileName;
-        String tmpKeyPathName;
         String tmpIEResultDirName;
         String tmpCNResultDirName;
         String tmpParticleDatFileName;
@@ -808,24 +807,16 @@ public class MIPET {
             
             // Copy .xyz file to optXYZ directory
             for (String tmpParticleName : particleNames) {
-                tmpSourceName = moleculeDirectory
-                        + FILESEPARATOR 
-                        + tmpForcefield 
-                        + FILESEPARATOR 
-                        + tmpParticleName
-                        + ".xyz";
-                tmpFileName = FILESEPARATOR 
-                        + tmpForcefield 
-                        + FILESEPARATOR 
-                        + tmpParticleName
-                        + FILESEPARATOR 
-                        + tmpParticleName
-                        + ".xyz";
-                tmpTargetName = optXYZDirectory + tmpFileName;
-
                 // Check whether already scanned
-                tmpSourcePath = Paths.get(tmpSourceName);
-                tmpTargetPath = Paths.get(tmpTargetName);
+                tmpSourcePath = Paths.get(
+                        moleculeDirectory, 
+                        tmpForcefield,
+                        tmpParticleName + ".xyz");
+                tmpTargetPath = Paths.get(
+                        optXYZDirectory,
+                        tmpForcefield,
+                        tmpParticleName,
+                        tmpParticleName + ".xyz");
                 if (!Files.exists(tmpTargetPath)) {
                     try{
                         Files.copy(tmpSourcePath, tmpTargetPath, 
@@ -1928,7 +1919,7 @@ public class MIPET {
         
         //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Export parameterset">
-        System.out.print("\rExporting parameterset...");
+        System.out.print("\rExporting parameterset...          ");
         Instant endTime = Instant.now();
         Duration duration = Duration.between(startTime, endTime);
         float totalTimeSeconds = duration.toMillis() / 1000f;
