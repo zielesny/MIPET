@@ -1,0 +1,10 @@
+version 1.0.7 (16.04.2026)
+==========================
+* makeMoleculeRecord(): assignment check in prm-file
+
+version 1.0.6 (13.04.2026)
+==========================
+* Using flattend array -> performance improvement ~x3
++ Check up whether result and scratch Paths are empty
++ Version info via command line parameter
++ Status info during energy calculation

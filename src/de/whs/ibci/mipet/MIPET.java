@@ -47,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
@@ -2506,90 +2507,69 @@ public class MIPET {
     /** 
      * Method makeMoleculeRecord
      * Make molecules record for intermolecular energy calculation without tinker
-     *  (only for OPLSAALIGPARGEN)
+     *  (only for OPLSAALIGPARGEN - with assignment check in prm-file)
      */
     private static void makeMoleculeRecord() {
-        int tmpParticleSize;
-        int tmpSigmaIndex;
-        int tmpChargeIndex;
-        int[] tmpAtomNumber;
-        int[][] tmpAtomTypes;
-        double[][] tmpEpsilons;
-        double[][] tmpSigmas;
-        double[][] tmpCharges;
-        StringTokenizer tmpTokenizer;
-        String[] tmpLines;
-        String[] tmpWords;
-        String[][] tmpElements;
-        
         molecules = new LinkedList<>();
-        tmpParticleSize = particleNames.size();
-        tmpAtomNumber = new int[tmpParticleSize];
-        tmpElements = new String[tmpParticleSize][];
-        tmpAtomTypes = new int[tmpParticleSize][];
-        tmpSigmas = new double[tmpParticleSize][];
-        tmpEpsilons = new double[tmpParticleSize][];
-        tmpCharges = new double[tmpParticleSize][];
+        int tmpParticleSize = particleNames.size();
         
-        // Read elements and atomTypes
         for (int i = 0; i < tmpParticleSize; i++) {
-            tmpLines = xyzContent1[i].lines().toArray(String[]::new);
-            tmpWords = tmpLines[0].trim().split("\\s+");
-            tmpAtomNumber[i] = Integer.parseInt(tmpWords[0]);
-            tmpElements[i] = new String[tmpAtomNumber[i]];
-            tmpAtomTypes[i] = new int[tmpAtomNumber[i]];
+            // Read xyz-file (coordinates and atom types)
+            String[] xyzLines = xyzContent1[i].lines().toArray(String[]::new);
+            String[] xyzHeader = xyzLines[0].trim().split("\\s+");
+            int numAtoms = Integer.parseInt(xyzHeader[0]);
+            String[] elements = new String[numAtoms];
+            int[] atomTypes = new int[numAtoms];
             
-            for (int j = 1; j < tmpLines.length; j++) {
-                tmpTokenizer = new StringTokenizer(tmpLines[j]);
-                tmpTokenizer.nextToken();
-                tmpElements[i][j - 1] = tmpTokenizer.nextToken();
-                tmpTokenizer.nextToken();
-                tmpTokenizer.nextToken();
-                tmpTokenizer.nextToken();
-                tmpAtomTypes[i][j-1] = Integer
-                        .parseInt(tmpTokenizer.nextToken());
+            // Begin with after header -> j = 1
+            for (int j = 1; j < xyzLines.length; j++) {
+                String[] tokens = xyzLines[j].trim().split("\\s+");
+                elements[j - 1] = tokens[1]; // Element (2. Column)
+                atomTypes[j-1] = Integer.parseInt(tokens[5]); // Atom type (6. Column)
             }
             
-        }
-        
-        // Read epsilons, sigmas and charges
-        for (int i = 0; i < tmpParticleSize; i++) {
-            tmpSigmaIndex = 0;
-            tmpChargeIndex = 0;
-            tmpLines = prmContent1[i].lines().toArray(String[]::new);
-            tmpSigmas[i] = new double[tmpAtomNumber[i]];
-            tmpEpsilons[i] = new double[tmpAtomNumber[i]];
-            tmpCharges[i] = new double[tmpAtomNumber[i]];
-
-            for (String tmpLine : tmpLines) {
-                if (tmpLine.startsWith("vdw ")) {
-                    tmpTokenizer = new StringTokenizer(tmpLine);
-                    tmpTokenizer.nextToken();
-                    tmpTokenizer.nextToken();
-                    tmpSigmas[i][tmpSigmaIndex] =
-                            Double.parseDouble(tmpTokenizer.nextToken());
-                    tmpEpsilons[i][tmpSigmaIndex] =
-                            Double.parseDouble(tmpTokenizer.nextToken());
-                    tmpSigmaIndex++;
-                } else if (tmpLine.startsWith("charge ")) {
-                    tmpTokenizer = new StringTokenizer(tmpLine);
-                    tmpTokenizer.nextToken();
-                    tmpTokenizer.nextToken();
-                    tmpCharges[i][tmpChargeIndex] = 
-                            Double.parseDouble(tmpTokenizer.nextToken()) 
-                            * chargeCorr[i];
-                    tmpChargeIndex++;
+            // Read prm-file and copy in maps
+            Map<Integer, Double> sigmaMap = new HashMap<>();
+            Map<Integer, Double> epsilonMap = new HashMap<>();
+            Map<Integer, Double> chargeMap = new HashMap<>();
+            String[] prmLines = prmContent1[i].lines().toArray(String[]::new);
+            
+            for (String line : prmLines) {
+                String[] tokens = line.trim().split("\\s+");
+                if (tokens.length < 3) {
+                    continue; // Ignore empty line
                 }
+                if (tokens[0].equals("vdw")) {
+                    int type = Integer.parseInt(tokens[1]); // Atom type nummer
+                    sigmaMap.put(type, Double.valueOf(tokens[2]));
+                    epsilonMap.put(type, Double.valueOf(tokens[3]));
+                } else if (tokens[0].equals("charge")) {
+                    int type = Integer.parseInt(tokens[1]); // Atom type nummer
+                    chargeMap.put(type, Double.parseDouble(tokens[2]) 
+                            * chargeCorr[i]);
+                }
+            }
+            
+            // Assign parameters to the atoms based on their type number
+            double[] sigmas = new double[numAtoms];
+            double[] epsilons = new double[numAtoms];
+            double[] charges = new double[numAtoms];
+
+            for (int j = 0; j < numAtoms; j++) {
+                int currentAtomType = atomTypes[j];
+                sigmas[j] = sigmaMap.getOrDefault(currentAtomType, 0.0);
+                epsilons[j] = epsilonMap.getOrDefault(currentAtomType, 0.0);
+                charges[j] = chargeMap.getOrDefault(currentAtomType, 0.0);
             }
             
             molecules.add(new MoleculeRecord(
                     particleNames.get(i),
-                    tmpAtomNumber[i],
-                    tmpElements[i],
-                    tmpAtomTypes[i],
-                    tmpEpsilons[i],
-                    tmpSigmas[i],
-                    tmpCharges[i]
+                    numAtoms,
+                    elements,
+                    atomTypes,
+                    epsilons,
+                    sigmas,
+                    charges
             ));
         }
         
