@@ -494,7 +494,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                     "IOException during deleting files in scratch directory.", ex);
         }
             
-        TinkerXYZ tinkerXYZMin = new TinkerXYZ();
+        TinkerXYZ tinkerXYZMin = new TinkerXYZ(tmpMinFileName, 1, 
+                this.NUM_ATOMS1, this.NUM_ATOMS2);
         if (ISFRACTIONONE) {
             double[] resultList = new double[1];
             resultList[0] = localMinEnergy;
