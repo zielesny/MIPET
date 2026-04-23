@@ -23,13 +23,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -544,35 +541,12 @@ public class MIPET {
      */
     public static void main(String[] args) {
         //<editor-fold defaultstate="collapsed" desc="Variables declaration">
-        boolean tmpIsExitCondition;
-        boolean tmpIsSameParticle;
-        boolean tmpHasEnergieJob;
-        int tmpCurrentIndex;
-        String tmpForcefield;
-        String tmpParticlePair;
-        String keyFileName;
-        String tmpIEResultDirName;
-        String tmpCNResultDirName;
         String tmpParticleDatFileName;
         Path tmpParticleDatFile;
-        String tmpParticleName1;
-        String tmpParticleName2;
-        double[][] tmpXyzData1; // coordination of 1. fragment atoms
-        double[][] tmpXyzData2; // coordination of 2. fragment atoms
-        double[] tmpCentre1;
-        double[] tmpCentre2;
-        double[][][] tmpXyzRotData1; // i: configuration, j: atom, k: xyz
-        double[][][] tmpXyzRotData2; // i: configuration, j: atom, k: xyz
-        String[] tmpElementList1;
-        String[] tmpElementList2;
         String[] tmpCmdList;
-        TinkerXYZ tmpTinkerXYZ1;
-        TinkerXYZ tmpTinkerXYZ2;
-        Process tmpProcess;
         ProcessBuilder tmpPB;
         ArrayIndexComparator tmpComparator;
-        ArrayList<String> tmpParticlePairs = new ArrayList<>(500);
-        ArrayList<JobTaskRecord> tmpJobTaskRecordList = new ArrayList<>(500);
+        ArrayList<JobTaskRecord> jobTaskRecordList = new ArrayList<>(500);
 
         //</editor-fold>
         
@@ -668,92 +642,93 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Prepare input">
-        tmpParticlePairs = getParticlePairs();
+        ArrayList<String> tmpParticlePairs = getParticlePairs();
         
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Make Job task record">
-        String tmpIEDatFileName;
-        String tmpCNDatFileName;
-        int tmpParticlePairLength;
-        boolean tmpHasCNJob;
+        String particle1;
+        String particle2;
+        String particlePair;
+        boolean isSameParticle;
+        int particlePairLength = tmpParticlePairs.size();
         
-        tmpParticlePairLength = tmpParticlePairs.size();
-        
-        for (int i = 0; i < tmpParticlePairLength; i++) {
-            tmpParticlePair = tmpParticlePairs.get(i);
-            tmpParticleName1 = tmpParticlePair.split("_")[0];
-            tmpParticleName2 = tmpParticlePair.split("_")[1];
-            tmpIsSameParticle = tmpParticleName1.equals(tmpParticleName2);
-            tmpIEResultDirName = resultDirectory
+        for (int i = 0; i < particlePairLength; i++) {
+            particlePair = tmpParticlePairs.get(i);
+            particle1 = particlePair.split("_")[0];
+            particle2 = particlePair.split("_")[1];
+            isSameParticle = particle1.equals(particle2);
+            String ieResultDirName = resultDirectory
                     + FILESEPARATOR
                     + "IE"
                     + FILESEPARATOR
                     + forceField_IE
                     + FILESEPARATOR
-                    + tmpParticlePair;
-            tmpIEDatFileName = tmpIEResultDirName
+                    + particlePair;
+            String ieDatFileName = ieResultDirName
                     + FILESEPARATOR
-                    + tmpParticlePair
+                    + particlePair
                     + ".dat";
-            tmpCNResultDirName = resultDirectory
+            String cnResultDirName = resultDirectory
                     + FILESEPARATOR
                     + "CN"
                     + FILESEPARATOR
                     + forceField_CN
                     + FILESEPARATOR
-                    + tmpParticlePair;
-            tmpCNDatFileName = tmpCNResultDirName
+                    + particlePair;
+            String tmpCNDatFileName = cnResultDirName
                     + FILESEPARATOR
-                    + tmpParticlePair
+                    + particlePair
                     + ".dat";
-            if (Files.exists(Paths.get(tmpIEDatFileName))) {
-                tmpHasEnergieJob = false;
+            boolean hasEnergieJob;
+            if (Files.exists(Paths.get(ieDatFileName))) {
+                hasEnergieJob = false;
             } else {
-                tmpHasEnergieJob = true;
+                hasEnergieJob = true;
                 try {
-                    Files.createDirectories(Paths.get(tmpIEResultDirName));
+                    Files.createDirectories(Paths.get(ieResultDirName));
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during creating result directory.", ex);
                 }
             }
+            boolean hasCNJob;
             if (Files.exists(Paths.get(tmpCNDatFileName))) {
-                tmpHasCNJob = false;
+                hasCNJob = false;
             } else {
-                tmpHasCNJob = true;
+                hasCNJob = true;
                 try {
                     if (!forceField_CN.isEmpty()) {
-                        Files.createDirectories(Paths.get(tmpCNResultDirName));
+                        Files.createDirectories(Paths.get(cnResultDirName));
                     }
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during creating CN result directory.", ex);
                 }
             }
-            tmpJobTaskRecordList.add(new JobTaskRecord(
+            jobTaskRecordList.add(new JobTaskRecord(
                     forceField_IE,
                     forceField_CN,
-                    tmpParticleName1, 
-                    tmpParticleName2, 
-                    tmpIEResultDirName,
-                    tmpCNResultDirName,
-                    tmpHasEnergieJob,
-                    tmpHasCNJob,
-                    tmpIsSameParticle,
+                    particle1, 
+                    particle2, 
+                    ieResultDirName,
+                    cnResultDirName,
+                    hasEnergieJob,
+                    hasCNJob,
+                    isSameParticle,
                     false));
-            if (!tmpIsSameParticle) {
-                tmpHasEnergieJob = false;
-                tmpJobTaskRecordList.add(new JobTaskRecord(
+            if (!isSameParticle) {
+                hasEnergieJob = false;
+                jobTaskRecordList.add(new JobTaskRecord(
                         forceField_IE,
                         forceField_CN,
-                        tmpParticleName2, 
-                        tmpParticleName1, 
-                        tmpIEResultDirName,
-                        tmpCNResultDirName,
-                        tmpHasEnergieJob,
-                        tmpHasCNJob,
-                        tmpIsSameParticle,
+                        particle2, 
+                        particle1, 
+                        ieResultDirName,
+                        cnResultDirName,
+                        hasEnergieJob,
+                        hasCNJob,
+                        isSameParticle,
                         true));
             }
         }
@@ -768,11 +743,8 @@ public class MIPET {
         //</editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Conformational analysis">
-        String tmpSourceName;
-        String tmpTargetName;
-        String tmpFileName;
-        Path tmpSourcePath;
-        Path tmpTargetPath;
+        String fileName;
+        String forcefield;
         Path tmpOptXyzPath;
         
         if (isConformationalAnalysis) {
@@ -783,13 +755,11 @@ public class MIPET {
             readXyz(false, forceField_IE);
         } else {
             System.out.println("Conformational Analysis skipped.");
-            tmpForcefield = tmpJobTaskRecordList.getFirst()
-                    .forcefield_IE_Name();
+            forcefield = jobTaskRecordList.getFirst().forcefield_IE_Name();
             
-            for (String tmpParticleName : particleNames) {
-                tmpOptXyzPath = Paths.get(optXYZDirectory, 
-                        tmpForcefield, 
-                        tmpParticleName);
+            for (String particle : particleNames) {
+                tmpOptXyzPath = Paths.get(optXYZDirectory, forcefield, 
+                        particle);
                 if (!Files.exists(tmpOptXyzPath)) {
                     try {
                         Files.createDirectories(tmpOptXyzPath);
@@ -804,18 +774,18 @@ public class MIPET {
             // Copy .xyz file to optXYZ directory
             for (String tmpParticleName : particleNames) {
                 // Check whether already scanned
-                tmpSourcePath = Paths.get(
+                Path sourcePath = Paths.get(
                         moleculeDirectory, 
-                        tmpForcefield,
+                        forcefield,
                         tmpParticleName + ".xyz");
-                tmpTargetPath = Paths.get(
+                Path targetPath = Paths.get(
                         optXYZDirectory,
-                        tmpForcefield,
+                        forcefield,
                         tmpParticleName,
                         tmpParticleName + ".xyz");
-                if (!Files.exists(tmpTargetPath)) {
+                if (!Files.exists(targetPath)) {
                     try{
-                        Files.copy(tmpSourcePath, tmpTargetPath, 
+                        Files.copy(sourcePath, targetPath, 
                                 StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, 
@@ -837,7 +807,6 @@ public class MIPET {
         long tmpEnergyCalcTime;
         double tmpGlbEmin;
         double tmpDistanceCandidate;
-        String tmpLine;
         Path tmpKeyFile;
         Path tmpOptDistFile;
         EnergyRecord[] tmpEnergyRecords;
@@ -858,47 +827,43 @@ public class MIPET {
         decimal2.applyPattern("#0.00");
         decimal3.applyPattern("#0.000");
         decimal4.applyPattern("#0.0000");
-        tmpCurrentIndex = 0;
-        tmpIsExitCondition = false;
+        boolean isExitCondition = false;
+        int currIndex = 0;
         String keyFileString = keyFileStringOrigin 
                 + "DIELECTRIC\t" 
                 + dielectricConstant
                 + LINESEPARATOR;
-        tmpForcefield = forceField_IE;
+        forcefield = forceField_IE;
         System.out.println("Calculating intermolecular energy...");
         
         //</editor-fold>
         
-        while (!tmpIsExitCondition) {
-            
+        while (!isExitCondition) {
             // Exit condition is true when all particle pair combinations
             //   were calculated.
-            if (tmpJobTaskRecordList.get(tmpCurrentIndex).hasEnergieJob()) {
+            if (jobTaskRecordList.get(currIndex).hasEnergieJob()) {
                 //<editor-fold defaultstate="collapsed" desc="Job task record">
-                tmpParticleName1 = tmpJobTaskRecordList.get(tmpCurrentIndex)
-                        .particleName1();
-                tmpParticleName2 = tmpJobTaskRecordList.get(tmpCurrentIndex)
-                        .particleName2();
-                tmpParticlePair = tmpParticleName1 + "_" + tmpParticleName2;
-                tmpIsSameParticle = tmpParticleName1.equals(tmpParticleName2);
-                tmpIEResultDirName = tmpJobTaskRecordList.get(tmpCurrentIndex)
+                particle1 = jobTaskRecordList.get(currIndex).particleName1();
+                particle2 = jobTaskRecordList.get(currIndex).particleName2();
+                particlePair = particle1 + "_" + particle2;
+                isSameParticle = particle1.equals(particle2);
+                String tmpIEResultDirName = jobTaskRecordList.get(currIndex)
                         .result_IE_PathName();
                 tmpH2OPos = 0;
-                if (tmpParticleName1.equals("H2O") 
-                        ^ tmpParticleName2.equals("H2O")) {
-                    if (tmpParticleName1.equals("H2O")) {
+                if (particle1.equals("H2O") ^ particle2.equals("H2O")) {
+                    if (particle1.equals("H2O")) {
                         tmpH2OPos = 1;
                     } else {
                         tmpH2OPos = 2;
                     }
                 }
-                MIPETUtility.updateStatus("  Calculating " + tmpParticlePair);
+                MIPETUtility.updateStatus("  Calculating " + particlePair);
             
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Create log file">
                 tmpParticleDatFileName = tmpIEResultDirName
                         + FILESEPARATOR
-                        + tmpParticlePair
+                        + particlePair
                         + ".dat";
                 tmpParticleDatFile = Paths.get(tmpParticleDatFileName);
                 try {
@@ -915,28 +880,26 @@ public class MIPET {
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Centre first fragment">
                 // Centre the fragments and move to the centre
-                int tmpXyz1ID = particleNames.indexOf(tmpParticleName1);
-                tmpTinkerXYZ1 = new TinkerXYZ(tmpForcefield,
-                        tmpParticleName1,
-                        xyzContent1[tmpXyz1ID]);
-                tmpXyzData1 = tmpTinkerXYZ1.getCoordinateList1()[0];
-                tmpCentre1 = tmpTinkerXYZ1.findCentreCoordinate();
-                tmpXyzData1 = tmpTinkerXYZ1.moveCoordinates(tmpXyzData1, 
-                        tmpCentre1);
-                if (tmpIsSameParticle) {
-                    tmpTinkerXYZ2  = new TinkerXYZ(tmpForcefield,
-                        tmpParticleName2,
-                        xyzContent1[tmpXyz1ID]);
+                int xyz1ID = particleNames.indexOf(particle1);
+                TinkerXYZ tinkerXYZ1 = new TinkerXYZ(forcefield, particle1,
+                        xyzContent1[xyz1ID]);
+                TinkerXYZ tinkerXYZ2;
+                double[][] xyzData1 = tinkerXYZ1.getCoordinateList1()[0];
+                double[] centre1 = tinkerXYZ1.findCentreCoordinate();
+                xyzData1 = tinkerXYZ1.moveCoordinates(xyzData1, centre1);
+                if (isSameParticle) {
+                    tinkerXYZ2  = new TinkerXYZ(forcefield,
+                        particle2,
+                        xyzContent1[xyz1ID]);
                 } else {
-                    int tmpXyz2ID = particleNames.indexOf(tmpParticleName2);
-                    tmpTinkerXYZ2 = new TinkerXYZ(tmpForcefield,
-                            tmpParticleName2,
+                    int tmpXyz2ID = particleNames.indexOf(particle2);
+                    tinkerXYZ2 = new TinkerXYZ(forcefield,
+                            particle2,
                             xyzContent2[tmpXyz2ID]);
                 }
-                tmpXyzData2 = tmpTinkerXYZ2.getCoordinateList1()[0];
-                tmpCentre2 = tmpTinkerXYZ2.findCentreCoordinate();
-                tmpXyzData2 = tmpTinkerXYZ2
-                        .moveCoordinates(tmpXyzData2, tmpCentre2);
+                double[][] xyzData2 = tinkerXYZ2.getCoordinateList1()[0];
+                double[] centre2 = tinkerXYZ2.findCentreCoordinate();
+                xyzData2 = tinkerXYZ2.moveCoordinates(xyzData2, centre2);
 
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Calculate Intermolecular Energy">
@@ -945,11 +908,13 @@ public class MIPET {
                 tmpRotCoords = RotationUtil.getRotationsCoords(
                         sphereNodeNumber1, 
                         rotationNumber1,
-                        tmpXyzData1, 
-                        tmpXyzData2,
+                        xyzData1, 
+                        xyzData2,
                         isFibonacciSphereAlgorithm);
-                tmpXyzRotData1 = tmpRotCoords.get(0);
-                tmpXyzRotData2 = tmpRotCoords.get(1);
+                
+                // xyz-configurations i: configuration, j: atom, k: xyz
+                double[][][] tmpXyzRotData1 = tmpRotCoords.get(0);
+                double[][][] tmpXyzRotData2 = tmpRotCoords.get(1);
                 
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="Prescan">
@@ -958,16 +923,16 @@ public class MIPET {
                         / prescanStepSize) + 1;
                 tmpDistanceList = new LinkedList<>();
                 tmpDistEminRecords = new LinkedList<>();
-                tmpPrmID1 = particleNames.indexOf(tmpParticleName1);
-                if (tmpIsSameParticle) {
+                tmpPrmID1 = particleNames.indexOf(particle1);
+                if (isSameParticle) {
                     tmpPrmID2 = tmpPrmID1;
                 } else {
-                    tmpPrmID2 = particleNames.indexOf(tmpParticleName2);
+                    tmpPrmID2 = particleNames.indexOf(particle2);
                 }
 
                 /* Write .key file */
                 Path keyPath = Paths.get(scratchDirectory,
-                        tmpParticlePair + ".key");
+                        particlePair + ".key");
                 StringBuilder keyContent = new StringBuilder(
                         keyFileStringOrigin)
                         .append("DIELECTRIC\t")
@@ -978,9 +943,9 @@ public class MIPET {
                         .append("OPENMP-THREADS 1")
                         .append(LINESEPARATOR);
                 
-                if ("OPLSAALIGPARGEN".equals(tmpForcefield)) {
+                if ("OPLSAALIGPARGEN".equals(forcefield)) {
                     keyContent.append(prmContent1[tmpPrmID1]);
-                    if (!tmpIsSameParticle) {
+                    if (!isSameParticle) {
                         keyContent.append(LINESEPARATOR);
                         keyContent.append(prmContent2[tmpPrmID2]);
                     }
@@ -1002,12 +967,12 @@ public class MIPET {
                 
                 //</editor-fold>
                 
-                if (tmpParticlePair.equals("Na+_Na+") || 
-                        tmpParticlePair.equals("Ac-_Ac-")) {
+                if (particlePair.equals("Na+_Na+") || 
+                        particlePair.equals("Ac-_Ac-")) {
                     // Check whether particle pair is Na+_Na+ or Ac-_Ac-
                     energyList.add(new ResultEnergyRecord(
-                            tmpParticleName1, 
-                            tmpParticleName2, 
+                            particle1, 
+                            particle2, 
                             0,
                             0,
                             0,
@@ -1015,10 +980,10 @@ public class MIPET {
                 } else {
                     tmpEnergyRecords = new EnergyRecord[5];
                     tmpEnergyRecords[0] = getInterMolecularEnergy(
-                            tmpParticlePair,
+                            particlePair,
                             tmpDistances, 
-                            tmpTinkerXYZ1, 
-                            tmpTinkerXYZ2, 
+                            tinkerXYZ1, 
+                            tinkerXYZ2, 
                             tmpXyzRotData1, 
                             tmpXyzRotData2,
                             1E10);
@@ -1038,8 +1003,8 @@ public class MIPET {
                         tmpRotCoords = RotationUtil.getRotationsCoords(
                                 sphereNodeNumber2, 
                                 rotationNumber2,
-                                tmpXyzData1,
-                                tmpXyzData2,
+                                xyzData1,
+                                xyzData2,
                                 isFibonacciSphereAlgorithm);
                         tmpXyzRotData1 = tmpRotCoords.get(0);
                         tmpXyzRotData2 = tmpRotCoords.get(1);
@@ -1061,10 +1026,10 @@ public class MIPET {
                             .mapToDouble(d -> d)
                             .toArray();
                     tmpEnergyRecords[1] = getInterMolecularEnergy(
-                            tmpParticlePair,
+                            particlePair,
                             tmpDistances, 
-                            tmpTinkerXYZ1, 
-                            tmpTinkerXYZ2, 
+                            tinkerXYZ1, 
+                            tinkerXYZ2, 
                             tmpXyzRotData1, 
                             tmpXyzRotData2,
                             tmpGlbEmin);
@@ -1087,8 +1052,8 @@ public class MIPET {
                         tmpRotCoords = RotationUtil.getRotationsCoords(
                                 sphereNodeNumber3, 
                                 rotationNumber3,
-                                tmpXyzData1,
-                                tmpXyzData2,
+                                xyzData1,
+                                xyzData2,
                                 isFibonacciSphereAlgorithm);
                         tmpXyzRotData1 = tmpRotCoords.get(0);
                         tmpXyzRotData2 = tmpRotCoords.get(1);
@@ -1110,10 +1075,10 @@ public class MIPET {
                             .mapToDouble(d -> d)
                             .toArray();
                     tmpEnergyRecords[2] = getInterMolecularEnergy(
-                            tmpParticlePair,
+                            particlePair,
                             tmpDistances, 
-                            tmpTinkerXYZ1, 
-                            tmpTinkerXYZ2, 
+                            tinkerXYZ1, 
+                            tinkerXYZ2, 
                             tmpXyzRotData1, 
                             tmpXyzRotData2,
                             tmpGlbEmin);
@@ -1138,8 +1103,8 @@ public class MIPET {
                         tmpRotCoords = RotationUtil.getRotationsCoords(
                                 sphereNodeNumber4, 
                                 rotationNumber4,
-                                tmpXyzData1,
-                                tmpXyzData2,
+                                xyzData1,
+                                xyzData2,
                                 isFibonacciSphereAlgorithm);
                         tmpXyzRotData1 = tmpRotCoords.get(0);
                         tmpXyzRotData2 = tmpRotCoords.get(1);
@@ -1150,10 +1115,10 @@ public class MIPET {
                     tmpDistances = new double[1];
                     tmpDistances[0] = tmpGlbEminDist; 
                     tmpEnergyRecords[3] = getInterMolecularEnergy(
-                            tmpParticlePair,
+                            particlePair,
                             tmpDistances, 
-                            tmpTinkerXYZ1, 
-                            tmpTinkerXYZ2, 
+                            tinkerXYZ1, 
+                            tinkerXYZ2, 
                             tmpXyzRotData1, 
                             tmpXyzRotData2,
                             tmpGlbEmin);
@@ -1207,10 +1172,10 @@ public class MIPET {
                         tmpDistances = tmpDistanceList.stream()
                                 .mapToDouble(d -> d).toArray();
                         tmpEnergyRecords[4] = getInterMolecularEnergy(
-                                tmpParticlePair,
+                                particlePair,
                                 tmpDistances, 
-                                tmpTinkerXYZ1, 
-                                tmpTinkerXYZ2, 
+                                tinkerXYZ1, 
+                                tinkerXYZ2, 
                                 tmpXyzRotData1, 
                                 tmpXyzRotData2,
                                 tmpGlbEmin);
@@ -1266,7 +1231,7 @@ public class MIPET {
                         // Delete old .key file and make new one
                         tmpKeyFile = Paths.get(scratchDirectory 
                                 + FILESEPARATOR
-                                + tmpParticlePair
+                                + particlePair
                                 + ".key");
                         try {
                             Files.deleteIfExists(tmpKeyFile);
@@ -1277,12 +1242,12 @@ public class MIPET {
                         }
 
                         // Determining opt. Emin
-                        keyFileName = tmpParticlePair + ".key";
-                        keyPath = Paths.get(scratchDirectory, keyFileName);
+                        keyPath = Paths.get(scratchDirectory, 
+                                particlePair + ".key");
                         String optKeyContent = keyFileString;
-                        if (tmpForcefield.equals("OPLSAALIGPARGEN")) {
+                        if (forcefield.equals("OPLSAALIGPARGEN")) {
                             optKeyContent += prmContent1[tmpPrmID1];
-                            if (!tmpIsSameParticle) {
+                            if (!isSameParticle) {
                                 optKeyContent += prmContent2[tmpPrmID2];
                             }
                         }
@@ -1293,26 +1258,26 @@ public class MIPET {
                                 tmpCmdList = new String[] {tinkerOptimize, 
                                     scratchDirectory 
                                     + FILESEPARATOR 
-                                    + tmpParticlePair
+                                    + particlePair
                                     + ".0",        
                                     Double.toString(optimizeRmsGradient)};
                             } else {
                                 tmpCmdList = new String[] {tinkerOptrigid, 
                                     scratchDirectory 
                                     + FILESEPARATOR 
-                                    + tmpParticlePair
+                                    + particlePair
                                     + ".0",
                                     Double.toString(optimizeRmsGradient)};
                             }
 
                             // Start optimize
-                            tmpN_atom1 =tmpTinkerXYZ1.getN_atom1();
-                            tmpProcess = null;
+                            tmpN_atom1 =tinkerXYZ1.getN_atom1();
+                            Process process = null;
                             tmpPB = new ProcessBuilder();
                             tmpPB.redirectErrorStream(true);
                             tmpPB.command(tmpCmdList);
                             try {
-                                tmpProcess = tmpPB.start();
+                                process = tmpPB.start();
                             } catch (IOException ex) {
                                 LOGGER.log(Level.SEVERE, 
                                         "IOException during process starting.",
@@ -1320,9 +1285,9 @@ public class MIPET {
                             }
 
                             // This is necessary because .waitFor() will hang otherwise
-                            if (tmpProcess != null) {
+                            if (process != null) {
                                 try (BufferedReader tmpBR = new BufferedReader(
-                                        new InputStreamReader(tmpProcess
+                                        new InputStreamReader(process
                                                 .getInputStream()))) {
                                     while (tmpBR.readLine() != null ) {}
                                 } catch (IOException ex) {
@@ -1331,36 +1296,36 @@ public class MIPET {
                                             ex);
                                 }
                                 try {
-                                    tmpProcess.waitFor();
+                                    process.waitFor();
                                 } catch (InterruptedException ex) {
                                     LOGGER.log(Level.SEVERE, 
                                             "InterruptException during processing optimize.exe",
                                             ex);
                                 }
-                                tmpProcess.destroy();
+                                process.destroy();
                             }
 
                             // Fix .xyz file if there is H2O 
                             //  this is necessary because of a bug in tinker's optimize
                             if (forceField_IE.equals("OPLSAALIGPARGEN")
                                     && tmpH2OPos > 0) {
-                                tmpFileName = scratchDirectory
+                                fileName = scratchDirectory
                                     + FILESEPARATOR
-                                    + tmpParticleName1 
+                                    + particle1 
                                     + "_"
-                                    + tmpParticleName2
+                                    + particle2
                                     + ".xyz";
                                 int tmpIndex;
-                                if (tmpParticleName1.equals("H2O")) {
+                                if (particle1.equals("H2O")) {
                                     tmpIndex = 1;
                                 } else {
                                     tmpIndex = tmpN_atom1 + 1;
                                 }
-                                MIPETUTIL.fixTinkerXYZ_H2O(tmpFileName, tmpIndex);
+                                MIPETUTIL.fixTinkerXYZ_H2O(fileName, tmpIndex);
                             }
 
                             // Use tinker's analyze to determine intermolecular energy
-                            tmpProcess = null;
+                            process = null;
                             String tmpOutputName;
                             if (i == 0)  {
                                 tmpOutputName = scratchDirectory
@@ -1375,7 +1340,7 @@ public class MIPET {
                             tmpCmdList = new String[] {tinkerAnalyze, 
                                 scratchDirectory
                                 + FILESEPARATOR 
-                                + tmpParticlePair
+                                + particlePair
                                 + ".xyz",
                                 "E"};
                             tmpPB = new ProcessBuilder();
@@ -1383,8 +1348,8 @@ public class MIPET {
                             tmpPB.command(tmpCmdList);
                             tmpPB.redirectOutput(tmpOptFile);
                             try {
-                                tmpProcess = tmpPB.start();
-                                tmpProcess.waitFor();
+                                process = tmpPB.start();
+                                process.waitFor();
                             } catch (IOException ex) {
                                 LOGGER.log(Level.SEVERE, 
                                         "IOException during process start.",
@@ -1394,29 +1359,21 @@ public class MIPET {
                                         "InterruptException during reading output0_opt.txt",
                                         ex);
                             }
-                            if (tmpProcess != null) {
-                                tmpProcess.destroy();
+                            if (process != null) {
+                                process.destroy();
                             }
-                            tmpSourceName = scratchDirectory
-                                    + FILESEPARATOR 
-                                    + tmpParticlePair
-                                    + ".xyz";
+                            Path sourcePath = Paths.get(scratchDirectory,
+                                    particlePair + ".xyz");
+                            Path targetPath;
                             if (i == 0) {
-                                tmpTargetName = scratchDirectory
-                                        + FILESEPARATOR 
-                                        + tmpParticlePair
-                                        + "_opt"
-                                        + ".xyz";
+                                targetPath = Paths.get(scratchDirectory,
+                                        particlePair + "_opt" + ".xyz");
                             } else {
-                                tmpTargetName = scratchDirectory
-                                        + FILESEPARATOR 
-                                        + tmpParticlePair
-                                        + "_rgd"
-                                        + ".xyz";
+                                targetPath = Paths.get(scratchDirectory,
+                                        particlePair + "_rgd" + ".xyz");
                             }
                             try {
-                                Files.move(Paths.get(tmpSourceName), 
-                                        Paths.get(tmpTargetName), 
+                                Files.move(sourcePath, targetPath, 
                                         StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException ex) {
                                 LOGGER.log(Level.SEVERE, 
@@ -1424,20 +1381,26 @@ public class MIPET {
                             }
 
                            // Read the intermolecular energies from .txt files
-                            String tmpSearch = "Intermolecular Energy :";
-                            Path tmpPath = Paths.get(tmpOutputName);
+                            String searchStr = "Intermolecular Energy :";
+                            Path path = Paths.get(tmpOutputName);
 
-                            try (BufferedReader tmpBR = Files.newBufferedReader(
-                                    tmpPath, StandardCharsets.UTF_8)) {
+                            try (BufferedReader reader = Files
+                                    .newBufferedReader(path, 
+                                            StandardCharsets.UTF_8)) {
+                                String line;
 
-                                while ((tmpLine = tmpBR.readLine()) != null ) {
-                                    if (tmpLine.contains(tmpSearch)) {
-                                        if (i == 0) {
-                                            optMinEnergy = Double
-                                                    .parseDouble(tmpLine.substring(25, 50));
-                                        } else {
-                                            rgdMinEnergy = Double
-                                                    .parseDouble(tmpLine.substring(25, 50));
+                                while ((line = reader.readLine()) != null ) {
+                                    if (line.contains(searchStr)) {
+                                        try {
+                                            String energyValueStr = line.substring(25).trim();
+                                            double extractedEnergy = Double.parseDouble(energyValueStr);
+                                            if (i == 0) {
+                                                optMinEnergy = extractedEnergy;
+                                            } else {
+                                                rgdMinEnergy = extractedEnergy;
+                                            }
+                                        } catch (NumberFormatException | StringIndexOutOfBoundsException parseEx) {
+                                            LOGGER.log(Level.WARNING, "Error during parsing of energy value in file: " + tmpOutputName, parseEx);
                                         }
                                         break;
                                     }
@@ -1452,8 +1415,8 @@ public class MIPET {
                     }
                     
                     energyList.add(new ResultEnergyRecord(
-                        tmpParticleName1, 
-                        tmpParticleName2, 
+                        particle1, 
+                        particle2, 
                         tmpGlbWgtEmin,
                         optMinEnergy,
                         rgdMinEnergy,
@@ -1461,11 +1424,11 @@ public class MIPET {
                     
                     //</editor-fold>
                     //<editor-fold defaultstate="collapsed" desc="Write dist vs. energy datas">
-                    String outputName = tmpJobTaskRecordList
-                            .get(tmpCurrentIndex)
+                    String outputName = jobTaskRecordList
+                            .get(currIndex)
                             .result_IE_PathName()
                             + FILESEPARATOR
-                            + tmpParticlePair + "_dist_vs_energy.dat";
+                            + particlePair + "_dist_vs_energy.dat";
                     try (BufferedWriter tmpBW = new BufferedWriter(
                             new FileWriter(outputName))) {
                         tmpBW.append("distance [" + ANGSTROM +
@@ -1490,15 +1453,15 @@ public class MIPET {
 
                     //</editor-fold>
                     //<editor-fold defaultstate="collapsed" desc="Make dist vs. energy diagram">
-                    String tmpEnergyDataPathName = tmpJobTaskRecordList
-                            .get(tmpCurrentIndex).result_IE_PathName()
+                    String tmpEnergyDataPathName = jobTaskRecordList
+                            .get(currIndex).result_IE_PathName()
                             + FILESEPARATOR
-                            + tmpParticlePair + "_dist_vs_energy.dat";
-                    String tmpEnergyGraphicsPrefix = tmpJobTaskRecordList
-                            .get(tmpCurrentIndex).particleName1()
+                            + particlePair + "_dist_vs_energy.dat";
+                    String tmpEnergyGraphicsPrefix = jobTaskRecordList
+                            .get(currIndex).particleName1()
                             + "_"
-                            + tmpJobTaskRecordList
-                                    .get(tmpCurrentIndex).particleName2()
+                            + jobTaskRecordList
+                                    .get(currIndex).particleName2()
                             + "_";
                     ChartUtil tmpChartUtil = new ChartUtil();
                     tmpChartUtil.createEnergyGraphics(
@@ -1508,10 +1471,10 @@ public class MIPET {
                     //</editor-fold>
                     //<editor-fold defaultstate="collapsed" desc="Write log file">
                     try {
-                        BFGblLog.append(tmpParticlePair);
+                        BFGblLog.append(particlePair);
                         BFGblLog.append(LINESEPARATOR);
                         BWParticleDat.append("Force field: ")
-                                .append(tmpForcefield);
+                                .append(forcefield);
                         BWParticleDat.append(LINESEPARATOR);
                         BWParticleDat.append("Conformational analysis: "); 
                         if (isConformationalAnalysis) {
@@ -1531,13 +1494,12 @@ public class MIPET {
 
                     //</editor-fold>
                     //<editor-fold defaultstate="collapsed" desc="Copy results">
-                    boolean tmpHasH2O;
                     Path tmpOriginal;
                     Path tmpTarget;
 
                     //<editor-fold defaultstate="collapsed" desc="Write ouput.0 file">
                     tmpOriginal = Paths.get(scratchDirectory, 
-                            tmpParticlePair + ".0");
+                            particlePair + ".0");
                     tmpTarget = Paths.get(tmpIEResultDirName,"output.0");
                     try {
                         Files.copy(tmpOriginal, tmpTarget,
@@ -1564,7 +1526,7 @@ public class MIPET {
                     if (isTinkerOn) {
                         //<editor-fold defaultstate="collapsed" desc="Write output_opt.out">
                         tmpOriginal = Paths.get(scratchDirectory, 
-                                tmpParticlePair + "_opt.xyz");
+                                particlePair + "_opt.xyz");
                         tmpTarget = Paths.get(tmpIEResultDirName,"output_opt.0");
                         try {
                             Files.copy(tmpOriginal, tmpTarget,
@@ -1590,7 +1552,7 @@ public class MIPET {
                         //</editor-fold>
                         //<editor-fold defaultstate="collapsed" desc="Write output_rgd.out">
                         tmpOriginal = Paths.get(scratchDirectory, 
-                                tmpParticlePair + "_rgd.xyz");
+                                particlePair + "_rgd.xyz");
                         tmpTarget = Paths.get(tmpIEResultDirName,"output_rgd.0");
                         try {
                             Files.copy(tmpOriginal, tmpTarget,
@@ -1617,85 +1579,81 @@ public class MIPET {
                     }
 
                     //<editor-fold defaultstate="collapsed" desc="Generate output.xyz">
-                    String tmpOutput0FileName = tmpIEResultDirName 
+                    String output0FileName = tmpIEResultDirName 
                             + FILESEPARATOR 
                             + "output.0";
-                    String tmpOptFileName;
-                    String tmpRgdFileName;
-                    int tmpAtomNumber1 = tmpTinkerXYZ1.getN_atom1();
-                    int tmpAtomNumber2 = tmpTinkerXYZ2.getN_atom1();
-                    tmpElementList1 = tmpTinkerXYZ1.getElementList1();
-                    tmpElementList2 = tmpTinkerXYZ2.getElementList1();
-                    TinkerXYZ tmpTinkerXyz = 
-                            new TinkerXYZ(tmpOutput0FileName, 1, 
-                            tmpAtomNumber1, tmpAtomNumber2);
-                    tmpFileName = tmpIEResultDirName 
+                    String optFileName;
+                    String rgdFileName;
+                    int atomNumber1 = tinkerXYZ1.getN_atom1();
+                    int atomNumber2 = tinkerXYZ2.getN_atom1();
+                    String[] elementList1 = tinkerXYZ1.getElementList1();
+                    String[] elementList2 = tinkerXYZ2.getElementList1();
+                    TinkerXYZ tmpTinkerXyz = new TinkerXYZ(output0FileName, 1, 
+                            atomNumber1, atomNumber2);
+                    fileName = tmpIEResultDirName 
                             + FILESEPARATOR 
                             + "output.xyz";
-                    tmpTinkerXyz.writeToXyzFile(tmpFileName);
+                    tmpTinkerXyz.writeToXyzFile(fileName);
                     
                     //</editor-fold>
                     
                     // Generate .pdb file of output.0
-                    TinkerToPdbConverter tmpTinkerToPdb = 
-                            new TinkerToPdbConverter(); 
-                    String tmpOutputFileName;
-                    tmpOutputFileName = tmpOutput0FileName.substring(0, 
-                            tmpOutput0FileName.length() - 2) + ".pdb";
-                    tmpTinkerToPdb.convert(tmpOutput0FileName, 
-                            tmpOutputFileName);
+                    String outputFileName = output0FileName.substring(0, 
+                            output0FileName.length() - 2) + ".pdb";
+                    TinkerToPdbConverter.convert(output0FileName, 
+                            outputFileName);
                     
                     if (isTinkerOn) {
                         // Generate .pdb file of output.0
-                        tmpHasH2O = tmpParticleName1.equals("H2O") || 
-                                tmpParticleName2.equals("H2O");
+                        boolean hasH2O = particle1.equals("H2O") || 
+                                particle2.equals("H2O");
                         String tmpKeyFileContent = "\"" 
                                 + scratchDirectory
                                 + FILESEPARATOR 
-                                + tmpParticlePair
+                                + particlePair
                                 + ".key"
                                 + "\"";
                         MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                tmpOutput0FileName, 
+                                output0FileName, 
                                 tmpKeyFileContent, 
-                                tmpHasH2O);
+                                hasH2O);
                         // Generate output_opt.xyz
-                        tmpOptFileName = tmpIEResultDirName 
+                        optFileName = tmpIEResultDirName 
                                 + FILESEPARATOR 
                                 + "output_opt.0";
-                        tmpTinkerXyz = new TinkerXYZ(tmpOptFileName, 1, 
-                                tmpAtomNumber1, 
-                                tmpAtomNumber2);
-                        tmpTinkerXyz.setElementList1(tmpElementList1);
-                        tmpTinkerXyz.setElementList2(tmpElementList2);
-                        tmpFileName = tmpIEResultDirName 
+                        tmpTinkerXyz = new TinkerXYZ(optFileName, 1, 
+                                atomNumber1, 
+                                atomNumber2);
+                        tmpTinkerXyz.setElementList1(elementList1);
+                        tmpTinkerXyz.setElementList2(elementList2);
+                        fileName = tmpIEResultDirName 
                                 + FILESEPARATOR 
                                 + "output_opt.xyz";
-                        tmpTinkerXyz.writeToXyzFile(tmpFileName);
+                        tmpTinkerXyz.writeToXyzFile(fileName);
 
                         // Generate output_rgd.xyz
-                        tmpRgdFileName = tmpIEResultDirName 
+                        rgdFileName = tmpIEResultDirName 
                                 + FILESEPARATOR 
                                 + "output_rgd.0";
-                        tmpTinkerXyz = new TinkerXYZ(tmpRgdFileName, 1, 
-                                tmpAtomNumber1, 
-                                tmpAtomNumber2);
-                        tmpTinkerXyz.setElementList1(tmpElementList1);
-                        tmpTinkerXyz.setElementList2(tmpElementList2);
-                        tmpFileName = tmpIEResultDirName 
+                        tmpTinkerXyz = new TinkerXYZ(rgdFileName, 1, 
+                                atomNumber1, 
+                                atomNumber2);
+                        tmpTinkerXyz.setElementList1(elementList1);
+                        tmpTinkerXyz.setElementList2(elementList2);
+                        fileName = tmpIEResultDirName 
                                 + FILESEPARATOR 
                                 + "output_rgd.xyz";
-                        tmpTinkerXyz.writeToXyzFile(tmpFileName);
+                        tmpTinkerXyz.writeToXyzFile(fileName);
 
                         //<editor-fold defaultstate="collapsed" desc="Generate .pdb files">
                         MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                tmpOptFileName, 
+                                optFileName, 
                                 tmpKeyFileContent, 
-                                tmpHasH2O);
+                                hasH2O);
                         MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                tmpRgdFileName, 
+                                rgdFileName, 
                                 tmpKeyFileContent, 
-                                tmpHasH2O);
+                                hasH2O);
                         
                         //</editor-fold>
                     }
@@ -1703,7 +1661,7 @@ public class MIPET {
                     // Further outputs
                     Path tmpOptDistDir = Paths.get(optDistDirectory 
                             + FILESEPARATOR 
-                            + tmpForcefield);
+                            + forcefield);
                     if(!Files.exists(tmpOptDistDir)) {
                         try {
                             Files.createDirectories(tmpOptDistDir);
@@ -1713,16 +1671,16 @@ public class MIPET {
                                 ex);
                         }
                     }
-                    tmpFileName = optDistDirectory
+                    fileName = optDistDirectory
                             + FILESEPARATOR
-                            + tmpForcefield
+                            + forcefield
                             + FILESEPARATOR
-                            + tmpParticleName1
+                            + particle1
                             + ".txt";
-                    tmpOptDistFile = Paths.get(tmpFileName);
-                    if (tmpIsSameParticle && !Files.exists(tmpOptDistFile)) {
+                    tmpOptDistFile = Paths.get(fileName);
+                    if (isSameParticle && !Files.exists(tmpOptDistFile)) {
                         try (BufferedWriter tmpBW = new BufferedWriter(
-                                new FileWriter(tmpFileName))) {
+                                new FileWriter(fileName))) {
                             tmpBW.append(decimal4.format(tmpGlbEminDist));
                         } catch(IOException ex) {
                             LOGGER.log(Level.SEVERE, 
@@ -1783,22 +1741,24 @@ public class MIPET {
                                              GlobalMinimumIntermolecularEnergy:
                                                Lowest differential pair interaction energy of all dimer configurations.""");
                         BWParticleDat.append(LINESEPARATOR);
-                        BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
-                        BWParticleDat.append(decimal4.format(optMinEnergy));
-                        BWParticleDat.append(LINESEPARATOR);
-                        BWParticleDat.append("""
+                        if (isTinkerOn) {
+                            BWParticleDat.append("Optimized minimumIntermolecularEnergy [kcal/mole]: ");
+                            BWParticleDat.append(decimal4.format(optMinEnergy));
+                            BWParticleDat.append(LINESEPARATOR);
+                            BWParticleDat.append("""
                                              Optimized minimumIntermolecularEnergy:
                                                Differential pair interaction energy from the dimer configuration
                                                with lowest differential pair interaction energy after optimize.""");
-                        BWParticleDat.append(LINESEPARATOR);
-                        BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
-                        BWParticleDat.append(decimal4.format(rgdMinEnergy));
-                        BWParticleDat.append(LINESEPARATOR);
-                        BWParticleDat.append("""
+                            BWParticleDat.append(LINESEPARATOR);
+                            BWParticleDat.append("Rigid-optimized minimumIntermolecularEnergy [kcal/mole]: ");
+                            BWParticleDat.append(decimal4.format(rgdMinEnergy));
+                            BWParticleDat.append(LINESEPARATOR);
+                            BWParticleDat.append("""
                                              Rigid-optimized minimumIntermolecularEnergy:
                                                Differential pair interaction energy from the dimer configuration
                                                with lowest differential pair interaction energy after optrigid.""");
-                        BWParticleDat.append(LINESEPARATOR);
+                            BWParticleDat.append(LINESEPARATOR);
+                        }
                         BWParticleDat.append("Time to calculate minimum intermolecular energy [s]: ")
                                 .append(String.valueOf(tmpEnergyCalcTime))
                                 .append(LINESEPARATOR);
@@ -1825,9 +1785,9 @@ public class MIPET {
                 }
                 
             }
-            tmpCurrentIndex++;
-            if (tmpCurrentIndex >= tmpJobTaskRecordList.size()) {
-                tmpIsExitCondition = true;
+            currIndex++;
+            if (currIndex >= jobTaskRecordList.size()) {
+                isExitCondition = true;
             }
         }
         
@@ -1906,7 +1866,7 @@ public class MIPET {
         //<editor-fold defaultstate="collapsed" desc="Coordination numbers">
         if (!forceField_CN.isEmpty()) {
             System.out.println("Calculating coordination numbers...");
-            getCoordinationNumbers(tmpJobTaskRecordList);
+            getCoordinationNumbers(jobTaskRecordList);
         }
         
         //</editor-fold>
@@ -1940,7 +1900,7 @@ public class MIPET {
                 }
             }
         }
-        exportParticleSetForMFSim(tmpJobTaskRecordList, 
+        exportParticleSetForMFSim(jobTaskRecordList, 
                 parameterSetTitle, 
                 parameterSetTitleAbr);
         System.out.println("\r\nReady.");
