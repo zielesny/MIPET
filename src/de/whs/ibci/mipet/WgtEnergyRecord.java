@@ -29,7 +29,7 @@ package de.whs.ibci.mipet;
  *   Sum of weights
  * @param sumWgtxE
  *   Sum of weight * energy value
- * @param tinkerXYZ
+ * @param minTinkerXYZ
  *   TinkerXYZ object with local lowest energy
  */
 public record WgtEnergyRecord(

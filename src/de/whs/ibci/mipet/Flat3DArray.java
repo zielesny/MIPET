@@ -25,9 +25,26 @@ package de.whs.ibci.mipet;
  * @author Mirco Daniel
  */
 public class Flat3DArray {
+    //<editor-fold defaultstate="collapsed" desc="Final class variables">
+    /**
+     * dim1 dimension of the configuration
+     * dim2 dimension of the atom
+     * dim3 dimension of the coordinate
+     */
     public final int dim1, dim2, dim3;
+    
+    /**
+     * Flattened 1d-array
+     */
     private final double[] data;
+    
+    /**
+     * stride1 (atom number * coordinate number)
+     * stride2 (coordinate number = 3)
+     */
     private final int stride1, stride2;
+    
+    //</editor-fold>
    
     /**
      * Constructor of the class
@@ -94,7 +111,7 @@ public class Flat3DArray {
     }
 
     /**
-     * Getter for flatterned 1d-array
+     * Getter for flattened 1d-array
      * 
      * @return Flatterned 1d-array
      */

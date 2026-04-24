@@ -34,114 +34,125 @@ import java.util.Locale;
  * @author Mirco Daniel
  */
 public class TinkerToPdbConverter {
+    
+    // <editor-fold defaultstate="collapsed" desc="Constructors">
+    /**
+     * Constructor TinkerToPdbConverter
+     */
+    public TinkerToPdbConverter() {
+    }
 
+    // </editor-fold> 
+    
+    /**
+     * Converts tinker's xyz format to pdb format
+     * @param inputFilePath Tinker's xyz-file
+     * @param outputFilePath Pdb-file
+     */
     public static void convert(String inputFilePath, String outputFilePath) {
         try (BufferedReader reader = 
                 new BufferedReader(new FileReader(inputFilePath));
             BufferedWriter writer =
                     new BufferedWriter(new FileWriter(outputFilePath))) {
 
-            String tmpLine = reader.readLine();
-            if (tmpLine == null) {
+            String line = reader.readLine();
+            if (line == null) {
                 System.err.println("The tinker xyz input file is empty.");
                 return;
             }
 
-            int tmpNumAtoms; // Unnecessary, but maybe for the future implementation
-            int tmpAtomCounter;
-            int tmpAtomId;
-            String tmpAtomName;
-            String tmpElement;
-            String tmpRecordType;
-            String tmpPdbElementColumn;
-            String[] tmpFirstLineTokens;
-            String[] tmpTokens;
-            StringBuilder tmpConectBuilder;
+            int numAtoms; // Unnecessary, but maybe for the future implementation
+            int atomCounter;
+            int atomId;
+            String atomName;
+            String element;
+            String[] firstLineTokens;
+            String[] tokens;
+            StringBuilder connectBuilder;
             
             // First line: Number of atoms 
-            tmpFirstLineTokens = tmpLine.trim().split("\\s+");
-            tmpNumAtoms = Integer.parseInt(tmpFirstLineTokens[0]);
-            tmpAtomCounter = 1;
-            List<String> tmpConectLines = new ArrayList<>();
-            List<Integer> tmpBondedAtoms;
+            firstLineTokens = line.trim().split("\\s+");
+            numAtoms = Integer.parseInt(firstLineTokens[0]);
+            atomCounter = 1;
+            List<String> connectLines = new ArrayList<>();
+            List<Integer> bondedAtoms;
 
-            while ((tmpLine = reader.readLine()) != null) {
-                tmpLine = tmpLine.trim();
-                if (tmpLine.isEmpty()) continue;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
-                tmpTokens = tmpLine.split("\\s+");
+                tokens = line.split("\\s+");
                 
                 // Tinker Format: [ID] [Name] [X] [Y] [Z] [Typ] [Connected atom1] [Connected atom2] ...
-                if (tmpTokens.length >= 6) { 
-                    tmpAtomId = Integer.parseInt(tmpTokens[0]); // The ID of current atom
-                    tmpAtomName = tmpTokens[1];
-                    double x = Double.parseDouble(tmpTokens[2]);
-                    double y = Double.parseDouble(tmpTokens[3]);
-                    double z = Double.parseDouble(tmpTokens[4]);
+                if (tokens.length >= 6) { 
+                    atomId = Integer.parseInt(tokens[0]); // The ID of current atom
+                    atomName = tokens[1];
+                    double x = Double.parseDouble(tokens[2]);
+                    double y = Double.parseDouble(tokens[3]);
+                    double z = Double.parseDouble(tokens[4]);
 
                     // Isolate element symbol
-                    tmpElement = tmpAtomName.replaceAll("[^A-Za-z]", "");
-                    if (tmpElement.length() > 2) {
-                        tmpElement = tmpElement.substring(0, 2);
+                    element = atomName.replaceAll("[^A-Za-z]", "");
+                    if (element.length() > 2) {
+                        element = element.substring(0, 2);
                     }
 
                     // --- For lone pairs and dummy atoms ---
-                    tmpRecordType = "ATOM  ";
-
-                    if (tmpElement.equals("LP") || tmpElement.equals("M")) {
-                        tmpRecordType = "HETATM"; // Mark as not-standard-atom
-                        tmpPdbElementColumn = " X"; // Generic element "X", so that the viewer not crashes
+                    String recordType = "ATOM  ";
+                    String pdbElementColumn;
+                    if (element.equals("LP") || element.equals("M")) {
+                        recordType = "HETATM"; // Mark as not-standard-atom
+                        pdbElementColumn = " X"; // Generic element "X", so that the viewer not crashes
                     } else {
-                        tmpPdbElementColumn = String.format("%2s", tmpElement); // normal element
+                        pdbElementColumn = String.format("%2s", element); // normal element
                     }
                     
                     // PDB-format for the atom (Strict column width)
                     String pdbLine = String.format(Locale.US,
                             "ATOM  %5d %-4s MOL A   1    %8.3f%8.3f%8.3f  1.00  0.00          %2s",
-                            tmpAtomId, // Use the ID from the Tinker file
-                            formatPdbAtomName(tmpAtomName),
+                            atomId, // Use the ID from the Tinker file
+                            formatPdbAtomName(atomName),
                             x,
                             y,
                             z,
-                            String.format("%2s", tmpElement).toUpperCase()
+                            String.format("%2s", element).toUpperCase()
                     );
-
                     writer.write(pdbLine);
                     writer.newLine();
 
                     // --- Handle CONECT ---
-                    tmpBondedAtoms = new ArrayList<>();
+                    bondedAtoms = new ArrayList<>();
                     
-                    for (int i = 6; i < tmpTokens.length; i++) {
-                        tmpBondedAtoms.add(Integer.valueOf(tmpTokens[i]));
+                    for (int i = 6; i < tokens.length; i++) {
+                        bondedAtoms.add(Integer.valueOf(tokens[i]));
                     }
 
                     // PDB allows max. 4 bonds pro CONECT-line
                     // If an atom has 5 bonds, we need two lines.
-                    for (int i = 0; i < tmpBondedAtoms.size(); i += 4) {
-                        tmpConectBuilder = new StringBuilder("CONECT");
+                    for (int i = 0; i < bondedAtoms.size(); i += 4) {
+                        connectBuilder = new StringBuilder("CONECT");
                         
                         // The start atom (column 7-11)
-                        tmpConectBuilder.append(String
-                                .format(Locale.US, "%5d", tmpAtomId));
+                        connectBuilder.append(String
+                                .format(Locale.US, "%5d", atomId));
                         
                         // Insert up to 4 atoms (column 12-16, 17-21, 22-26, 27-31)
                         for (int j = 0; j < 4 
-                                && (i + j) < tmpBondedAtoms.size(); j++) {
-                            tmpConectBuilder.append(
+                                && (i + j) < bondedAtoms.size(); j++) {
+                            connectBuilder.append(
                                     String.format(Locale.US, "%5d", 
-                                            tmpBondedAtoms.get(i + j)));
+                                            bondedAtoms.get(i + j)));
                         }
                         
-                        tmpConectLines.add(tmpConectBuilder.toString());
+                        connectLines.add(connectBuilder.toString());
                     }
 
-                    tmpAtomCounter++;
+                    atomCounter++;
                 }
             }
             
             // Write all saved CONECT-lines at the end of the file
-            for (String tmpConectLine : tmpConectLines) {
+            for (String tmpConectLine : connectLines) {
                 writer.write(tmpConectLine);
                 writer.newLine();
             }
