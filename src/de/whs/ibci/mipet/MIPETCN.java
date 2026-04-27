@@ -19,12 +19,9 @@
  */
 package de.whs.ibci.mipet;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -136,92 +133,73 @@ public class MIPETCN implements Callable<int[]> {
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     @Override
     public int[] call() {
-        boolean tmpIsSameParticle;
-        int tmpAtomNumber1;
-        int tmpAtomNumber2;
-        int tmpIteration;
         int tmpStep;
-        int tmpStepsPerRound;
         int tmpRestSteps;
-        int tmpStepNumber;
         int tmpStepNumberOfLastIteration;
         int[] tmpResultNeighborNumber;
         LinkedList<int[]> tmpCurrentNeighbors;
         LinkedList<Integer> tmpNeighborNumbers;
-        double tmpBoxLength;
-        String tmpForcefield;
-        String tmpParticle1;
-        String tmpParticle2;
-        String tmpParticlePair;
         String tmpCurrentDir;
-        String tmpSourceName;
-        String tmpTargetName;
-        String tmpTargetXyzName;
-        String tmpResultPathName;
         String tmpXyzFileName2;
-        String tmpWarmUpLogName;
         String tmpDynamicLogName;
         String tmpArcName;
         String tmpXyzName;
-        String[] tmpCommandList;
-        String[] tmpElements1;
-        String[] tmpElements2;
-        TinkerXYZ tmpTxyz1;
-        TinkerXYZ tmpTxyz2;
-        Path tmpSource;
-        Path tmpTarget;
         ProcessBuilder tmpPBuilder;
-        Process tmpProcess;
         CoordinatesRecord tmpCoordRecord;
         
         tmpNeighborNumbers = new LinkedList<>();
         MIPETUtility MIPET4JUtil = new MIPETUtility();
-        tmpStepsPerRound = 2000;
-        tmpForcefield = this.JOBTASK_RECORD.forcefield_CN_Name();
-        tmpParticle1 = this.JOBTASK_RECORD.particleName1(); // solute
-        tmpParticle2 = this.JOBTASK_RECORD.particleName2(); // solvent
-        tmpIsSameParticle = tmpParticle1.equals(tmpParticle2);
-        tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-        tmpResultPathName = this.JOBTASK_RECORD.result_CN_PathName();
+        int stepsPerRound = 2000;
+        String forcefield = this.JOBTASK_RECORD.forcefield_CN_Name();
+        String particle1 = this.JOBTASK_RECORD.particleName1(); // solute
+        String particle2 = this.JOBTASK_RECORD.particleName2(); // solvent
+        boolean isSameParticle = particle1.equals(particle2);
+        String particlePair = particle1 + "_" + particle2;
+        String resultPathName = this.JOBTASK_RECORD.result_CN_PathName();
         tmpCurrentDir = this.SCRATCH_DIR
                     + FILESEPARATOR
-                    + tmpForcefield
+                    + forcefield
                     + FILESEPARATOR
-                    + tmpParticlePair
+                    + particlePair
                     + FILESEPARATOR;
-        tmpTxyz1 = new TinkerXYZ(tmpForcefield,
-                tmpParticle1,
-                tmpCurrentDir + tmpParticle1 + ".xyz");
-        tmpBoxLength = MIPET4JUtil.getBoxLength(tmpCurrentDir 
-                + tmpParticlePair + ".xyz");
-        tmpAtomNumber1 = tmpTxyz1.getN_atom();
-        tmpElements1 = tmpTxyz1.getElementList1();
-        if (tmpIsSameParticle) {
-            tmpAtomNumber2 = tmpAtomNumber1;
-            tmpElements2 = tmpElements1.clone();
+        TinkerXYZ tXyz1 = new TinkerXYZ(forcefield,
+                particle1,
+                tmpCurrentDir + particle1 + ".xyz");
+        TinkerXYZ tXyz2;
+        double tmpBoxLength = MIPET4JUtil.getBoxLength(tmpCurrentDir 
+                + particlePair + ".xyz");
+        int atomNumber1 = tXyz1.getN_atom();
+        int atomNumber2;
+        String[] elements1 = tXyz1.getElementList1();
+        String[] elements2;
+        if (isSameParticle) {
+            atomNumber2 = atomNumber1;
+            elements2 = elements1.clone();
         } else {
-            tmpXyzFileName2 = tmpCurrentDir + tmpParticle2 + ".xyz";
-            tmpTxyz2 = new TinkerXYZ(tmpForcefield,
-                    tmpParticle2,
+            tmpXyzFileName2 = tmpCurrentDir + particle2 + ".xyz";
+            tXyz2 = new TinkerXYZ(forcefield,
+                    particle2,
                     tmpXyzFileName2);
-            tmpAtomNumber2 = tmpTxyz2.getN_atom();
-            tmpElements2 = tmpTxyz2.getElementList1();
+            atomNumber2 = tXyz2.getN_atom();
+            elements2 = tXyz2.getElementList1();
         }
+        int stepNumber;
         if (this.ISTINKER9) {
-            tmpStepNumber = Integer.parseInt(this.COMMAND_LIST[3]);
+            stepNumber = Integer.parseInt(this.COMMAND_LIST[3]);
         } else {
-            tmpStepNumber = Integer.parseInt(this.COMMAND_LIST[2]);
+            stepNumber = Integer.parseInt(this.COMMAND_LIST[2]);
         }
-        tmpRestSteps = tmpStepNumber % tmpStepsPerRound;
-        tmpCommandList = this.COMMAND_LIST.clone();
-        if (tmpStepNumber > tmpStepsPerRound) {
-            tmpIteration = (int)Math.ceil((double)tmpStepNumber 
-                    / tmpStepsPerRound);
-            tmpStep = tmpStepsPerRound;
+        tmpRestSteps = stepNumber % stepsPerRound;
+        String[] commandList = this.COMMAND_LIST.clone();
+        int iteration;
+        if (stepNumber > stepsPerRound) {
+            iteration = (int)Math.ceil((double)stepNumber 
+                    / stepsPerRound);
+            tmpStep = stepsPerRound;
             if (this.ISTINKER9) {
-                tmpCommandList[3] = Integer.toString(tmpStep);
+                commandList[3] = Integer.toString(tmpStep);
             } else {
-                tmpCommandList[2] = Integer.toString(tmpStep);
+                commandList[2] = Integer.toString(tmpStep);
             }
             if ( tmpRestSteps == 0) {
                 tmpStepNumberOfLastIteration = tmpStep;
@@ -229,54 +207,41 @@ public class MIPETCN implements Callable<int[]> {
                 tmpStepNumberOfLastIteration = tmpRestSteps;
             }
         } else {
-            tmpIteration = 1;
-            tmpStep = tmpStepNumber;
+            iteration = 1;
+            tmpStep = stepNumber;
             tmpStepNumberOfLastIteration = tmpStep;
         }
+        Process process;
         if(ISWARMUP) {
             tmpPBuilder = new ProcessBuilder();
             tmpPBuilder.command(this.COMMAND_LIST);
+            tmpPBuilder.redirectErrorStream(true);
+            if (ISLOGWARMUP) {
+                Path warmUpLogPath = Paths.get(resultPathName,
+                        particle1 + "_" + particle2 + "_warmUp.log");
+                tmpPBuilder.redirectOutput(warmUpLogPath.toFile());
+            } else {
+                // This loop is necessary for linux version
+                tmpPBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            }
             try {
-                tmpProcess = tmpPBuilder.start();
-                try (BufferedReader tmpBR = new BufferedReader(
-                        new InputStreamReader(tmpProcess.getInputStream()))) {
-                    if(ISLOGWARMUP) {
-                        tmpWarmUpLogName = tmpResultPathName
-                        + FILESEPARATOR
-                        + tmpParticle1
-                        + "_"
-                        + tmpParticle2
-                        + "_warmUp.log";
-                        BufferedWriter tmpBW = new BufferedWriter(
-                                new FileWriter(tmpWarmUpLogName));
-                        String tmpLine;
-                        
-                        while ((tmpLine = tmpBR.readLine()) != null) {
-                            tmpBW.append(tmpLine);
-                        }
-                        
-                    } else {
-                        // This loop is necessary for linux version
-                        while (tmpBR.readLine() != null) {
-                        }
-                        
-                    }
-                }
-                tmpProcess.waitFor();
-                tmpProcess.destroy();
-            } catch(IOException | InterruptedException ex) {
+                process = tmpPBuilder.start();
+                process.waitFor();
+            } catch(IOException ex) {
                 LOGGER.log(Level.SEVERE,
-                        "Exception during tinker's dynamic.exe", ex);
+                        "IOException during tinker's dynamic.exe", ex);
+            } catch(InterruptedException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "InterruptException during tinker's dynamic.exe", ex);
             }
             
             // Rename .arc to .xyz
-            tmpSourceName = tmpCurrentDir + tmpParticlePair + ".arc";
-            tmpSource = Paths.get(tmpSourceName);
-            tmpTargetXyzName = tmpCurrentDir + tmpParticlePair + ".xyz";
-            tmpTarget = Paths.get(tmpTargetXyzName);
+            String sourceName = tmpCurrentDir + particlePair + ".arc";
+            Path source = Paths.get(sourceName);
+            String targetXyzName = tmpCurrentDir + particlePair + ".xyz";
+            Path target = Paths.get(targetXyzName);
             try {
-                Files.move(tmpSource, tmpTarget, 
-                        StandardCopyOption.ATOMIC_MOVE);
+                Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during remove .arc file to .xyz file.",
@@ -285,27 +250,24 @@ public class MIPETCN implements Callable<int[]> {
             
             // Write _lastStepNeighbors.txt file
             tmpCoordRecord = MIPET4JUtil.getCoordinatesFromArcFile(
-                    tmpTargetXyzName, tmpAtomNumber1, tmpAtomNumber2);
+                    targetXyzName, atomNumber1, atomNumber2);
             tmpCurrentNeighbors = MIPET4JUtil.getNeighborNumbersBruteForce(
                     tmpCoordRecord, 
-                    tmpElements1, 
-                    tmpElements2,
+                    elements1, 
+                    elements2,
                     tmpBoxLength,
                     this.CATCH_RADIUS);
-            tmpTargetName = tmpResultPathName 
-                    + FILESEPARATOR
-                    + tmpParticlePair 
-                    + "_warmUpNeighbors.txt";
+            Path  targetPath = Paths.get(resultPathName, 
+                    particlePair + "_warmUpNeighbors.txt");
             int tmpIterationSize = tmpCurrentNeighbors.size();
             int tmpNeighborsSize = tmpCurrentNeighbors
                     .get(tmpIterationSize - 1).length;
             
-            try (BufferedWriter tmpBW = new BufferedWriter(
-                    new FileWriter(tmpTargetName))) {
+            try (BufferedWriter writer = Files.newBufferedWriter(targetPath)) {
                 for (int i = 0; i < tmpNeighborsSize; i++) {
-                    tmpBW.append(String.valueOf(tmpCurrentNeighbors
+                    writer.append(String.valueOf(tmpCurrentNeighbors
                             .get(tmpIterationSize - 1)[i]));
-                    tmpBW.append(LINESEPARATOR);
+                    writer.newLine();
                 }
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, 
@@ -314,13 +276,13 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Copy .xyz file after warmup to result directory
-            tmpSource = Paths.get(tmpTargetXyzName);
-            tmpTarget = Paths.get(tmpResultPathName 
+            source = Paths.get(targetXyzName);
+            target = Paths.get(resultPathName 
                     + FILESEPARATOR
-                    + tmpParticlePair 
+                    + particlePair 
                     + "_warmUpCoords.xyz");
             try {
-                Files.copy(tmpSource, tmpTarget, StandardCopyOption
+                Files.copy(source, target, StandardCopyOption
                         .REPLACE_EXISTING);
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, 
@@ -343,60 +305,50 @@ public class MIPETCN implements Callable<int[]> {
         int tmpNeighborSize;
         int tmpCurrentNeighborsSize;
         
-        tmpDynamicLogName = tmpResultPathName
+        tmpDynamicLogName = resultPathName
                         + FILESEPARATOR
-                        + tmpParticle1
+                        + particle1
                         + "_"
-                        + tmpParticle2
+                        + particle2
                         + "_dynamic.log";
         
-        for (int i = 0; i < tmpIteration; i++) {
+        for (int i = 0; i < iteration; i++) {
             tmpPBuilder = new ProcessBuilder();
-            if (i == tmpIteration - 1 && tmpRestSteps != 0) {
+            if (i == iteration - 1 && tmpRestSteps != 0) {
                 if (this.ISTINKER9) {
-                    tmpCommandList[3] = Integer
+                    commandList[3] = Integer
                         .toString(tmpStepNumberOfLastIteration);
                 } else {
-                    tmpCommandList[2] = Integer
+                    commandList[2] = Integer
                         .toString(tmpStepNumberOfLastIteration);
                 }
             }
-            tmpPBuilder.command(tmpCommandList);
-            try {
-                tmpProcess = tmpPBuilder.start();
-                try (BufferedReader tmpBR = new BufferedReader(
-                        new InputStreamReader(tmpProcess.getInputStream()))) {
-                    if (ISLOGDYNAMIC) {
-                        BufferedWriter tmpBW = new BufferedWriter(
-                                new FileWriter(tmpDynamicLogName));
-                        String tmpLine;
-                        
-                        while ((tmpLine = tmpBR.readLine()) != null) {
-                            tmpBW.append(tmpLine);
-                        }
-                        
-                    } else {
-                        // This loop is necessary for linux version
-                        while (tmpBR.readLine() != null) {
-                        }
-                        
-                    }
-                }
-                tmpProcess.waitFor();
-                tmpProcess.destroy();
-            } catch(IOException | InterruptedException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "Exception during tinker's dynamic.exe", ex);
+            tmpPBuilder.command(commandList);
+            tmpPBuilder.redirectErrorStream(true);
+            if (ISLOGDYNAMIC) {
+                tmpPBuilder.redirectOutput(new File(tmpDynamicLogName));
+            } else {
+                // This loop is necessary for linux version
+                tmpPBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             }
-            
-            tmpArcName = tmpCurrentDir + tmpParticlePair + ".arc";
+            try {
+                process = tmpPBuilder.start();
+                process.waitFor();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "IOException during tinker's dynamic.exe", ex);
+            } catch ( InterruptedException ex) {
+                LOGGER.log(Level.SEVERE,
+                        "InterruptedException during tinker's dynamic.exe", ex);
+            }
+            tmpArcName = tmpCurrentDir + particlePair + ".arc";
             tmpCoordRecord = MIPET4JUtil
-                    .getCoordinatesFromArcFile(tmpArcName, tmpAtomNumber1, 
-                            tmpAtomNumber2);
+                    .getCoordinatesFromArcFile(tmpArcName, atomNumber1, 
+                            atomNumber2);
             tmpCurrentNeighbors = MIPET4JUtil
                     .getNeighborNumbersBruteForce(tmpCoordRecord, 
-                              tmpElements1, 
-                              tmpElements2,
+                              elements1, 
+                              elements2,
                               tmpBoxLength,
                               this.CATCH_RADIUS);
             //      Cell index method
@@ -408,32 +360,32 @@ public class MIPETCN implements Callable<int[]> {
                           this.CATCH_RADIUS); */
             
             // Copy .xyz file after the last simulation step to result directory
-            if (i == tmpIteration - 1) {
+            if (i == iteration - 1) {
                 tmpArcName = tmpCurrentDir 
-                        + tmpParticlePair 
+                        + particlePair 
                         + ".arc";
-                tmpXyzName = tmpResultPathName
+                tmpXyzName = resultPathName
                     + FILESEPARATOR
-                    + tmpParticlePair
+                    + particlePair
                     + "_lastCoords.xyz";
                 MIPET4JUtil.writeLastPartToXYZ(tmpArcName, 
                         tmpXyzName, tmpStepNumberOfLastIteration);
                 
                 // Write _lastStepNeighbors.txt file
-                tmpTargetName = tmpResultPathName 
-                        + FILESEPARATOR
-                        + tmpParticlePair 
-                        + "_lastStepNeighbors.txt";
+                Path targetPath = Paths.get(resultPathName,
+                        particlePair + "_lastStepNeighbors.txt");
                 tmpIterationSize = tmpCurrentNeighbors.size();
                 tmpNeighborSize = tmpCurrentNeighbors
                         .get(tmpIterationSize - 1).length;
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpTargetName))) {
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                        targetPath)) {
+                    
                     for (int j = 0; j < tmpNeighborSize; j++) {
                         tmpBW.append(String.valueOf(tmpCurrentNeighbors
                                         .get(tmpIterationSize - 1)[j]));
                         tmpBW.append(LINESEPARATOR);
                     }
+                    
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during writing _lastStepNeighbors.txt file.",
@@ -441,22 +393,22 @@ public class MIPETCN implements Callable<int[]> {
                 }
             }
             
-            if (tmpIteration > 1 && i < tmpIteration - 1) {
+            if (iteration > 1 && i < iteration - 1) {
                 try {
                     Files.deleteIfExists(Paths.get(tmpCurrentDir 
-                            + tmpParticlePair 
+                            + particlePair 
                             + ".xyz"));
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                         "IOException during deleting .xyz file.", ex);
                 }
-                tmpSourceName = tmpCurrentDir + tmpParticlePair + ".arc";
-                tmpTargetName = tmpCurrentDir + tmpParticlePair + ".xyz";
-                MIPET4JUtil.writeLastPartToXYZ(tmpSourceName, 
-                        tmpTargetName, tmpStep);
+                String sourceName = tmpCurrentDir + particlePair + ".arc";
+                String targetName = tmpCurrentDir + particlePair + ".xyz";
+                MIPET4JUtil.writeLastPartToXYZ(sourceName, 
+                        targetName, tmpStep);
                 try {
                     Files.deleteIfExists(Paths.get(tmpCurrentDir 
-                            + tmpParticlePair 
+                            + particlePair 
                             + ".arc"));
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 

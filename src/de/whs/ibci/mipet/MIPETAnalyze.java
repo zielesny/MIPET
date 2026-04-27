@@ -357,10 +357,10 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
      * @return Weighted energie datas of chunk configurations
      */
     private WgtEnergyRecord executeTinker (double INV_RT, String particlePair) {
-        int tmpChunkIndex = 0;
+        int chunkIndex = 0;
         int chunkSize = NUM_ROT1 * NUM_ROT2;
         int energyCount = 0; // Counter for the valid calculations of energy
-        int tmpMinIndex = -1;
+        int minIndex = -1;
         double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
         double[] energyArray = new double[chunkSize];
         
@@ -390,7 +390,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                                 ISTINKERON);
                         tmpBW.append(this.TINKERXYZ.getFileContent());
                     } 
-                    tmpChunkIndex++;
+                    chunkIndex++;
                 }
             }
 
@@ -401,63 +401,64 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
             
         // Start analyze.exe
         //  read .arc files and find intermolecular energy
-        double tmpSumWgt = 0;
-        double tmpSumWgtxE = 0;
-        ProcessBuilder tmpPBuilder;
-        Process tmpProcess;
-        String tmpSearch;
-        String tmpLine;
+        double sumWgt = 0;
+        double sumWgtxE = 0;
+        Process process;
+        String searchStr;
 
-        tmpPBuilder = new ProcessBuilder();
-        tmpPBuilder.redirectErrorStream(true);
-        tmpPBuilder.command(this.COMMAND_LIST);
+        ProcessBuilder pBuilder = new ProcessBuilder();
+        pBuilder.redirectErrorStream(true);
+        pBuilder.command(this.COMMAND_LIST);
         if (NUM_ATOMS1 == 1 && NUM_ATOMS2 == 1) {
-            tmpSearch = "Total Potential Energy";
+            searchStr = "Total Potential Energy";
         } else {
-            tmpSearch = "Intermolecular Energy";
+            searchStr = "Intermolecular Energy";
         }
+        pBuilder.redirectErrorStream(true);
         try {
-            tmpProcess = tmpPBuilder.start();
-            try (InputStream tmpInStream = tmpProcess.getInputStream();
-                    BufferedReader tmpBR = new BufferedReader(
-                            new InputStreamReader(tmpInStream))){
+            process = pBuilder.start();
+            try (InputStream inStream = process.getInputStream();
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(inStream))){
                 
-                int tmpConfigIndex = -1;
-                double tmpValue;
-                double tmpWgt;
-                double tmpWgtxE;
-                String tmpValueCandidate;
+                int configIndex = -1;
+                double wgt;
+                double wgtxE;
+                String line;
 
-                while ((tmpLine = tmpBR.readLine()) != null) {
-                    if (tmpLine.contains(tmpSearch)) {
-                        tmpValueCandidate = tmpLine.substring(25, 50);
-                        if (!tmpValueCandidate.contains("D")) {
-                            tmpValue = Double
-                                   .parseDouble(tmpValueCandidate);
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains(searchStr)) {
+                        String valueCandidate = line.substring(25, 50);
+                        if (!valueCandidate.contains("D")) {
+                            double value = Double
+                                   .parseDouble(valueCandidate);
                             if (ISFRACTIONONE) {
-                                tmpWgt = Math.exp(-tmpValue * INV_RT);
-                                tmpWgtxE = tmpWgt * tmpValue;
-                                tmpSumWgt += tmpWgt;
-                                tmpSumWgtxE += tmpWgtxE;
+                                wgt = Math.exp(-value * INV_RT);
+                                wgtxE = wgt * value;
+                                sumWgt += wgt;
+                                sumWgtxE += wgtxE;
                             } else {
-                                energyArray[energyCount] = tmpValue;
+                                energyArray[energyCount] = value;
                                 energyCount++;
                             }
-                            tmpConfigIndex++;
-                            if (tmpValue < localMinEnergy) {
-                                localMinEnergy = tmpValue;
-                                tmpMinIndex = tmpConfigIndex;
+                            configIndex++;
+                            if (value < localMinEnergy) {
+                                localMinEnergy = value;
+                                minIndex = configIndex;
                             }
                         }
                     }
                 }
 
-                tmpProcess.waitFor();
-                tmpProcess.destroy();
+                process.waitFor();
+                process.destroy();
             }
-        } catch(IOException | InterruptedException ex) {
+        } catch(IOException ex) {
             LOGGER.log(Level.SEVERE,
                     "Exception during tinker's analyze.exe", ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOGGER.log(Level.SEVERE, "Process was interrupted during analyze.exe", ex);
         }
             
         // Export .xyz file with lowest intermolecular energy
@@ -465,7 +466,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         int tmpEndIndex;
         StringBuilder tmpPartArc;
 
-        tmpStartIndex = tmpMinIndex * (this.ATOMNUMBER + 1);
+        tmpStartIndex = minIndex * (this.ATOMNUMBER + 1);
         tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
         String tmpArcFileName = this.SCRATCH_DIR
                 + this.FILESEPARATOR
@@ -499,7 +500,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         if (ISFRACTIONONE) {
             double[] resultList = new double[1];
             resultList[0] = localMinEnergy;
-            return new WgtEnergyRecord(resultList, tmpSumWgt, tmpSumWgtxE, 
+            return new WgtEnergyRecord(resultList, sumWgt, sumWgtxE, 
                     tinkerXYZMin);
         } else {
             Arrays.sort(energyArray, 0, energyCount);

@@ -23,11 +23,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -606,7 +603,7 @@ public class MIPET {
                 "log.txt");
         boolean fileAlreadyExists = Files.exists(logPath);
         try {
-            BFGblLog = Files.newBufferedWriter(logPath);
+            BFGblLog = Files.newBufferedWriter(logPath, StandardCharsets.UTF_8);
             if (fileAlreadyExists) {
                 BFGblLog.newLine();
             }
@@ -785,7 +782,6 @@ public class MIPET {
         double tmpGlbEmin;
         double tmpDistanceCandidate;
         Path tmpKeyFile;
-        Path tmpOptDistPath;
         EnergyRecord[] tmpEnergyRecords;
         LinkedList<Double> tmpAllDistances;
         LinkedList<Double> tmpDistanceList;
@@ -840,7 +836,8 @@ public class MIPET {
                 Path particleDatPath = Paths.get(tmpIEResultDirName,
                         particlePair + ".dat");
                 try {
-                    BWParticleDat = Files.newBufferedWriter(particleDatPath);
+                    BWParticleDat = Files.newBufferedWriter(particleDatPath, 
+                            StandardCharsets.UTF_8);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                             "IOException during writing in log file.", ex);
@@ -1241,37 +1238,28 @@ public class MIPET {
 
                             // Start optimize
                             tmpN_atom1 =tinkerXYZ1.getN_atom1();
-                            Process process = null;
                             builder = new ProcessBuilder();
-                            builder.redirectErrorStream(true);
                             builder.command(cmdList);
+                            builder.redirectErrorStream(true);
+                            builder.redirectOutput(ProcessBuilder
+                                    .Redirect.DISCARD); 
+                            Process process = null;
                             try {
                                 process = builder.start();
+                                if (process != null) {
+                                    try {
+                                        process.waitFor();
+                                    } catch (InterruptedException ex) {
+                                        Thread.currentThread().interrupt();
+                                        LOGGER.log(Level.SEVERE,
+                                                "InterruptException during processing optimize.exe", ex);
+                                        process.destroy();
+                                    }
+                                }
                             } catch (IOException ex) {
                                 LOGGER.log(Level.SEVERE, 
                                         "IOException during process starting.",
                                         ex);
-                            }
-
-                            // This is necessary because .waitFor() will hang otherwise
-                            if (process != null) {
-                                try (BufferedReader reader = new BufferedReader(
-                                        new InputStreamReader(process
-                                                .getInputStream()))) {
-                                    while (reader.readLine() != null ) {}
-                                } catch (IOException ex) {
-                                    LOGGER.log(Level.SEVERE, 
-                                            "IOException during writing .0 file in scratch.",
-                                            ex);
-                                }
-                                try {
-                                    process.waitFor();
-                                } catch (InterruptedException ex) {
-                                    LOGGER.log(Level.SEVERE, 
-                                            "InterruptException during processing optimize.exe",
-                                            ex);
-                                }
-                                process.destroy();
                             }
 
                             // Fix .xyz file if there is H2O 
@@ -1294,7 +1282,6 @@ public class MIPET {
                             }
 
                             // Use tinker's analyze to determine intermolecular energy
-                            process = null;
                             String tmpOutputName;
                             if (i == 0)  {
                                 tmpOutputName = scratchDirectory
@@ -1631,11 +1618,11 @@ public class MIPET {
                                 ex);
                         }
                     }
-                    tmpOptDistPath = Paths.get(optDistDirectory, forcefield,
+                    Path optDistPath = Paths.get(optDistDirectory, forcefield,
                             particle1 + ".txt");
-                    if (isSameParticle && !Files.exists(tmpOptDistPath)) {
-                        try (BufferedWriter tmpBW = Files
-                                .newBufferedWriter(tmpOptDistPath)) {
+                    if (isSameParticle && !Files.exists(optDistPath)) {
+                        try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                                optDistPath, StandardCharsets.UTF_8)) {
                             tmpBW.append(decimal4.format(tmpGlbEminDist));
                         } catch(IOException ex) {
                             LOGGER.log(Level.SEVERE, 
@@ -1804,7 +1791,8 @@ public class MIPET {
                 """;
         Path ReadmePath = Paths.get(resultDirectory, "IE", forceField_IE,
                 "Readme.txt");
-        try (BufferedWriter writer = Files.newBufferedWriter(ReadmePath)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(ReadmePath, 
+                StandardCharsets.UTF_8)) {
             writer.append(readmeStr);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
@@ -1933,9 +1921,9 @@ public class MIPET {
         particleNames = new LinkedList<>();
         newParticles = new LinkedList<>();
         oldParticles = new LinkedList<>();
-        
-        try (BufferedReader reader = new BufferedReader(
-                new FileReader(jobFileName))) {
+        Path jobPath = Paths.get(jobFileName);
+        try (BufferedReader reader = Files.newBufferedReader(jobPath, 
+                StandardCharsets.UTF_8)) {
             String line;
             
             // read jobs
@@ -3031,8 +3019,6 @@ public class MIPET {
         String tmpParticle1;
         String tmpParticle2;
         String tmpParticlePair;
-        String tmpParticleLogFileName;
-        String tmpDatFileName;
         String tmpKeyContent;
         String tmpKeyFixContent;
         String tmpKeyMaxiter;
@@ -3041,12 +3027,10 @@ public class MIPET {
         Path tmpSourceFile;
         Path tmpSourceFile2;
         Path tmpTargetDir;
-        Path tmpParticleLogFile;
         Path tmpResultPath;
         Path tmpSource;
         Path tmpTarget;
         ProcessBuilder tmpProcessBuilder;
-        Process tmpProcess;
         ExecutorService tmpExecutor;
         LinkedList<MIPETCN> tmpTaskList = new LinkedList<>();
         
@@ -3169,7 +3153,6 @@ public class MIPET {
         String tmpOldXYZFileName;
         String tmpNewXYZFileName;
         String tmpResultPathName;
-        String tmpMinimizeLogName;
         String tmpForcefieldName;
         int tmpPrm1ID;
         int tmpPrm2ID;
@@ -3251,35 +3234,27 @@ public class MIPET {
                         Double.toString(tmpBoxLengths[tmpJobIndex]),
                         Double.toString(tmpBoxLengths[tmpJobIndex]),
                         "Y");
+                tmpProcessBuilder.redirectErrorStream(true);
+                if (isLogBuildBox) {
+                    Path buildLogPath = Paths.get(tmpResultPathName,
+                            tmpParticle1 + "_" + tmpParticle2
+                            + "_build.log");
+                    tmpProcessBuilder.redirectOutput(buildLogPath.toFile());
+                } else {
+                    // This loop is necessary for linux version.
+                    tmpProcessBuilder.redirectOutput(ProcessBuilder
+                            .Redirect.DISCARD);
+                }
+                Process process;
                 try {
-                    tmpProcess = tmpProcessBuilder.start();
-                    try (BufferedReader tmpBR = new BufferedReader(
-                            new InputStreamReader(tmpProcess.getInputStream()))) {
-                        if (isLogBuildBox) {
-                            Path buildLogPath = Paths.get(tmpResultPathName,
-                                tmpParticle1 + "_" + tmpParticle2 
-                                        + "_build.log");
-                            try (BufferedWriter writer = 
-                                    Files.newBufferedWriter(buildLogPath)) {
-                                String tmpLine;
-                                while ((tmpLine = tmpBR.readLine()) != null) {
-                                    writer.append(tmpLine);
-                                    writer.newLine();
-                                }
-                            }
-                        } else {
-                            // This loop is necessary for linux version.
-                            while (tmpBR.readLine() != null) {
-                            }
-                        } 
-                    }
-                    tmpProcess.waitFor();
-                    tmpProcess.destroy();
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
+                    process = tmpProcessBuilder.start();
+                    process.waitFor();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, "IOException during XYZEdit.", ex);
-                }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.log(Level.SEVERE, "Process was interrupted.", ex);
+                } 
 
                 // </editor-fold>
 
@@ -3292,9 +3267,9 @@ public class MIPET {
                         "24", // Option 24: Soak Current Molecule in Box of Solvent
                         tmpCurrentDir + tmpParticle2 + ".xyz_2");
                     try {
-                        tmpProcess = tmpProcessBuilder.start();
+                        process = tmpProcessBuilder.start();
                         try (InputStream inStream = 
-                                tmpProcess.getInputStream()) {
+                                process.getInputStream()) {
                             if (isLogSoakBox) {
                                 Path soakLogPath = Paths.get(tmpResultPathName,
                                         tmpParticle1 + "_" + tmpParticle2
@@ -3306,8 +3281,8 @@ public class MIPET {
                                 inStream.transferTo(OutputStream.nullOutputStream());
                             } 
                         }
-                        tmpProcess.waitFor();
-                        tmpProcess.destroy();
+                        process.waitFor();
+                        process.destroy();
                     } catch (InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     } catch (IOException ex) {
@@ -3336,9 +3311,10 @@ public class MIPET {
 
                 // <editor-fold defaultstate="collapsed" desc="Add MAXITER to .key file">
                 boxMinimizationTime = System.nanoTime();
+                Path keyFilePath = Paths.get(tmpKeyFileName);
                 tmpKeyMaxiter = "MAXITER " + minimizeMaxIteration;
-                try (BufferedWriter tmpBW = new BufferedWriter(
-                        new FileWriter(tmpKeyFileName, true))) {
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                        keyFilePath, StandardCharsets.UTF_8)) {
                             tmpBW.write(tmpKeyMaxiter);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
@@ -3351,55 +3327,45 @@ public class MIPET {
                 tmpProcessBuilder = new ProcessBuilder(tinkerMinimize,
                         tmpCurrentDir + tmpParticlePair + ".xyz",
                         Double.toString(rmsMinimizeGradient));
-                try {
-                    tmpProcess = tmpProcessBuilder.start();
-                    try (BufferedReader tmpBR = new BufferedReader(
-                            new InputStreamReader(tmpProcess.getInputStream()))) {
-                        if (isLogMinimizeBox) {
-                            tmpMinimizeLogName = tmpResultPathName
-                                    + FILESEPARATOR 
-                                    + tmpParticlePair
-                                    + "_minimize.log";
-                            BufferedWriter tmpBW = new BufferedWriter(
-                                    new FileWriter(tmpMinimizeLogName));
-                            String tmpLine;
-                                
-                            while ((tmpLine = tmpBR.readLine()) != null) {
-                                tmpBW.append(tmpLine);
-                            }
-                                
-                        } else {
-                            // This loop is necessary for linux version.
-                            while (tmpBR.readLine() != null) {
-                            }
-                            
-                        }
-                    } 
-                    tmpProcess.waitFor();
-                    tmpProcess.destroy();
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                    "IOException during XYZEdit.", ex);
+                tmpProcessBuilder.redirectErrorStream(true);
+                if (isLogMinimizeBox) {
+                    Path minimizeLogPath = Paths.get(tmpResultPathName,
+                            tmpParticlePair + "_minimize.log");
+                    tmpProcessBuilder.redirectOutput(minimizeLogPath.toFile());
+                } else {
+                    tmpProcessBuilder.redirectOutput(ProcessBuilder.
+                            Redirect.DISCARD);
                 }
+                
+                
+                try {
+                    process = tmpProcessBuilder.start();
+                    process.waitFor();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, "IOException during XYZEdit.", ex);
+                }catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.log(Level.SEVERE, "Process was interrupted", ex);
+                } 
+                String particleLogName;
+                String datFileName;
                 if (!aJobTaskRecordList.get(i).isReverse()) {
-                    tmpParticleLogFileName = tmpResultPath
+                    particleLogName = tmpResultPath
                             + FILESEPARATOR
                             + tmpParticlePair
                             + "_log.txt";
-                    tmpDatFileName = tmpResultPath
+                    datFileName = tmpResultPath
                             + FILESEPARATOR
                             + tmpParticlePair
                             + ".dat";
                 } else {
-                    tmpParticleLogFileName = tmpResultPath
+                    particleLogName = tmpResultPath
                             + FILESEPARATOR
                             + tmpParticle2
                             + "_"
                             + tmpParticle1
                             + "_log.txt";
-                    tmpDatFileName = tmpResultPath
+                    datFileName = tmpResultPath
                             + FILESEPARATOR
                             + tmpParticle2
                             + "_"
@@ -3410,16 +3376,18 @@ public class MIPET {
                 // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Write .log file">
-                tmpParticleLogFile = Paths.get(tmpParticleLogFileName);
-                if (!tmpIsSameParticle && !Files.exists(tmpParticleLogFile)) {
+                Path particleLogPath = Paths.get(particleLogName);
+                if (!tmpIsSameParticle && !Files.exists(particleLogPath)) {
                     tmpHasCNHeadLine = true;
                 }
                 try {
-                    BWParticleDat = new BufferedWriter(
-                            new FileWriter(tmpDatFileName));
+                    Path datFilePath = Paths.get(datFileName);
+                    BWParticleDat = Files.newBufferedWriter(datFilePath, 
+                            StandardCharsets.UTF_8);
                     // BufferedWriter for log contents
-                    try (BufferedWriter BWParticleLog = new BufferedWriter(
-                             new FileWriter(tmpParticleLogFileName))) {
+                    particleLogPath = Paths.get(particleLogName);
+                    try (BufferedWriter BWParticleLog = Files.newBufferedWriter(
+                            particleLogPath, StandardCharsets.UTF_8)) {
                         if (Files.exists(tmpSourceFile2) && !tmpHasCNHeadLine) {
                             Files.move(tmpSource, tmpTarget,
                                     StandardCopyOption.ATOMIC_MOVE);
@@ -3693,57 +3661,57 @@ public class MIPET {
                     }
                     Path datPath = Paths.get(aJobTaskRecordList.get(i)
                             .result_CN_PathName(),tmpParticlePair + ".dat");
-                    try (BufferedWriter tmpBW = 
-                            Files.newBufferedWriter(datPath)) {
+                    try (BufferedWriter writer = Files.newBufferedWriter(
+                            datPath, StandardCharsets.UTF_8)) {
                         // Coordination number mean
-                        tmpBW.append("CNmean(")
+                        writer.append("CNmean(")
                                 .append(tmpParticle1)
                                 .append("/")
                                 .append(tmpParticle2)
                                 .append(") = ")
                                 .append(String.format("%.2f", 
                                         tmpCNMeans[tmpJobIndex]));
-                        tmpBW.append("    ");
-                        tmpBW.newLine();
+                        writer.append("    ");
+                        writer.newLine();
 
                         // Standard deviation
-                        tmpBW.append("Standard deviation(")
+                        writer.append("Standard deviation(")
                                 .append(tmpParticle1)
                                 .append("/")
                                 .append(tmpParticle2)
                                 .append(") = ")
                                 .append(String.format("%.2f", 
                                         tmpStdDeviation[tmpJobIndex]));
-                        tmpBW.append("    ");
-                        tmpBW.newLine();
+                        writer.append("    ");
+                        writer.newLine();
 
                         // CN Min
-                        tmpBW.append("Min(")
+                        writer.append("Min(")
                                 .append(tmpParticle1)
                                 .append("/")
                                 .append(tmpParticle2)
                                 .append(") = ")
                                 .append(Integer.toString(tmpCNMin[tmpJobIndex]))
                                 .append("    ");
-                        tmpBW.newLine();
+                        writer.newLine();
 
                         // CN Max
-                        tmpBW.append("Max(")
+                        writer.append("Max(")
                                 .append(tmpParticle1)
                                 .append("/")
                                 .append(tmpParticle2)
                                 .append(") = ")
                                 .append(Integer
                                         .toString(tmpCNMax[tmpJobIndex]));
-                        tmpBW.append("    ");
-                        tmpBW.newLine();
+                        writer.append("    ");
+                        writer.newLine();
 
                         // Box length
-                        tmpBW.append("BoxLength [" + ANGSTROM + "] = ")
+                        writer.append("BoxLength [" + ANGSTROM + "] = ")
                                 .append(String.format("%.4f", 
                                         tmpBoxLengths[tmpJobIndex]));
-                        tmpBW.newLine();
-                        tmpBW.close();
+                        writer.newLine();
+                        writer.close();
                         tmpJobIndex++;
                     } catch(IOException ex) {
                         LOGGER.log(Level.SEVERE, 
@@ -3970,7 +3938,7 @@ public class MIPET {
             }
             if (!forceField_CN.isEmpty() || tmpOutputIteration <= 3) {
                 try (BufferedWriter tmpBW = Files.newBufferedWriter(
-                        Paths.get(tmpFileName))) {
+                        Paths.get(tmpFileName), StandardCharsets.UTF_8)) {
                     tmpBW.append("# Particle set for MFSim created by ")
                             .append(MIPET.class.getPackage()
                                     .getImplementationTitle())

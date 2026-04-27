@@ -23,14 +23,15 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -61,11 +62,6 @@ public class TinkerXYZ implements Cloneable {
      * Standard capacity for stringbuilder object
      */
     private final int STRINGBUILDER_CAPACITY = 4096;
-    
-    /**
-     * Standard BufferdReader buffersize 
-     */
-    private final int READER_BUFFERSIZE = 65536;;
     
     /**
      * Line separator
@@ -1447,10 +1443,10 @@ public class TinkerXYZ implements Cloneable {
             throw new IllegalArgumentException("aData in " 
                     + "writeToXyzFile() is null or empty.");
         }
-        
-        try (BufferedWriter tmpBW = new BufferedWriter(
-                new FileWriter(aXyzFileName))) {
-            tmpBW.append(aData);
+        Path xyzPath = Paths.get(aXyzFileName);
+        try (BufferedWriter writer = Files.newBufferedWriter(xyzPath, 
+                StandardCharsets.UTF_8)) {
+            writer.append(aData);
         } catch(IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException in writeToXyzFile().", ex);
@@ -1491,12 +1487,10 @@ public class TinkerXYZ implements Cloneable {
         if (aFileName == null || aFileName.isEmpty()) {
             throw new IllegalArgumentException("aFileName in readCoordFromArc is null or empty.");
         }
-        
-        File sourceFile = new File(aFileName);
         ArrayList<double[][]> coordsList = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(
-                new FileReader(sourceFile), READER_BUFFERSIZE)) {
+        Path path = Paths.get(aFileName);
+        try (BufferedReader reader = Files.newBufferedReader(path, 
+                StandardCharsets.UTF_8)){
             String line = reader.readLine();
             if (line == null) {
                 return new double[0][0][0];
