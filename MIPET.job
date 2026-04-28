@@ -16,7 +16,7 @@ $
 #--------------------------
 #H2O
 #Me
-#MeOH
+MeOH
 #Et
 #Me2O
 #Na+
@@ -64,6 +64,6 @@ $
 #Pr
 #PrImine
 #Pyridine
-Pyrrole
-VinylBr
+#Pyrrole
+#VinylBr
 #VinylCl

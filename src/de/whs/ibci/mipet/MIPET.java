@@ -1550,20 +1550,6 @@ public class MIPET {
                             outputFileName);
                     
                     if (isTinkerOn) {
-                        // Generate .pdb file of output.0
-                        boolean hasH2O = particle1.equals("H2O") || 
-                                particle2.equals("H2O");
-                        String keyFileContent = "\"" 
-                                + scratchDirectory
-                                + FILESEPARATOR 
-                                + particlePair
-                                + ".key"
-                                + "\"";
-                        MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                output0FileName, 
-                                keyFileContent, 
-                                hasH2O);
-                        
                         // Generate output_opt.xyz
                         optFileName = tmpIEResultDirName 
                                 + FILESEPARATOR 
@@ -1593,14 +1579,14 @@ public class MIPET {
                         tinkerXyz.writeToXyzFile(fileName);
 
                         //<editor-fold defaultstate="collapsed" desc="Generate .pdb files">
-                        MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                optFileName, 
-                                keyFileContent, 
-                                hasH2O);
-                        MIPETUTIL.callXYZPDB(tinkerXYZPdb, 
-                                rgdFileName, 
-                                keyFileContent, 
-                                hasH2O);
+                        outputFileName = optFileName.substring(0,
+                                optFileName.length() - 2) + ".pdb";
+                        TinkerToPdbConverter.convert(optFileName, 
+                                outputFileName);
+                        outputFileName = rgdFileName.substring(0,
+                                rgdFileName.length() - 2) + ".pdb";
+                        TinkerToPdbConverter.convert(rgdFileName, 
+                                outputFileName);
                         
                         //</editor-fold>
                     }
@@ -3015,14 +3001,10 @@ public class MIPET {
         double[] tmpVdWSolutVolumes;
         double[] tmpBoxLengths;
         double[] tmpStdDeviation;
-        String tmpCurrentDir;
-        String tmpParticle1;
-        String tmpParticle2;
         String tmpParticlePair;
         String tmpKeyContent;
         String tmpKeyFixContent;
         String tmpKeyMaxiter;
-        String tmpKeyFileName;
         String[] tmpCmdList;
         Path tmpSourceFile;
         Path tmpSourceFile2;
@@ -3162,8 +3144,8 @@ public class MIPET {
         for (int i = 0; i < tmpJobTaskLength; i++) {
             if (aJobTaskRecordList.get(i).hasCNJob()) {
                 tmpHasCNHeadLine = false;
-                tmpParticle1 = aJobTaskRecordList.get(i).particleName1(); // solute
-                tmpParticle2 = aJobTaskRecordList.get(i).particleName2(); // solvent
+                String tmpParticle1 = aJobTaskRecordList.get(i).particleName1(); // solute
+                String tmpParticle2 = aJobTaskRecordList.get(i).particleName2(); // solvent
                 tmpPrm1ID = particleNames.indexOf(tmpParticle1);
                 tmpPrm2ID = particleNames.indexOf(tmpParticle2);
                 tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
@@ -3171,23 +3153,13 @@ public class MIPET {
                         .isSameParticle();
                 tmpResultPathName = aJobTaskRecordList.get(i)
                         .result_CN_PathName();
-                tmpCurrentDir = scratchDirectory
-                        + FILESEPARATOR
-                        + forceField_CN
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + FILESEPARATOR;
+                Path currPath = Paths.get(scratchDirectory, forceField_CN,
+                        tmpParticlePair);
                 tmpResultPath = Paths.get(aJobTaskRecordList.get(i)
                         .result_CN_PathName());
-                tmpSource = Paths.get(tmpCurrentDir
-                        + tmpParticlePair
-                        + ".xyz_2");
-                tmpSourceFile2 = Paths.get(tmpCurrentDir
-                        + tmpParticlePair 
-                        + ".xyz_2");
-                tmpTarget = Paths.get(tmpCurrentDir
-                        + tmpParticlePair 
-                        + ".xyz");
+                tmpSource = currPath.resolve(tmpParticlePair + ".xyz_2");
+                tmpSourceFile2 = currPath.resolve(tmpParticlePair + ".xyz_2");
+                tmpTarget = currPath.resolve(tmpParticlePair + ".xyz");
 
                 // <editor-fold defaultstate="collapsed" desc="Make .key file for dynamic">
                 if (forceField_CN.equals("OPLSAALIGPARGEN")) {
@@ -3209,25 +3181,22 @@ public class MIPET {
                 if (isRATTLE) {
                     tmpKeyContent += "RATTLE" + LINESEPARATOR;
                 }
-                tmpKeyFileName = tmpCurrentDir
-                        + tmpParticlePair
-                        + ".key";
+                Path keyPath = currPath.resolve(tmpParticlePair + ".key");
                 if (forceField_CN.equals("OPLSAALIGPARGEN")) {
                     tmpKeyContent += prmContent1[tmpPrm1ID];
                     if (!tmpIsSameParticle) {
                         tmpKeyContent += prmContent2[tmpPrm2ID];
                     } 
                 }
-                MIPETUTIL.writeKeyFile(Paths.get(tmpKeyFileName), 
-                        tmpKeyContent);
+                MIPETUTIL.writeKeyFile(keyPath, tmpKeyContent);
 
                 // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Build solvent box">
-                tmpProcessBuilder = new ProcessBuilder(tinkerXYZEdit,
-                        tmpCurrentDir + tmpParticle2 + ".xyz",
+                tmpProcessBuilder = new ProcessBuilder(tinkerXYZEdit, 
+                        currPath.resolve(tmpParticle2 + ".xyz").toString(),
                         "-k",
-                        tmpKeyFileName,
+                        keyPath.toString(),
                         "23",  // Option 23: Create and Fill a Periodic Boundary Box
                         Integer.toString(solventMoleculeNumber),
                         Double.toString(tmpBoxLengths[tmpJobIndex]),
@@ -3261,11 +3230,11 @@ public class MIPET {
                 // <editor-fold defaultstate="collapsed" desc="Add solute to the simulation box">
                 if (!tmpIsSameParticle) {
                     tmpProcessBuilder = new ProcessBuilder(tinkerXYZEdit,
-                        tmpCurrentDir + tmpParticle1 + ".xyz",
+                        currPath.resolve(tmpParticle1 + ".xyz").toString(),
                         "-k",
-                        tmpKeyFileName,
+                        keyPath.toString(),
                         "24", // Option 24: Soak Current Molecule in Box of Solvent
-                        tmpCurrentDir + tmpParticle2 + ".xyz_2");
+                        currPath + tmpParticle2 + ".xyz_2");
                     try {
                         process = tmpProcessBuilder.start();
                         try (InputStream inStream = 
@@ -3291,10 +3260,10 @@ public class MIPET {
                     }
                     
                 }
-                tmpOldXYZFileName = tmpCurrentDir 
+                tmpOldXYZFileName = currPath 
                         + tmpParticle1 
                         + ".xyz_2";
-                tmpNewXYZFileName = tmpCurrentDir 
+                tmpNewXYZFileName = currPath 
                         + tmpParticlePair 
                         + ".xyz";
                 try {
@@ -3311,10 +3280,9 @@ public class MIPET {
 
                 // <editor-fold defaultstate="collapsed" desc="Add MAXITER to .key file">
                 boxMinimizationTime = System.nanoTime();
-                Path keyFilePath = Paths.get(tmpKeyFileName);
                 tmpKeyMaxiter = "MAXITER " + minimizeMaxIteration;
                 try (BufferedWriter tmpBW = Files.newBufferedWriter(
-                        keyFilePath, StandardCharsets.UTF_8)) {
+                        keyPath, StandardCharsets.UTF_8)) {
                             tmpBW.write(tmpKeyMaxiter);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
@@ -3325,7 +3293,7 @@ public class MIPET {
 
                 // <editor-fold defaultstate="collapsed" desc="Minimize solvent box">
                 tmpProcessBuilder = new ProcessBuilder(tinkerMinimize,
-                        tmpCurrentDir + tmpParticlePair + ".xyz",
+                        currPath + tmpParticlePair + ".xyz",
                         Double.toString(rmsMinimizeGradient));
                 tmpProcessBuilder.redirectErrorStream(true);
                 if (isLogMinimizeBox) {
@@ -3424,7 +3392,7 @@ public class MIPET {
 
                 // Make backup of particle1_particle2.xyz
                 tmpSource = tmpTarget;
-                tmpTarget = Paths.get(tmpCurrentDir
+                tmpTarget = Paths.get(currPath
                         + tmpParticlePair 
                         + ".bak");
                 try{
@@ -3450,16 +3418,12 @@ public class MIPET {
                 tmpParticle2 = aJobTaskRecordList.get(i)
                         .particleName2(); // solvent
                 tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-                tmpCurrentDir = scratchDirectory
-                        + FILESEPARATOR
-                        + forceField_CN
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + FILESEPARATOR;
+                Path keyPath = Paths.get(scratchDirectory, forceField_CN, 
+                        tmpParticlePair);
                 if (isTinker9) {
                     tmpCmdList = new String[] {tinkerDynamic,
                         "dynamic",
-                        tmpCurrentDir + tmpParticlePair + ".xyz",
+                        keyPath.toString() + tmpParticlePair + ".xyz",
                         Integer.toString(warmUpStepNumber),
                         Double.toString(warmUpTimeStep),
                         Double.toString(warmUpPrintInterval),
@@ -3467,7 +3431,7 @@ public class MIPET {
                         Double.toString(temperature)};
                 } else {
                     tmpCmdList = new String[] {tinkerDynamic,
-                        tmpCurrentDir + tmpParticlePair + ".xyz",
+                        keyPath.toString() + tmpParticlePair + ".xyz",
                         Integer.toString(warmUpStepNumber),
                         Double.toString(warmUpTimeStep),
                         Double.toString(warmUpPrintInterval),
@@ -3497,7 +3461,7 @@ public class MIPET {
         tmpLabelValues[0][0] = "Time for solvent box warm up via Tinker \"Dynamic\" [s]: ";
         tmpLabelValues[0][1] = Double.toString((System.nanoTime() 
                 - tmpDynamicWarmUpTime) / 1000d);
-        MIPETUTIL.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
+        MIPETUtility.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
         
         // </editor-fold>
         
@@ -3512,16 +3476,12 @@ public class MIPET {
                 tmpParticle2 = aJobTaskRecordList.get(i)
                         .particleName2(); // solvent
                 tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-                tmpCurrentDir = scratchDirectory
-                        + FILESEPARATOR
-                        + forceField_CN
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + FILESEPARATOR;
+                Path currPath = Paths.get(scratchDirectory, forceField_CN,
+                        tmpParticlePair);
                 if (isTinker9) {
                     tmpCmdList = new String[] {tinkerDynamic,
                         "dynamic",
-                        tmpCurrentDir + tmpParticlePair + ".xyz",
+                        currPath.toString() + tmpParticlePair + ".xyz",
                         Integer.toString(stepNumber),
                         Double.toString(timeStep),
                         Double.toString(printInterval),
@@ -3529,7 +3489,7 @@ public class MIPET {
                         Double.toString(temperature)};
                 } else {
                     tmpCmdList = new String[] {tinkerDynamic,
-                        tmpCurrentDir + tmpParticlePair + ".xyz",
+                        currPath.toString() + tmpParticlePair + ".xyz",
                         Integer.toString(stepNumber),
                         Double.toString(timeStep),
                         Double.toString(printInterval),
@@ -3565,7 +3525,7 @@ public class MIPET {
             Duration duration = Duration.between(startTime, endTime);
             float totalTimeSeconds = duration.toMillis() /1000f;
             tmpLabelValues[1][1] = String.valueOf(totalTimeSeconds);
-            MIPETUTIL.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
+            MIPETUtility.writeParticleLog(aJobTaskRecordList, tmpLabelValues);
             String tmpLabel = "Mean neighbor (" + temperature + " K): ";
             String[] tmpValues = new String[tmpCN.size()];
             tmpCNs = new int[tmpCN.size()][];
@@ -3606,15 +3566,9 @@ public class MIPET {
                             .getMax(tmpCNs[tmpJobIndex]);
                     tmpValues[tmpJobIndex] = Double.toString(
                             tmpCNMeans[tmpJobIndex]);
-                    tmpCurrentDir = scratchDirectory
-                            + FILESEPARATOR
-                            + forceField_CN
-                            + FILESEPARATOR
-                            + tmpParticlePair
-                            + FILESEPARATOR;
-                    tmpSourceFile = Paths.get(tmpCurrentDir 
-                            + tmpParticlePair
-                            + ".arc");
+                    Path currPath = Paths.get(scratchDirectory, forceField_CN,
+                            tmpParticlePair);
+                    tmpSourceFile = currPath.resolve(tmpParticlePair + ".arc");
                     try {
                         Files.deleteIfExists(tmpSourceFile);
                     } catch (IOException ex) {
@@ -3623,12 +3577,8 @@ public class MIPET {
                     }
 
                     // Restore of particle1_particle2.xyz
-                    tmpSource = Paths.get(tmpCurrentDir
-                            + tmpParticlePair
-                            + ".bak");
-                    tmpTarget = Paths.get(tmpCurrentDir
-                            + tmpParticlePair 
-                            + ".xyz");
+                    tmpSource = currPath.resolve(tmpParticlePair + ".bak");
+                    tmpTarget = currPath.resolve(tmpParticlePair + ".xyz");
                     try {
                         Files.copy(tmpSource, tmpTarget, 
                         StandardCopyOption.REPLACE_EXISTING);

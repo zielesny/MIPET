@@ -468,28 +468,24 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
 
         tmpStartIndex = minIndex * (this.ATOMNUMBER + 1);
         tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
-        String tmpArcFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + particlePair
-                + ".arc" 
-                + this.DISTANCEINDEX 
-                + "_" 
-                + this.CHUNKINDEX;
-        tmpPartArc = MIPETUtility.readPartArcFile(tmpArcFileName, 
+        Path arcPath = Paths.get(this.SCRATCH_DIR,
+                particlePair + ".arc" 
+                + this.DISTANCEINDEX + "_" + this.CHUNKINDEX);
+        tmpPartArc = MIPETUtility.readPartArcFile(arcPath, 
                 tmpStartIndex, tmpEndIndex);
         String tmpMinFileName = this.SCRATCH_DIR
-                    + this.FILESEPARATOR
-                    + particlePair
-                    +"_"
-                    + this.DISTANCEINDEX 
-                    + "_" 
-                    + this.CHUNKINDEX
-                    + ".0";
+                + this.FILESEPARATOR
+                + particlePair
+                +"_"
+                + this.DISTANCEINDEX 
+                + "_" 
+                + this.CHUNKINDEX
+                + ".0";
         TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
 
         // Delete .arc files
         try {
-            Files.delete(Paths.get(tmpArcFileName));
+            Files.delete(arcPath);
         } catch(IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during deleting files in scratch directory.", ex);
@@ -543,32 +539,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         
         return false;
     }
-    
-    /**
-     * Converts flat array to double[][][] array
-     * 
-     * @param flat Flat array
-     * @param numRot Number of conformation
-     * @param numAtoms Number of atoms
-     * @return Coordinate datas in double[][][] array
-     */
-    private double[][][] inflate(double[] flat, int numRot, int numAtoms) {
-        double[][][] inflated = new double[numRot][numAtoms][3];
-        
-        for (int r = 0; r < numRot; r++) {
-            
-            for (int a = 0; a < numAtoms; a++) {
-                int base = (r * numAtoms + a) * 3;
-                inflated[r][a][0] = flat[base];
-                inflated[r][a][1] = flat[base + 1];
-                inflated[r][a][2] = flat[base + 2];
-            }
-            
-        }
-        
-        return inflated;
-    }
-    
+           
     /**
      * Converts best configuration (in flat array) to double[][]
      * 

@@ -21,10 +21,7 @@ package de.whs.ibci.mipet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -35,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -240,17 +236,17 @@ public class MIPETUtility{
      * vdW-radii in Angstrom, index number = atomic number
      */
     public double[] getVdWRadii() {
-        double[] tmpVdWRadii = new double[93];
+        double[] vdWRadii = new double[93];
         
         for (int i = 1; i < 93; i++) {
             if (PeriodicTable
                     .getVdwRadius(PeriodicTable.getSymbol(i)) != null) {
-                tmpVdWRadii[i] = PeriodicTable
+                vdWRadii[i] = PeriodicTable
                     .getVdwRadius(PeriodicTable.getSymbol(i));
             }
         }
         
-        return tmpVdWRadii;
+        return vdWRadii;
     }
     
     /**
@@ -259,24 +255,23 @@ public class MIPETUtility{
      * @return Box length in Angstrom
      */
     public double getBoxLength(String aFileName) {
-        String tmpReadLine;
-        String[] tmpReadLineArray;
-        double tmpBoxLength = 0.0;
+        double boxLength = 0.0;
+        Path path = Paths.get(aFileName);
         
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(aFileName))) {
-            tmpBR.readLine();
-            tmpReadLine = tmpBR.readLine();
-            if (tmpReadLine != null) {
-                tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                tmpBoxLength = Double.parseDouble(tmpReadLineArray[0]);
+        try (BufferedReader reader = Files.newBufferedReader(path, 
+                StandardCharsets.UTF_8)) {
+            reader.readLine();
+            String line = reader.readLine();
+            if (line != null) {
+                String[] lineArray = line.trim().split("\\s+", 2);
+                boxLength = Double.parseDouble(lineArray[0]);
             }
         } catch (FileNotFoundException ex) {
             throw new IllegalArgumentException("File not found in getBoxLength.");
         } catch (IOException ex) {
             throw new IllegalArgumentException("IOException in getBoxLength.");            
         }
-        return tmpBoxLength;
+        return boxLength;
     }
     
     /**
@@ -798,8 +793,9 @@ public class MIPETUtility{
         tmpParticleIndex2 = 0;
         tmpParticleNumber2 = 0;
         tmpCoord1 = new double[anAtomNumber1][3];
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(aFileName), 65536)) {
+        Path path = Paths.get(aFileName);
+        try (BufferedReader tmpBR = Files.newBufferedReader(path,
+                StandardCharsets.UTF_8)) {
             tmpBR.mark(80);
             tmpLine = tmpBR.readLine();
             tmpAtomNumber = Integer.parseInt(tmpLine.substring(0, 6).trim());
@@ -929,37 +925,29 @@ public class MIPETUtility{
     
     /**
      * Write the last part of .arc file to .xyz file
-     * @param anArcFileName
-     *   File name of the .arc file
-     * @param aXyzFileName
-     *   File name of the .xyz file
+     * @param anArcPath
+     *   Path name of the .arc file
+     * @param aXyzPath
+     *   Path name of the .xyz file
      * @param aSteps 
      *   Step number in the .arc file
      */
-    public void writeLastPartToXYZ(String anArcFileName, String aXyzFileName,
-            int aSteps) {
-        int tmpAtomNumber;
-        int tmpHeader;
-        int tmpIgnoreLineNumber;
-        String tmpLine;
-
-        tmpHeader = 2;
-        
-        try (BufferedReader tmpBR = new BufferedReader(new FileReader(
-                anArcFileName), 65536);
-                BufferedWriter tmpBW = new BufferedWriter(new FileWriter(
-                        aXyzFileName))) {
-            tmpLine = tmpBR.readLine();
-            tmpAtomNumber = Integer.parseInt(tmpLine.substring(0, 6).trim());
-            tmpIgnoreLineNumber = (tmpAtomNumber + tmpHeader) 
-                    * (aSteps - 1) - 1;
+    public void writeLastPartToXYZ(Path anArcPath, Path aXyzPath, int aSteps) {
+        try (BufferedReader tmpBR = Files.newBufferedReader(anArcPath, 
+                StandardCharsets.UTF_8);
+                BufferedWriter tmpBW = Files.newBufferedWriter(aXyzPath, 
+                        StandardCharsets.UTF_8)) {
+            int headerSize = 2;
+            String line = tmpBR.readLine();
+            int atomSize = Integer.parseInt(line.substring(0, 6).trim());
+            int ignoreLineSize = (atomSize + headerSize) * (aSteps - 1) - 1;
             
-            for (int i = 0; i < tmpIgnoreLineNumber; i++) {
+            for (int i = 0; i < ignoreLineSize; i++) {
                 tmpBR.readLine();
             }
             
-            while((tmpLine = tmpBR.readLine()) != null) {
-                tmpBW.append(tmpLine);
+            while((line = tmpBR.readLine()) != null) {
+                tmpBW.append(line);
                 tmpBW.append(LINESEPARATOR);
             }
                 
@@ -977,15 +965,14 @@ public class MIPETUtility{
      */
     public HashMap<String, String> getSmilesData(String aSmilesFileName) {
         HashMap <String, String> tmpSmiles = new HashMap<>();
-        String tmpReadLine;
-        String[] tmpReadLineArray;
-        
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(aSmilesFileName), 65536)) {
+        Path path = Paths.get(aSmilesFileName);
+        try (BufferedReader tmpBR = Files.newBufferedReader(path,
+                StandardCharsets.UTF_8)) {
+            String line;
             
-            while((tmpReadLine = tmpBR.readLine()) != null) {
-                tmpReadLineArray = tmpReadLine.trim().split("\\s+");
-                tmpSmiles.put(tmpReadLineArray[0], tmpReadLineArray[1]);
+            while((line = tmpBR.readLine()) != null) {
+                String[] lineArray = line.trim().split("\\s+");
+                tmpSmiles.put(lineArray[0], lineArray[1]);
             }
             
         } catch (FileNotFoundException ex) {
@@ -1017,23 +1004,22 @@ public class MIPETUtility{
      */
     public Boolean isTooClose(double[][] aCoord1, double[][] aCoord2, 
             double aMinDist) {
-
-        double tmpDistanceQ;
-        double tmpMinDistQ;
-        
-        tmpMinDistQ = aMinDist * aMinDist;
+        double minDistQ = aMinDist * aMinDist;
         
         for (double[] p1 : aCoord1) {
+            
             for (double[] p2 : aCoord2) {
                 double dx = p1[0] - p2[0];
                 double dy = p1[1] - p2[1];
                 double dz = p1[2] - p2[2];
-                tmpDistanceQ = dx * dx + dy * dy + dz * dz;
-                if(tmpDistanceQ < tmpMinDistQ){
+                double distanceQ = dx * dx + dy * dy + dz * dz;
+                if(distanceQ < minDistQ){
                     return true;
                 }
             }
+            
         }
+        
         return false;
     }
     
@@ -1222,99 +1208,57 @@ public class MIPETUtility{
      * @return Distances to shortest neighbor
      */
     public double[] getNextDistance() {
-        String tmpFileNameSphereNode;
-        String tmpFileName;
-        String tmpLine;
-        String tmpSubString;
-        String[] tmpTokens;
-        int tmpStartIndex;
-        int tmpEndIndex;
-        int tmpAtomIndex;
-        int tmpMolNumber;
-        int[] tmpSphereNodeNumber;
-        double[][] tmpMatrix;
-        double[] tmpResult;
-        double tmpShortestDistQ;
-        double tmpDistQ;
-        double tmpDistQX;
-        double tmpDistQY;
-        double tmpDistQZ;
-        File tmpFile;
-        
-        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes";
-        tmpSphereNodeNumber = new int[] {4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 
-            144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 576, 
-            625, 676, 729, 784, 841, 900};
-        tmpResult = new double[29];
+        String sphereNodeFileName = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes";
+        int[] sphereNodeNumber = new int[] {4, 9, 16, 25, 36, 49, 64, 81, 100, 
+            121, 144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 
+            576, 625, 676, 729, 784, 841, 900};
+        double[] result = new double[29];
+        double shortestDistQ;
         
         for (int i = 0; i < 29; i++) {
-            tmpMolNumber = tmpSphereNodeNumber[i];
-            tmpFileName = tmpFileNameSphereNode + tmpMolNumber + ".txt";
-            tmpFile = new File(tmpFileName);
-            try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(tmpFile))) {
-                tmpMatrix = new double[tmpSphereNodeNumber[i]][3];
-                tmpAtomIndex = 0;
-                tmpShortestDistQ = 1000.;
+            int tmpMolNumber = sphereNodeNumber[i];
+            String tmpFileName = sphereNodeFileName + tmpMolNumber + ".txt";
+            Path path = Paths.get(tmpFileName);
+            try (BufferedReader tmpBR = Files.newBufferedReader(path,
+                    StandardCharsets.UTF_8)) {
+                double[][] matrix = new double[sphereNodeNumber[i]][3];
+                int atomIndex = 0;
+                shortestDistQ = 1000.;
+                String tmpLine;
                 
                 while ((tmpLine = tmpBR.readLine()) != null) {
-                    tmpStartIndex = tmpLine.indexOf("{");
-                    tmpEndIndex = tmpLine.lastIndexOf("}");
-                    tmpSubString = tmpLine
-                            .substring(tmpStartIndex + 1, tmpEndIndex);
-                    tmpTokens = tmpSubString.split(",");
-                    tmpMatrix[tmpAtomIndex][0] = Double.parseDouble(
+                    int startIndex = tmpLine.indexOf("{");
+                    int endIndex = tmpLine.lastIndexOf("}");
+                    String subString = tmpLine
+                            .substring(startIndex + 1, endIndex);
+                    String[] tmpTokens = subString.split(",");
+                    matrix[atomIndex][0] = Double.parseDouble(
                             tmpTokens[0].trim());
-                    tmpMatrix[tmpAtomIndex][1] = Double.parseDouble(
+                    matrix[atomIndex][1] = Double.parseDouble(
                             tmpTokens[1].trim());
-                    tmpMatrix[tmpAtomIndex][2] = Double.parseDouble(
+                    matrix[atomIndex][2] = Double.parseDouble(
                             tmpTokens[2].trim());
-                    tmpAtomIndex++;
+                    atomIndex++;
                 }
                 
                 for (int j = 1; j < tmpMolNumber; j++) {
-                    tmpDistQX = tmpMatrix[j][0] - tmpMatrix[0][0];
-                    tmpDistQY = tmpMatrix[j][1] - tmpMatrix[0][1];
-                    tmpDistQZ = tmpMatrix[j][2] - tmpMatrix[0][2];
-                    tmpDistQ = tmpDistQX * tmpDistQX
-                            + tmpDistQY * tmpDistQY
-                            + tmpDistQZ * tmpDistQZ;
-                    if (tmpDistQ < tmpShortestDistQ) {
-                        tmpShortestDistQ = tmpDistQ;
+                    double distQX = matrix[j][0] - matrix[0][0];
+                    double distQY = matrix[j][1] - matrix[0][1];
+                    double distQZ = matrix[j][2] - matrix[0][2];
+                    double distQ = distQX * distQX
+                            + distQY * distQY
+                            + distQZ * distQZ;
+                    if (distQ < shortestDistQ) {
+                        shortestDistQ = distQ;
                     }
                 }
                 
-                tmpResult[i] = Math.sqrt(tmpShortestDistQ);
+                result[i] = Math.sqrt(shortestDistQ);
             } catch(IOException ex) {
             }
         }
         
-        return tmpResult;
-    }
-    
-    /**
-     * Converts Double ArrayList to primitive ArrayList
-     *
-     * @param aArrayList: Double values as ArrayList
-     * @return Double values as ArrayList
-     */
-    double[] toPrimitive (ArrayList<Double> aArrayList) {
-        int tmpArraySize;
-        double[] tmpEmptyArray;
-        
-        tmpArraySize = aArrayList.size();
-        tmpEmptyArray = new double[0];
-        double[] tmpResult = new double[tmpArraySize];
-        
-        if (tmpArraySize == 0) {
-            return tmpEmptyArray;
-        }
-        
-        for (int i = 0; i < tmpArraySize; i++) {
-            tmpResult[i] = aArrayList.get(i);
-        }
-        
-        return tmpResult;
+        return result;
     }
     
     /**
@@ -1331,8 +1275,8 @@ public class MIPETUtility{
     /**
      * Read a part of .arc file and returns the content as StringBuilder object.
      * 
-     * @param aFileName
-     *   A File name
+     * @param aPath
+     *   A Path name
      * @param aStartIndex
      *   Zero-based start line index
      * @param aEndIndex
@@ -1340,27 +1284,27 @@ public class MIPETUtility{
      * @return 
      * Content of the selected part of .arc file
      */
-    public static StringBuilder readPartArcFile(String aFileName, 
+    public static StringBuilder readPartArcFile(Path aPath, 
             int aStartIndex, int aEndIndex) {
-        String tmpLine;
-        int tmpIndex = 0;
-        StringBuilder tmpSB = new StringBuilder();
-        try (BufferedReader tmpBR = new BufferedReader(
-                new FileReader(aFileName), 65536)) {
+        String line;
+        int index = 0;
+        StringBuilder strBuilder = new StringBuilder();
+        try (BufferedReader reader = Files.newBufferedReader(aPath, 
+                StandardCharsets.UTF_8)) {
             
-            while ((tmpLine = tmpBR.readLine()) != null) {
-                if (aStartIndex <= tmpIndex && tmpIndex <= aEndIndex) {
-                    tmpSB.append(tmpLine);
-                    tmpSB.append(LINESEPARATOR);
+            while ((line = reader.readLine()) != null) {
+                if (aStartIndex <= index && index <= aEndIndex) {
+                    strBuilder.append(line);
+                    strBuilder.append(LINESEPARATOR);
                 }
-                tmpIndex++;
+                index++;
             }
             
         } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE,
-                        "IOException during reading" + aFileName , ex);
+                        "IOException during reading" + aPath.toString() , ex);
         }
-        return tmpSB;
+        return strBuilder;
     }
     
     /**
@@ -1373,34 +1317,28 @@ public class MIPETUtility{
      */
     public static void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String[][] aLabelValues) {
-        int tmpJobTaskLength;
-        String tmpParticle1;
-        String tmpParticle2;
-        String tmpParticlePair;
-        String tmpParticleLogFileName;
-        String tmpResultPathName;
+        int jobTaskLength = aJobTaskRecords.size();
         
-        tmpJobTaskLength = aJobTaskRecords.size();
-        
-        for (int i = 0; i < tmpJobTaskLength; i++) {
+        for (int i = 0; i < jobTaskLength; i++) {
             if (aJobTaskRecords.get(i).hasCNJob()) {
-                tmpParticle1 = aJobTaskRecords.get(i).particleName1(); // solute
-                tmpParticle2 = aJobTaskRecords.get(i).particleName2(); // solvent
-                tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-                tmpResultPathName = aJobTaskRecords.get(i).result_CN_PathName();
-                tmpParticleLogFileName = tmpResultPathName
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + "_log.txt";
-
-                try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(
-                        tmpParticleLogFileName, true))) {
+                String particle1 = aJobTaskRecords.get(i).particleName1(); // solute
+                String particle2 = aJobTaskRecords.get(i).particleName2(); // solvent
+                String particlePair = particle1 + "_" + particle2;
+                String resultPathName = aJobTaskRecords.get(i)
+                        .result_CN_PathName();
+                Path logPath = Paths.get(resultPathName, 
+                        particlePair + "_log.txt");
+                try (BufferedWriter writer = Files.newBufferedWriter(logPath, 
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND)) {
 
                     for (String[] aLabelValue1 : aLabelValues) {
-                        tmpBW.append(aLabelValue1[0]);
-                        tmpBW.append(aLabelValue1[1]);
-                        tmpBW.append(LINESEPARATOR);
+                        writer.append(aLabelValue1[0]);
+                        writer.append(aLabelValue1[1]);
+                        writer.newLine();
                     }
+                    
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during Writing logfile.", ex);
@@ -1422,44 +1360,35 @@ public class MIPETUtility{
      */
     public void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String aLabel, String[] aValues) {
+        int jobTaskLength = aJobTaskRecords.size();
+        int index = 0;
         
-        int tmpJobTaskLength;
-        int tmpIndex;
-        String tmpParticle1;
-        String tmpParticle2;
-        String tmpParticlePair;
-        String tmpParticleLogFileName;
-        String tmpResultPathName;
-        
-        tmpJobTaskLength = aJobTaskRecords.size();
-        tmpIndex = 0;
-        
-        for (int i = 0; i < tmpJobTaskLength; i++) {
+        for (int i = 0; i < jobTaskLength; i++) {
             if (aJobTaskRecords.get(i).hasCNJob()) {
-                tmpParticle1 = aJobTaskRecords.get(i).particleName1(); // solute
-                tmpParticle2 = aJobTaskRecords.get(i).particleName2(); // solvent
-                tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-                tmpResultPathName = aJobTaskRecords.get(i).result_CN_PathName();
-                tmpParticleLogFileName = tmpResultPathName
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + "_log.txt";
+                String particle1 = aJobTaskRecords.get(i).particleName1(); // solute
+                String particle2 = aJobTaskRecords.get(i).particleName2(); // solvent
+                String particlePair = particle1 + "_" + particle2;
+                String resultPathName = aJobTaskRecords.get(i).result_CN_PathName();
+                Path logPath = Paths.get(resultPathName, 
+                        particlePair + "_log.txt");
 
-                try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(
-                        tmpParticleLogFileName, true))) {
-                    tmpBW.append(aLabel);
-                    tmpBW.append("(");
-                    tmpBW.append(tmpParticle1);
-                    tmpBW.append("/");
-                    tmpBW.append(tmpParticle2);
-                    tmpBW.append("): ");
-                    tmpBW.append(aValues[tmpIndex]);
-                    tmpBW.append(LINESEPARATOR);
+                try (BufferedWriter writer = Files.newBufferedWriter(logPath, 
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND)) {
+                    writer.append(aLabel)
+                            .append("(")
+                            .append(particle1)
+                            .append("/")
+                            .append(particle2)
+                            .append("): ")
+                            .append(aValues[index]);
+                    writer.newLine();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during Writing logfile.", ex);
                 }
-                tmpIndex++;
+                index++;
             }
         }
         
@@ -1478,46 +1407,37 @@ public class MIPETUtility{
     public void writeZij_Table(ArrayList<JobTaskRecord> aJobTaskRecords,
             int[][] aCNs,
             double aTemperature) {
+        int jobTaskLength = aJobTaskRecords.size();
+        int index = 0;
         
-        int tmpJobTaskLength;
-        int tmpIndex;
-        String tmpParticle1;
-        String tmpParticle2;
-        String tmpParticlePair;
-        String tmpZij_TableFileName;
-        String tmpTargetDirName;
-        
-        tmpJobTaskLength = aJobTaskRecords.size();
-        tmpIndex = 0;
-        
-        for (int i = 0; i < tmpJobTaskLength; i++) {
+        for (int i = 0; i < jobTaskLength; i++) {
             if (aJobTaskRecords.get(i).hasCNJob()) {
-                tmpParticle1 = aJobTaskRecords.get(i).particleName1(); // solute
-                tmpParticle2 = aJobTaskRecords.get(i).particleName2(); // solvent
-                tmpParticlePair = tmpParticle1 + "_" + tmpParticle2;
-                tmpTargetDirName = aJobTaskRecords.get(i).result_CN_PathName();
-                tmpZij_TableFileName = tmpTargetDirName
-                        + FILESEPARATOR
-                        + tmpParticlePair
-                        + "_ZijTable.dat";
-                try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(
-                        tmpZij_TableFileName, true))) {
-                    tmpBW.append("temperature [K]: ");
-                    tmpBW.append(Double.toString(aTemperature));
-                    tmpBW.append(LINESEPARATOR);
-                    tmpBW.append(Integer.toString(aCNs[tmpIndex][0]));
+                String particle1 = aJobTaskRecords.get(i).particleName1(); // solute
+                String particle2 = aJobTaskRecords.get(i).particleName2(); // solvent
+                String particlePair = particle1 + "_" + particle2;
+                String targetDirName = aJobTaskRecords.get(i).result_CN_PathName();
+                Path zijPath = Paths.get(targetDirName,
+                        particlePair + "_ZijTable.dat");
+                try (BufferedWriter tmpBW = Files.newBufferedWriter(zijPath, 
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND)) {
+                    tmpBW.append("temperature [K]: ")
+                            .append(Double.toString(aTemperature));
+                    tmpBW.newLine();
+                    tmpBW.append(Integer.toString(aCNs[index][0]));
 
-                    for (int j = 1; j < aCNs[tmpIndex].length; j++) {
-                        tmpBW.append(LINESEPARATOR);
-                        tmpBW.append(Integer.toString(aCNs[tmpIndex][j]));
+                    for (int j = 1; j < aCNs[index].length; j++) {
+                        tmpBW.newLine();
+                        tmpBW.append(Integer.toString(aCNs[index][j]));
                     }
 
-                    tmpBW.append(LINESEPARATOR);
+                    tmpBW.newLine();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during Writing logfile.", ex);
                 }
-                tmpIndex++;
+                index++;
             }
         }
         
@@ -1537,63 +1457,52 @@ public class MIPETUtility{
         if (aPathName == null || aPathName.isEmpty())  {
             throw new IllegalArgumentException("Illegal argument was used in getParameterParticleName().");
         }
-        
-        int tmpParamStartIndex;
-        int tmpParticleStartIndex;
-        int tmpSeparateIndex;
-        int tmpPathNameLength = aPathName.size();
         LinkedList<String[]> tmpParameterParticleList = new LinkedList<>();
-        String tmpParameter;
-        String tmpParticle1;
-        String tmpParticle2;
-        String[] tmpParameterParticle;
-        String[][] tmpReturn;
 
         for (String s : aPathName) {
-            tmpParamStartIndex = -1;
-            tmpParticleStartIndex = -1;
-            tmpSeparateIndex = -1;
+            int paramStartIndex = -1;
+            int particleStartIndex = -1;
+            int separateIndex = -1;
 
 
             for (int j = s.length() - 1; j >= 0; j--) {
                 if (s.charAt(j) == '_') {
-                    tmpSeparateIndex = j;
+                    separateIndex = j;
                 } else if (s.charAt(j) ==
                         FILESEPARATOR.charAt(0) &&
-                        tmpParticleStartIndex == -1) {
-                    tmpParticleStartIndex = j + 1;
+                        particleStartIndex == -1) {
+                    particleStartIndex = j + 1;
                 } else {
                     if (s.charAt(j) == FILESEPARATOR.charAt(0)) {
-                        tmpParamStartIndex = j + 1;
+                        paramStartIndex = j + 1;
                         break;
                     } else if (j == 0) {
-                        tmpParamStartIndex = 0;
+                        paramStartIndex = 0;
                     }
                 }
             }
 
-            tmpParameterParticle = new String[3];
-            tmpParameter = s
-                    .substring(tmpParamStartIndex, tmpParticleStartIndex - 1);
-            tmpParameterParticle[0] = tmpParameter;
-            tmpParticle1 = s
-                    .substring(tmpParticleStartIndex, tmpSeparateIndex);
-            tmpParameterParticle[1] = tmpParticle1;
-            tmpParticle2 = s.substring(tmpSeparateIndex + 1);
-            tmpParameterParticle[2] = tmpParticle2;
-            tmpParameterParticleList.add(tmpParameterParticle);
-            if (!tmpParameterParticle[1].equals(tmpParameterParticle[2])) {
-                tmpParameterParticle = new String[3];
-                tmpParameterParticle[0] = tmpParameter;
-                tmpParameterParticle[1] = tmpParticle2;
-                tmpParameterParticle[2] = tmpParticle1;
-                tmpParameterParticleList.add(tmpParameterParticle);
+            String[] parameterParticle = new String[3];
+            String parameter = s.substring(paramStartIndex, 
+                    particleStartIndex - 1);
+            parameterParticle[0] = parameter;
+            String particle1 = s.substring(particleStartIndex, separateIndex);
+            parameterParticle[1] = particle1;
+            String particle2 = s.substring(separateIndex + 1);
+            parameterParticle[2] = particle2;
+            tmpParameterParticleList.add(parameterParticle);
+            if (!parameterParticle[1].equals(parameterParticle[2])) {
+                parameterParticle = new String[3];
+                parameterParticle[0] = parameter;
+                parameterParticle[1] = particle2;
+                parameterParticle[2] = particle1;
+                tmpParameterParticleList.add(parameterParticle);
             }
         }
         
-        tmpReturn = tmpParameterParticleList
+        String[][] result = tmpParameterParticleList
                 .toArray(new String[tmpParameterParticleList.size()][3]);
-        return tmpReturn;
+        return result;
     }
     
     /**
@@ -1604,200 +1513,12 @@ public class MIPETUtility{
      *   Content of .key file
      */
     public void writeKeyFile(Path keyPath, String aContent) {
-        
-        // Write .key file
         try (PrintWriter tmpOut = new PrintWriter(Files
                 .newBufferedWriter(keyPath, StandardCharsets.UTF_8))) {
             tmpOut.print(aContent);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .key file.", ex);
-        }
-    }
-    
-    /**
-     * Calls tinker tool xyzpdb.exe and convert a .xyz file to .pdb file
-     * @param aTinkerXYZPdb
-     *   xyzpdb.exe file name
-     * @param aXYZFileName
-     *   .xyz file name
-     * @param aKeyFileName
-     *   .key file name
-     * @param aHasH2O 
-     *   Flag if there is H2O molecule in .xyz file
-     */
-    public void callXYZPDB(String aTinkerXYZPdb, 
-            String aXYZFileName, String aKeyFileName, Boolean aHasH2O) {
-        int tmpColumnNumber;
-        int tmpLineNumber;
-        int tmpContentLines;
-        int tmpNullLines;
-        String tmpLine;
-        String tmpOldNumber;
-        String tmpNewNumber;
-        String tmpXYZFileName;
-        String[] tmpSplit;
-        Process tmpProcess;
-        File tmpOutputFile;
-        ArrayList<String[]> tmpXYZContent;
-        HashSet<String> tmpDeleteAtomNumber;
-
-        tmpNullLines = 0;
-        tmpXYZFileName = aXYZFileName;
-        tmpXYZContent = new ArrayList<>();
-        tmpDeleteAtomNumber = new HashSet<>();
-                
-        if (aHasH2O) {
-            try (BufferedReader tmpBR = new BufferedReader(
-                    new FileReader(aXYZFileName))) {
-                while ((tmpLine = tmpBR.readLine()) != null) {
-                    tmpXYZContent.add(new String[]{tmpLine});
-                }
-            } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "IOException during reading" + aXYZFileName , ex);
-            }
-            tmpContentLines = tmpXYZContent.size();
-            
-            for (int i = 0; i < tmpContentLines; i++) {
-                tmpSplit = tmpXYZContent.get(i)[0].trim().split("\\s+");
-                tmpXYZContent.set(i, tmpSplit);
-                if (tmpSplit[1].equalsIgnoreCase("LP") ||
-                        tmpSplit[1].equals("M")) {
-                    tmpXYZContent.set(i, null);
-                    tmpDeleteAtomNumber.add(tmpSplit[0]);
-                }
-            }
-            
-            for (int i = 1; i < tmpContentLines; i++) {
-                if (tmpXYZContent.get(i) != null) {
-                    tmpColumnNumber = tmpXYZContent.get(i).length;
-                    
-                    for (int j = 6; j < tmpColumnNumber; j++) {
-                        if (tmpDeleteAtomNumber.contains(
-                                tmpXYZContent.get(i)[j])) {
-                            tmpXYZContent.get(i)[j] = "";
-                        }
-                    }
-                    
-                }
-            }
-            
-            for (int i = 1; i < tmpContentLines; i++) {
-                if (tmpXYZContent.get(i) == null) {
-                    tmpNewNumber = String.valueOf(i);
-                    
-                    for (int j = i + 1; j < tmpContentLines; j++) {
-                        if (tmpXYZContent.get(j) != null) {
-                            tmpOldNumber = tmpXYZContent.get(j)[0];
-                            tmpXYZContent.set(i, tmpXYZContent.get(j));
-                            tmpXYZContent.get(i)[0] = tmpNewNumber;
-                            tmpXYZContent.set(j, null);
-                            
-                            for (int k = 1; k < tmpContentLines; k++) {
-                                if (tmpXYZContent.get(k) != null) {
-                                    tmpColumnNumber = tmpXYZContent.get(k)
-                                            .length;
-
-                                    for (int l = 6; l < tmpColumnNumber; l++) {
-                                        if (tmpXYZContent.get(k)[l]
-                                                .equals(tmpOldNumber)) {
-                                            tmpXYZContent.get(k)[l] =
-                                                    tmpNewNumber;
-                                        }
-                                    }
-
-                                }
-                                
-                            }
-                            
-                            break;
-                        }
-                    }
-                } 
-            }
-            
-            for (int i = 1; i < tmpContentLines; i++) {
-                if (tmpXYZContent.get(i) == null) {
-                    tmpNullLines++;
-                }
-            }
-            
-            tmpXYZContent.get(0)[0] = String.valueOf(
-                    tmpContentLines - tmpNullLines - 1);
-            
-            // Write .bak file
-            // .bak file (xyz format) is same file without LP
-            // .pdb format has issue with LP
-            tmpXYZFileName = aXYZFileName + ".bak";
-            tmpOutputFile = new File(tmpXYZFileName);
-            
-            try (BufferedWriter tmpBW = new BufferedWriter(
-                    new FileWriter(tmpOutputFile))) {
-                tmpLineNumber = tmpXYZContent.size();
-                
-                for (int i = 0; i < tmpLineNumber; i++) {
-                    tmpLine = "";
-                    if (tmpXYZContent.get(i) != null) {
-                        tmpColumnNumber = tmpXYZContent.get(i).length;
-                        
-                        for (int j = 0; j < tmpColumnNumber; j++) {
-                            tmpLine += tmpXYZContent.get(i)[j];
-                            if(j < tmpColumnNumber - 1) {
-                                if (!tmpXYZContent.get(i)[j].equals("")) {
-                                    tmpLine += "    ";
-                                }
-                            } else {
-                                tmpBW.append(tmpLine);
-                                tmpBW.append(LINESEPARATOR);
-                            }
-                        }
-                        
-                    }
-                }
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                    "IOException during writing xyz.bak.", ex);
-            }
-        }
-        try {
-            tmpProcess = new ProcessBuilder(aTinkerXYZPdb,
-                    tmpXYZFileName,
-                    "-k",
-                    aKeyFileName)
-                    .start();
-            tmpProcess.waitFor();
-            tmpProcess.destroy();
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException during process xyzpdb.exe start.", ex);
-        } catch (InterruptedException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "InterruptException during process xyzpdb.exe start", ex);
-        }
-        
-        if (aHasH2O) {
-            // Rename .pdb file
-            try {
-                String tmpOldXYZFileName = aXYZFileName + ".pdb";
-                String tmpNewXYZFileName = aXYZFileName
-                        .substring(0, aXYZFileName.length() - 2) + ".pdb";
-                Files.move(Paths.get(tmpOldXYZFileName), 
-                    Paths.get(tmpNewXYZFileName), 
-                    StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                            "IOException during rename .0.pdb to .pdb", ex);
-            }
-
-            // Delete .bak file
-            try {
-                Files.deleteIfExists(Paths.get(tmpXYZFileName));
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "IOException during deleting .bak file.",
-                        ex);
-            }
         }
     }
     
@@ -1811,35 +1532,35 @@ public class MIPETUtility{
      */
     public void writeDistance_Energy(String aFileName, Double[] aDistances, 
             Integer[] aDistanceIndices, double[][] aEnergySorted) {
-        int tmpEnergiesNumber;
-        
-        try (BufferedWriter tmpBW = new BufferedWriter(
-                new FileWriter(aFileName))) {
-            tmpBW.append("[distances]");
-            tmpBW.append(LINESEPARATOR);
+        Path path = Paths.get(aFileName);
+        try (BufferedWriter writer = Files.newBufferedWriter(path,
+                StandardCharsets.UTF_8)) {
+            writer.append("[distances]");
+            writer.newLine();
             
             for (int i = 0; i < aDistances.length; i++) {
-                tmpBW.append(String.valueOf(aDistances[aDistanceIndices[i]]));
-                tmpBW.append(LINESEPARATOR);
+                writer.append(String.valueOf(aDistances[aDistanceIndices[i]]));
+                writer.newLine();
             }
             
-            tmpBW.append("[/distances]");
-            tmpBW.append(LINESEPARATOR);
-            tmpBW.append("[energies]");
-            tmpBW.append(LINESEPARATOR);
+            writer.append("[/distances]");
+            writer.newLine();
+            writer.append("[energies]");
+            writer.newLine();
+            int tmpEnergiesNumber;
             
             for (double[] aEnergySorted1 : aEnergySorted) {
                 tmpEnergiesNumber = aEnergySorted1.length;
                 
                 for (int j = 0; j < tmpEnergiesNumber; j++) {
-                    tmpBW.append(String.valueOf(aEnergySorted1[j]));
-                    tmpBW.append("    ");
+                    writer.append(String.valueOf(aEnergySorted1[j]));
+                    writer.append("    ");
                 }
                 
-                tmpBW.append(LINESEPARATOR);
+                writer.newLine();
             }
             
-            tmpBW.append("[/energies]");
+            writer.append("[/energies]");
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing distanceEnergy file.", ex);
@@ -2061,44 +1782,38 @@ public class MIPETUtility{
      * @param aStartIndex: Number in .xyz-file
      */
     public void fixTinkerXYZ_H2O(String aFileName, int aStartIndex) {
-        String tmpLine;
-        String tmpNewLine;
-        StringBuilder tmpStringBuilder;
-        int tmpStartIndex;
-        int tmpIndex;
-        Path tmpPath;
-        File tmpFile;
+        String line;
+        String newLine;
+        StringBuilder strBuilder = new StringBuilder(5000);
+        int startIndex = aStartIndex;
+        int index = 0;
+        Path path = Paths.get(aFileName);
         
-        tmpStringBuilder = new StringBuilder(5000);
-        tmpStartIndex = aStartIndex;
-        tmpIndex = 0;
-        tmpPath = Paths.get(aFileName);
-        
-        try (BufferedReader tmpBR = Files.newBufferedReader(
-                            tmpPath, StandardCharsets.UTF_8)) {
+        try (BufferedReader tmpBR = Files.newBufferedReader(path, 
+                StandardCharsets.UTF_8)) {
             
-            while ((tmpLine = tmpBR.readLine()) != null ) {
-                if (tmpIndex == tmpStartIndex) {
-                    tmpNewLine = tmpLine.substring(0, 8)
+            while ((line = tmpBR.readLine()) != null ) {
+                if (index == startIndex) {
+                    newLine = line.substring(0, 8)
                             + " O"
-                            + tmpLine.substring(11);
-                    tmpLine = tmpNewLine;
-                } else if (tmpIndex == tmpStartIndex + 1 
-                        || tmpIndex == tmpStartIndex + 2) {
-                    tmpNewLine = tmpLine.substring(0, 8)
+                            + line.substring(11);
+                    line = newLine;
+                } else if (index == startIndex + 1 
+                        || index == startIndex + 2) {
+                    newLine = line.substring(0, 8)
                             + " H"
-                            + tmpLine.substring(11);
-                    tmpLine = tmpNewLine;
-                } else if (tmpIndex == tmpStartIndex + 3 
-                        || tmpIndex == tmpStartIndex + 4) {
-                    tmpNewLine = tmpLine.substring(0, 8)
+                            + line.substring(11);
+                    line = newLine;
+                } else if (index == startIndex + 3 
+                        || index == startIndex + 4) {
+                    newLine = line.substring(0, 8)
                             + "Lp"
-                            + tmpLine.substring(11);
-                    tmpLine = tmpNewLine;
+                            + line.substring(11);
+                    line = newLine;
                 }
-                tmpStringBuilder.append(tmpLine);
-                tmpStringBuilder.append(LINESEPARATOR);
-                tmpIndex++;
+                strBuilder.append(line);
+                strBuilder.append(LINESEPARATOR);
+                index++;
             }
             
         }catch (IOException ex) {
@@ -2106,10 +1821,10 @@ public class MIPETUtility{
                     "IOException during reading .xyz file in fixTinerXYZ_H2O",
                     ex);
         }
-        tmpPath.toFile().delete();
-        tmpFile = new File (aFileName);
-        try (BufferedWriter tmpBW = new BufferedWriter(new FileWriter(tmpFile))) {
-            tmpBW.append(tmpStringBuilder);
+        path.toFile().delete();
+        try (BufferedWriter tmpBW = Files.newBufferedWriter(path,
+                StandardCharsets.UTF_8)) {
+            tmpBW.append(strBuilder);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .xyz file in fixTinkerXYZ_H2O."

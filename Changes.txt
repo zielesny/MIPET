@@ -1,6 +1,8 @@
 version 1.0.7 (16.04.2026)
 ==========================
 * makeMoleculeRecord(): assignment check in prm-file
+* callXYZPDB() mothod subtituted by TinkerToPdbConverter.convert()
+* all BufferedWriter and BufferedReader changed to NIO2
 
 version 1.0.6 (13.04.2026)
 ==========================
