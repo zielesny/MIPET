@@ -21,9 +21,9 @@ package de.whs.ibci.mipet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -46,14 +46,12 @@ public class TinkerToPdbConverter {
     
     /**
      * Converts tinker's xyz format to pdb format
-     * @param inputFilePath Tinker's xyz-file
-     * @param outputFilePath Pdb-file
+     * @param inputPath Tinker's xyz-file
+     * @param outputPath Pdb-file
      */
-    public static void convert(String inputFilePath, String outputFilePath) {
-        try (BufferedReader reader = 
-                new BufferedReader(new FileReader(inputFilePath));
-            BufferedWriter writer =
-                    new BufferedWriter(new FileWriter(outputFilePath))) {
+    public static void convert(Path inputPath, Path outputPath) {
+        try (BufferedReader reader = Files.newBufferedReader(inputPath);
+            BufferedWriter writer =Files.newBufferedWriter(outputPath)) {
 
             String line = reader.readLine();
             if (line == null) {
@@ -152,8 +150,8 @@ public class TinkerToPdbConverter {
             }
             
             // Write all saved CONECT-lines at the end of the file
-            for (String tmpConectLine : connectLines) {
-                writer.write(tmpConectLine);
+            for (String conectLine : connectLines) {
+                writer.write(conectLine);
                 writer.newLine();
             }
 

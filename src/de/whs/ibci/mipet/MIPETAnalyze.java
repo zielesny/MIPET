@@ -228,8 +228,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         final double FACTOR = AVOGADRO * J_CAL * ELCHARGEQ * COULOMB * 1E7; // in kcal * m / (mole * C^2)
         final int CHUNKSIZE = NUM_ROT1 * NUM_ROT2;
         int energyCount = 0; // Counter for the valid calculations of energy
-        double tmpSumWgt = 0;
-        double tmpSumWgtxE = 0;
+        double sumWgt = 0;
+        double sumWgtxE = 0;
         double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
         double[] energyArray = new double[CHUNKSIZE];
         
@@ -310,8 +310,8 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                     // Ignore very small values
                     if (energyValue <= 20.0) {
                         double wgt = Math.exp(-energyValue * INV_RT);
-                        tmpSumWgt += wgt;
-                        tmpSumWgtxE += wgt * energyValue;
+                        sumWgt += wgt;
+                        sumWgtxE += wgt * energyValue;
                     }
                 } else {
                     energyArray[energyCount] = energyValue;
@@ -339,7 +339,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         if (ISFRACTIONONE) {
             double[] resultList = new double[1];
             resultList[0] = localMinEnergy;
-            return new WgtEnergyRecord(resultList, tmpSumWgt, tmpSumWgtxE, 
+            return new WgtEnergyRecord(resultList, sumWgt, sumWgtxE, 
                     tinkerXYZMin);
         } else {
             Arrays.sort(energyArray, 0, energyCount);
@@ -364,12 +364,12 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         double localMinEnergy = Double.MAX_VALUE; // in kcal/mole
         double[] energyArray = new double[chunkSize];
         
-        Path tmpPath = Paths.get(this.SCRATCH_DIR,
+        Path path = Paths.get(this.SCRATCH_DIR,
                 particlePair + ".arc"
                 + this.DISTANCEINDEX + "_"
                 + this.CHUNKINDEX
         );
-        try (BufferedWriter tmpBW = Files.newBufferedWriter(tmpPath, 
+        try (BufferedWriter writer = Files.newBufferedWriter(path, 
                 StandardCharsets.UTF_8)) {
 
             for (int i = 0; i < NUM_ROT1; i++) {
@@ -379,16 +379,16 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                         ISTINKERON);
 
                 for (int j = 0; j < NUM_ROT2; j++) {
-                    boolean tmpIs2Close = isTooCloseFlat(FLAT_ROT1, i, 
+                    boolean is2Close = isTooCloseFlat(FLAT_ROT1, i, 
                             FLAT_ROT2, j, NUM_ATOMS1, NUM_ATOMS2, 
                             MINATOMDISTANCE);
 
-                    if (!tmpIs2Close) {
+                    if (!is2Close) {
                         double[][] currentCoords2 = 
                                 extractSingleConf(FLAT_ROT2, j, NUM_ATOMS2);
                         this.TINKERXYZ.setCoordinateList2(currentCoords2, 
                                 ISTINKERON);
-                        tmpBW.append(this.TINKERXYZ.getFileContent());
+                        writer.append(this.TINKERXYZ.getFileContent());
                     } 
                     chunkIndex++;
                 }
@@ -462,26 +462,17 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
         }
             
         // Export .xyz file with lowest intermolecular energy
-        int tmpStartIndex;
-        int tmpEndIndex;
-        StringBuilder tmpPartArc;
-
-        tmpStartIndex = minIndex * (this.ATOMNUMBER + 1);
-        tmpEndIndex = tmpStartIndex + this.ATOMNUMBER;
+        int startIndex = minIndex * (this.ATOMNUMBER + 1);
+        int endIndex = startIndex + this.ATOMNUMBER;
         Path arcPath = Paths.get(this.SCRATCH_DIR,
                 particlePair + ".arc" 
                 + this.DISTANCEINDEX + "_" + this.CHUNKINDEX);
-        tmpPartArc = MIPETUtility.readPartArcFile(arcPath, 
-                tmpStartIndex, tmpEndIndex);
-        String tmpMinFileName = this.SCRATCH_DIR
-                + this.FILESEPARATOR
-                + particlePair
-                +"_"
-                + this.DISTANCEINDEX 
-                + "_" 
-                + this.CHUNKINDEX
-                + ".0";
-        TINKERXYZ.writeToXyzFile(tmpMinFileName, tmpPartArc);
+        StringBuilder partArc = MIPETUtility.readPartArcFile(arcPath, 
+                startIndex, endIndex);
+        Path minimumPath = Paths.get(this.SCRATCH_DIR,
+                particlePair +"_" + this.DISTANCEINDEX 
+                + "_" + this.CHUNKINDEX+ ".0");
+        TINKERXYZ.writeToXyzFile(minimumPath, partArc);
 
         // Delete .arc files
         try {
@@ -491,7 +482,7 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
                     "IOException during deleting files in scratch directory.", ex);
         }
             
-        TinkerXYZ tinkerXYZMin = new TinkerXYZ(tmpMinFileName, 1, 
+        TinkerXYZ tinkerXYZMin = new TinkerXYZ(minimumPath, 1, 
                 this.NUM_ATOMS1, this.NUM_ATOMS2);
         if (ISFRACTIONONE) {
             double[] resultList = new double[1];

@@ -196,31 +196,40 @@ public class TinkerXYZ implements Cloneable {
      * 
      * @param aForcefieldName Name of the force field
      * @param aParticleName Name of the particle
-     * @param aTxyzFileName Tinker xyz filename or Tinker xyz as a string
+     * @param aTxyzPath Tinker xyz filename
      */
-    public TinkerXYZ(String aForcefieldName, 
-            String aParticleName, 
-            String aTxyzFileName) {
+    public TinkerXYZ(String aForcefieldName, String aParticleName, 
+            Path aTxyzPath) {
         // Check parameters
-        if(aTxyzFileName == null || aTxyzFileName.isEmpty()) {
+        if(aTxyzPath == null) {
             throw new IllegalArgumentException("Null was passed to the " 
                     + "constructor TinkerXYZ.");
         }
         
-        String tmpTxyz;
-        Path tmpPath;
-        
-        if (new File(aTxyzFileName).isFile()) {
-            tmpPath = Path.of(aTxyzFileName);
+        String txyzStr;
+        if (Files.isRegularFile(aTxyzPath)) {
             try {
-                tmpTxyz = Files.readString(tmpPath);
+                txyzStr = Files.readString(aTxyzPath);
             } catch (IOException ex) {
-                throw new IllegalArgumentException("IOException in TinkerXYZ.");
+                throw new IllegalArgumentException("IOException in TinkerXYZ.", 
+                        ex);
             }
-            this.initialize(tmpTxyz, 1, 0, 0);
-        } else {
-            this.initialize(aTxyzFileName, 1, 0, 0);
-        }
+            this.initialize(txyzStr, 1, 0, 0);
+        } 
+        this.forcefieldName = aForcefieldName;
+        this.particleName1 = aParticleName;
+    }
+    
+    /**
+     * Constructor TinkerXYZ
+     * 
+     * @param aForcefieldName Name of the force field
+     * @param aParticleName Name of the particle
+     * @param aContent Tinker xyz as a string
+     */
+    public TinkerXYZ (String aForcefieldName, String aParticleName, 
+            String aContent) {
+        this.initialize(aContent, 1, 0, 0);
         this.forcefieldName = aForcefieldName;
         this.particleName1 = aParticleName;
     }
@@ -238,23 +247,20 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Constructor TinkerXYZ for getCoordinationNumber only
      * 
-     * @param aTxyzFileName Tinker xyz filename
+     * @param aTxyzPath Tinker xyz filename
      * @param anIterationSize Number of iterations
      * @param anAtomSize1 Number of atoms from first fragment
      * @param anAtomSize2 Number of atoms from second fragment
      */
-    public TinkerXYZ(String aTxyzFileName, int anIterationSize, 
+    public TinkerXYZ(Path aTxyzPath, int anIterationSize, 
             int anAtomSize1, int anAtomSize2) {
-        String tmpTxyz;
-        Path tmpPath;
-        
-        tmpPath = Path.of(aTxyzFileName);
+        String txyzStr;
         try {
-            tmpTxyz = Files.readString(tmpPath);
+            txyzStr = Files.readString(aTxyzPath);
         } catch (IOException ex) {
             throw new IllegalArgumentException("IOException in TinkerXYZ.");
         }
-        this.initialize(tmpTxyz, anIterationSize, anAtomSize1, anAtomSize2);
+        this.initialize(txyzStr, anIterationSize, anAtomSize1, anAtomSize2);
     }
     
     /**
@@ -978,15 +984,15 @@ public class TinkerXYZ implements Cloneable {
         }
         
         int atomNumber;
-        Reader stringReader = new StringReader(aTinkerXyz);
+        Reader strReader = new StringReader(aTinkerXyz);
         boolean hasCommentLine = false;
         
-        try (BufferedReader tmpBR = new BufferedReader(stringReader)) {
+        try (BufferedReader reader = new BufferedReader(strReader)) {
             
             // read first line
-            String tmpReadLine = tmpBR.readLine();
-            if (tmpReadLine != null) {
-                String[] words = tmpReadLine.trim().split("\\s+", 2);
+            String line = reader.readLine();
+            if (line != null) {
+                String[] words = line.trim().split("\\s+", 2);
                 atomNumber = Integer.parseInt(words[0]);
                 this.N_atom = atomNumber;
                 this.header = "";
@@ -1009,14 +1015,14 @@ public class TinkerXYZ implements Cloneable {
                         new double[anIterationSize][this.N_atom1][3];
             
                 // read second line
-                tmpBR.mark(80);
-                tmpReadLine = tmpBR.readLine();
-                words = tmpReadLine.trim().split("\\s+");
+                reader.mark(80);
+                line = reader.readLine();
+                words = line.trim().split("\\s+");
                 if (!words[0].equals("1")) {
                     hasCommentLine = true;
-                    this.comment = tmpReadLine;
+                    this.comment = line;
                 } else {
-                    tmpBR.reset();
+                    reader.reset();
                 }
                 this.elementList1 = new String[this.N_atom1];
                 this.elementList2 = new String[anAtomSize2];
@@ -1028,7 +1034,7 @@ public class TinkerXYZ implements Cloneable {
                 for (int i = 0; i < anIterationSize; i++) {
 
                     for (int j = 0; j < this.N_atom1; j++) {
-                        String tmpLine = tmpBR.readLine();
+                        String tmpLine = reader.readLine();
                         String[] tmpTokens = tmpLine.trim().split("\\s+");
                         double x = Double.parseDouble(tmpTokens[2]);
                         double y = Double.parseDouble(tmpTokens[3]);
@@ -1053,8 +1059,8 @@ public class TinkerXYZ implements Cloneable {
                     for (int j = 0; j < this.N_particle2; j++) {
 
                         for (int k = 0; k < this.N_atom2; k++) {
-                            tmpReadLine = tmpBR.readLine();
-                            words = tmpReadLine.trim().split("\\s+");
+                            line = reader.readLine();
+                            words = line.trim().split("\\s+");
                             double x = Double.parseDouble(words[2]);
                             double y = Double.parseDouble(words[3]);
                             double z = Double.parseDouble(words[4]);
@@ -1078,9 +1084,9 @@ public class TinkerXYZ implements Cloneable {
                     }
 
                     if (i < anIterationSize) {
-                        tmpBR.readLine();
+                        reader.readLine();
                         if (hasCommentLine) {
-                            tmpBR.readLine();
+                            reader.readLine();
                         }
                     }
                 }
@@ -1430,21 +1436,20 @@ public class TinkerXYZ implements Cloneable {
     /**
      * Converts tinker xyz object to .xyz file
      * 
-     * @param aXyzFileName .xyz file name
+     * @param aXyzPath .xyz path name
      * @param aData Stringbuilder object with data
      */
-    public void writeToXyzFile(String aXyzFileName, StringBuilder aData) {
+    public void writeToXyzFile(Path aXyzPath, StringBuilder aData) {
         
         // Check parameters
-        if (aXyzFileName == null || aXyzFileName.isEmpty()) {
+        if (aXyzPath == null) {
             throw new IllegalArgumentException("aXyzFileName in " 
                     + "writeToXyzFile() is null.");
         } else if (aData == null || aData.isEmpty()) {
             throw new IllegalArgumentException("aData in " 
                     + "writeToXyzFile() is null or empty.");
         }
-        Path xyzPath = Paths.get(aXyzFileName);
-        try (BufferedWriter writer = Files.newBufferedWriter(xyzPath, 
+        try (BufferedWriter writer = Files.newBufferedWriter(aXyzPath, 
                 StandardCharsets.UTF_8)) {
             writer.append(aData);
         } catch(IOException ex) {

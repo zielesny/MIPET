@@ -283,11 +283,11 @@ public class MIPETUtility{
      * @return 
      *   True if the value is in the list (otherwise false)
      */
-    public boolean contains(LinkedList<Double> aList, double aValue) {
-        double tmpThreshold = 0.001;
+    public boolean contains(List<Double> aList, double aValue) {
+        double threshold = 0.001;
         
-        for (double tmpList : aList) {
-            if (Math.abs(tmpList - aValue) < tmpThreshold) {
+        for (double value : aList) {
+            if (Math.abs(value - aValue) < threshold) {
                 return true;
             }
         }
@@ -750,15 +750,15 @@ public class MIPETUtility{
     /**
      * Read the coordinates from an .arc file
      * 
-     * @param aFileName File name
+     * @param path File name
      * @param anAtomNumber1 Atom number of solute particle
      * @param anAtomNumber2 Atom number of solvent particle
      * @return All coordinates of .arc file
      */
-    public CoordinatesRecord getCoordinatesFromArcFile(String aFileName,
+    public CoordinatesRecord getCoordinatesFromArcFile(Path path,
             int anAtomNumber1, int anAtomNumber2) {
         // Check parameters
-        if (aFileName == null || aFileName.isEmpty()) {
+        if (path == null) {
             throw new IllegalArgumentException("Null was passed to the " 
                     + "setFileContent method.");
         }
@@ -793,7 +793,6 @@ public class MIPETUtility{
         tmpParticleIndex2 = 0;
         tmpParticleNumber2 = 0;
         tmpCoord1 = new double[anAtomNumber1][3];
-        Path path = Paths.get(aFileName);
         try (BufferedReader tmpBR = Files.newBufferedReader(path,
                 StandardCharsets.UTF_8)) {
             tmpBR.mark(80);

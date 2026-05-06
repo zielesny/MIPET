@@ -139,10 +139,9 @@ public class MIPETCN implements Callable<int[]> {
         int[] tmpResultNeighborNumber;
         LinkedList<int[]> tmpCurrentNeighbors;
         LinkedList<Integer> tmpNeighborNumbers;
-        String tmpXyzFileName2;
         String tmpDynamicLogName;
         ProcessBuilder tmpPBuilder;
-        CoordinatesRecord tmpCoordRecord;
+        CoordinatesRecord coordRecord;
         
         tmpNeighborNumbers = new LinkedList<>();
         MIPETUtility MIPET4JUtil = new MIPETUtility();
@@ -153,17 +152,11 @@ public class MIPETCN implements Callable<int[]> {
         boolean isSameParticle = particle1.equals(particle2);
         String particlePair = particle1 + "_" + particle2;
         String resultPathName = this.JOBTASK_RECORD.result_CN_PathName();
-        String currDir = this.SCRATCH_DIR
-                    + FILESEPARATOR
-                    + forcefield
-                    + FILESEPARATOR
-                    + particlePair
-                    + FILESEPARATOR;
-        TinkerXYZ tXyz1 = new TinkerXYZ(forcefield,
-                particle1,
-                currDir + particle1 + ".xyz");
+        Path currPath = Paths.get(this.SCRATCH_DIR, forcefield, particlePair);
+        TinkerXYZ tXyz1 = new TinkerXYZ(forcefield, particle1,
+                currPath.resolve(particle1 + ".xyz"));
         TinkerXYZ tXyz2;
-        double tmpBoxLength = MIPET4JUtil.getBoxLength(currDir 
+        double tmpBoxLength = MIPET4JUtil.getBoxLength(currPath 
                 + particlePair + ".xyz");
         int atomNumber1 = tXyz1.getN_atom();
         int atomNumber2;
@@ -173,10 +166,8 @@ public class MIPETCN implements Callable<int[]> {
             atomNumber2 = atomNumber1;
             elements2 = elements1.clone();
         } else {
-            tmpXyzFileName2 = currDir + particle2 + ".xyz";
-            tXyz2 = new TinkerXYZ(forcefield,
-                    particle2,
-                    tmpXyzFileName2);
+            tXyz2 = new TinkerXYZ(forcefield, particle2,
+                    currPath.resolve(particle2 + ".xyz"));
             atomNumber2 = tXyz2.getN_atom();
             elements2 = tXyz2.getElementList1();
         }
@@ -233,10 +224,8 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Rename .arc to .xyz
-            String sourceName = currDir + particlePair + ".arc";
-            Path source = Paths.get(sourceName);
-            String targetXyzName = currDir + particlePair + ".xyz";
-            Path target = Paths.get(targetXyzName);
+            Path source = currPath.resolve(particlePair + ".arc");
+            Path target = currPath.resolve(particlePair + ".xyz");
             try {
                 Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException ex) {
@@ -246,10 +235,10 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Write _lastStepNeighbors.txt file
-            tmpCoordRecord = MIPET4JUtil.getCoordinatesFromArcFile(
-                    targetXyzName, atomNumber1, atomNumber2);
+            coordRecord = MIPET4JUtil.getCoordinatesFromArcFile(
+                    target, atomNumber1, atomNumber2);
             tmpCurrentNeighbors = MIPET4JUtil.getNeighborNumbersBruteForce(
-                    tmpCoordRecord, 
+                    coordRecord, 
                     elements1, 
                     elements2,
                     tmpBoxLength,
@@ -273,7 +262,7 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Copy .xyz file after warmup to result directory
-            source = Paths.get(targetXyzName);
+            source = target;
             target = Paths.get(resultPathName 
                     + FILESEPARATOR
                     + particlePair 
@@ -287,7 +276,7 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Delete useless files
-            try (Stream<Path> tmpList = Files.list(Paths.get(currDir))) {
+            try (Stream<Path> tmpList = Files.list(currPath)) {
                 tmpList.filter(file -> !Files.isDirectory(file))
                         .filter(file -> file.endsWith(".xyz_2"))
                         .map(Path::toFile)
@@ -338,12 +327,11 @@ public class MIPETCN implements Callable<int[]> {
                 LOGGER.log(Level.SEVERE,
                         "InterruptedException during tinker's dynamic.exe", ex);
             }
-            String tmpArcName = currDir + particlePair + ".arc";
-            tmpCoordRecord = MIPET4JUtil
-                    .getCoordinatesFromArcFile(tmpArcName, atomNumber1, 
-                            atomNumber2);
+            Path arcPath = currPath.resolve(particlePair + ".arc");
+            coordRecord = MIPET4JUtil.getCoordinatesFromArcFile(arcPath, 
+                    atomNumber1, atomNumber2);
             tmpCurrentNeighbors = MIPET4JUtil
-                    .getNeighborNumbersBruteForce(tmpCoordRecord, 
+                    .getNeighborNumbersBruteForce(coordRecord, 
                               elements1, 
                               elements2,
                               tmpBoxLength,
@@ -358,7 +346,7 @@ public class MIPETCN implements Callable<int[]> {
             
             // Copy .xyz file after the last simulation step to result directory
             if (i == iteration - 1) {
-                Path arcPath = Paths.get(currDir, particlePair + ".arc");
+                arcPath = currPath.resolve(particlePair + ".arc");
                 Path xyzPath = Paths.get(resultPathName, particlePair 
                         + "_lastCoords.xyz");
                 MIPET4JUtil.writeLastPartToXYZ(arcPath, 
@@ -388,20 +376,18 @@ public class MIPETCN implements Callable<int[]> {
             
             if (iteration > 1 && i < iteration - 1) {
                 try {
-                    Files.deleteIfExists(Paths.get(currDir 
+                    Files.deleteIfExists(Paths.get(currPath 
                             + particlePair 
                             + ".xyz"));
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                         "IOException during deleting .xyz file.", ex);
                 }
-                Path sourcePath = Paths.get(currDir, 
-                        particlePair + ".arc");
-                Path targetPath = Paths.get(currDir, 
-                        particlePair + ".xyz");
+                Path sourcePath = currPath.resolve(particlePair + ".arc");
+                Path targetPath = currPath.resolve(particlePair + ".xyz");
                 MIPET4JUtil.writeLastPartToXYZ(sourcePath, targetPath, tmpStep);
                 try {
-                    Files.deleteIfExists(Paths.get(currDir 
+                    Files.deleteIfExists(Paths.get(currPath 
                             + particlePair 
                             + ".arc"));
                 } catch (IOException ex) {
