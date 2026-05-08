@@ -44,30 +44,30 @@ public class FibonacciSphere {
      *   xyz-Coordinates of nodes
      */
     public static LinkedList<double[]> getSphereNodes(int aNodeNumber) {
-        double tmpPhi; // Golden angle in radians
-        double tmpTheta; // Golden angle increment
-        double tmpX; // x-coordinate [-1; 1]
-        double tmpY; // y-coordinate
-        double tmpZ; // z-coordinate
-        double tmpRadius; // Radius at tmpY
-        double[] tmpCoords;
-        LinkedList<double[]> tmpCoordsList = new LinkedList<>();
+        double phi; // Golden angle in radians
+        double theta; // Golden angle increment
+        double x; // x-coordinate [-1; 1]
+        double y; // y-coordinate
+        double z; // z-coordinate
+        double radius; // Radius at tmpY
+        double[] coords;
+        LinkedList<double[]> coordsList = new LinkedList<>();
         
-        tmpPhi = (3.0 - Math.sqrt(5.0)) * Math.PI;
+        phi = (3.0 - Math.sqrt(5.0)) * Math.PI;
          
         for (int i = 0; i < aNodeNumber; i++) {
-            tmpY = 1 - (i / (double)(aNodeNumber - 1)) * 2;
-            tmpRadius = Math.sqrt(1 - tmpY * tmpY);
-            tmpTheta = i * tmpPhi;
-            tmpX = Math.cos(tmpTheta) * tmpRadius;
-            tmpZ = Math.sin(tmpTheta) * tmpRadius;
-            tmpCoords = new double[3];
-            tmpCoords[0]= tmpX;
-            tmpCoords[1]= tmpY;
-            tmpCoords[2]= tmpZ;
-            tmpCoordsList.add(tmpCoords);
+            y = 1 - (i / (double)(aNodeNumber - 1)) * 2;
+            radius = Math.sqrt(1 - y * y);
+            theta = i * phi;
+            x = Math.cos(theta) * radius;
+            z = Math.sin(theta) * radius;
+            coords = new double[3];
+            coords[0]= x;
+            coords[1]= y;
+            coords[2]= z;
+            coordsList.add(coords);
         }
         
-        return tmpCoordsList;
+        return coordsList;
     }
 }

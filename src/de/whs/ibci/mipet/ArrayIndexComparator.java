@@ -41,14 +41,14 @@ public class ArrayIndexComparator implements Comparator<Integer>{
      * @return Index array as an object
      */
     public Integer[] createIndexArray(){
-        Integer[] tmpIndexes = new Integer[array.length];
+        Integer[] indices = new Integer[array.length];
         
         for (int i = 0; i < array.length; i++)
         {
-            tmpIndexes[i] = i;
+            indices[i] = i;
         }
         
-        return tmpIndexes;
+        return indices;
     }
 
     @Override

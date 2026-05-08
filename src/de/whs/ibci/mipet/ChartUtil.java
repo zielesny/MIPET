@@ -25,8 +25,10 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.logging.Level;
@@ -67,11 +69,6 @@ public class ChartUtil {
      */
     private final static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     /**
-     * Buffer size (64 kByte = 65536, 256 kByte = 262144, 512 kByte = 524288, 1
-     * MByte = 1048576 Byte)
-     */
-    private final static int BUFFER_SIZE = 65536;
-    /**
      * Full HD image size
      */
     private final static int[] FULL_HD_IMAGE_SIZE = new int[] {1920, 1080};
@@ -111,108 +108,112 @@ public class ChartUtil {
         if (!(new File(aEnergyDataPathName)).isFile()) {
             return false;
         }
+        
         // </editor-fold>
+        
         try {
             // <editor-fold defaultstate="collapsed" desc="Read raw energy data">
-            String[][] tmpEnergyData = this.readJaggedStringArrayFromFile(aEnergyDataPathName);
-            if (tmpEnergyData == null || tmpEnergyData.length < 2) {
+            String[][] energyData = this
+                    .readJaggedStringArrayFromFile(aEnergyDataPathName);
+            if (energyData == null || energyData.length < 2) {
                 return false;
             }
             // </editor-fold>
+            
             // <editor-fold defaultstate="collapsed" desc="Set diagram labels">
-            if (tmpEnergyData[0].length != 6) {
+            if (energyData[0].length != 6) {
                 return false;
             }
-            String tmpXaxisLabel = tmpEnergyData[0][0] + " " + tmpEnergyData[0][1];
-            String tmpYaxisLabel1 = tmpEnergyData[0][2] + " " + tmpEnergyData[0][3];
-            String tmpYaxisLabel2 = tmpEnergyData[0][4] + " " + tmpEnergyData[0][5];
+            String xAxisLabel = energyData[0][0] + " " + energyData[0][1];
+            String yAxisLabel1 = energyData[0][2] + " " + energyData[0][3];
+            String yAxisLabel2 = energyData[0][4] + " " + energyData[0][5];
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="Convert energy data">
             // Convert energy data
-            double[] tmpDistances = new double[tmpEnergyData.length - 1];
-            double[] tmpEminValues = new double[tmpEnergyData.length - 1];
-            double[] tmpEaverageValues = new double[tmpEnergyData.length - 1];
-            for (int i = 1; i < tmpEnergyData.length; i++) {
-                tmpDistances[i - 1] = Double.parseDouble(tmpEnergyData[i][0]);
-                tmpEminValues[i - 1] = Double.parseDouble(tmpEnergyData[i][1]);
-                tmpEaverageValues[i - 1] = Double
-                        .parseDouble(tmpEnergyData[i][2]);
+            double[] distances = new double[energyData.length - 1];
+            double[] eMinValues = new double[energyData.length - 1];
+            double[] eAverageValues = new double[energyData.length - 1];
+            for (int i = 1; i < energyData.length; i++) {
+                distances[i - 1] = Double.parseDouble(energyData[i][0]);
+                eMinValues[i - 1] = Double.parseDouble(energyData[i][1]);
+                eAverageValues[i - 1] = Double
+                        .parseDouble(energyData[i][2]);
             }
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="Create and save chart 1: Distance vs. Emin">
-            String tmpDiagramLabel1 = tmpYaxisLabel1 + " vs. " + tmpXaxisLabel;
-            JFreeChart tmpEminVsDistanceChart = 
+            String diagramLabel1 = yAxisLabel1 + " vs. " + xAxisLabel;
+            JFreeChart eMinVsDistanceChart = 
                 this.createXyChart(
-                    tmpDistances, 
-                    tmpEminValues, 
-                    tmpDiagramLabel1, 
-                    tmpXaxisLabel, 
-                    tmpYaxisLabel1, 
+                    distances, 
+                    eMinValues, 
+                    diagramLabel1, 
+                    xAxisLabel, 
+                    yAxisLabel1, 
                     true,  // anIsThickLines
                     true,  // anIsShapePaint
                     true,  // anIsFillColorWhite
                     false  // anIsOutlinePaintWhite
                 );
-            if (tmpEminVsDistanceChart == null) {
+            if (eMinVsDistanceChart == null) {
                 return false;
             }
-            BufferedImage tmpEminVsDistanceImage = 
+            BufferedImage eMinVsDistanceImage = 
                 this.getImage(
-                    tmpEminVsDistanceChart, 
+                    eMinVsDistanceChart, 
                     FULL_HD_IMAGE_SIZE[0], 
                     FULL_HD_IMAGE_SIZE[1]
                 );
-            if (tmpEminVsDistanceImage == null) {
+            if (eMinVsDistanceImage == null) {
                 return false;
             }
-            String tmpEminVsDistanceImagePathname = 
+            String eMinVsDistanceImagePathname = 
                 new File(aEnergyDataPathName).getParent() + 
                 File.separatorChar + 
                 anEnergyGraphicsPrefix + 
                 "DistanceVsEmin.jpg";
             if (!ChartUtil.writeJpegImageToFile(
-                    tmpEminVsDistanceImage, 
-                    new File(tmpEminVsDistanceImagePathname)
+                    eMinVsDistanceImage, 
+                    new File(eMinVsDistanceImagePathname)
                 )
             ) {
                 return false;
             }
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="Create and save chart 1: Distance vs. Eaverage">
-            String tmpDiagramLabel2 = tmpYaxisLabel2 + " vs. " + tmpXaxisLabel;
-            JFreeChart tmpEaverageVsDistanceChart = 
+            String diagramLabel2 = yAxisLabel2 + " vs. " + xAxisLabel;
+            JFreeChart eAverageVsDistanceChart = 
                 this.createXyChart(
-                    tmpDistances, 
-                    tmpEaverageValues, 
-                    tmpDiagramLabel2, 
-                    tmpXaxisLabel, 
-                    tmpYaxisLabel2, 
+                    distances, 
+                    eAverageValues, 
+                    diagramLabel2, 
+                    xAxisLabel, 
+                    yAxisLabel2, 
                     true,  // anIsThickLines
                     true,  // anIsShapePaint
                     true,  // anIsFillColorWhite
                     false  // anIsOutlinePaintWhite
                 );
-            if (tmpEaverageVsDistanceChart == null) {
+            if (eAverageVsDistanceChart == null) {
                 return false;
             }
-            BufferedImage tmpEaverageVsDistanceImage = 
+            BufferedImage eAverageVsDistanceImage = 
                 this.getImage(
-                    tmpEaverageVsDistanceChart, 
+                    eAverageVsDistanceChart, 
                     FULL_HD_IMAGE_SIZE[0], 
                     FULL_HD_IMAGE_SIZE[1]
                 );
-            if (tmpEaverageVsDistanceImage == null) {
+            if (eAverageVsDistanceImage == null) {
                 return false;
             }
-            String tmpEaverageVsDistanceImagePathname = 
+            String eAverageVsDistanceImagePathname = 
                 new File(aEnergyDataPathName).getParent() + 
                 File.separatorChar + 
                 anEnergyGraphicsPrefix + 
                 "DistanceVsEaverage.jpg";
             // </editor-fold>
             return ChartUtil.writeJpegImageToFile(
-                    tmpEaverageVsDistanceImage,
-                    new File(tmpEaverageVsDistanceImagePathname));
+                    eAverageVsDistanceImage,
+                    new File(eAverageVsDistanceImagePathname));
         } catch (NumberFormatException anException) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during creating chart.", anException);
@@ -255,16 +256,16 @@ public class ChartUtil {
         // </editor-fold>
         try {
             // <editor-fold defaultstate="collapsed" desc="- Create data series">
-            XYSeries tmpXySeries = new XYSeries(DATA_SERIES_NAME);
+            XYSeries xySeries = new XYSeries(DATA_SERIES_NAME);
 
-            double tmpXmin;
-            double tmpXmax;
-            double tmpYmin;
-            double tmpYmax;
-            tmpXmin = Double.MAX_VALUE;
-            tmpXmax = -Double.MAX_VALUE;
-            tmpYmin = Double.MAX_VALUE;
-            tmpYmax = -Double.MAX_VALUE;
+            double xMin;
+            double xMax;
+            double yMin;
+            double yMax;
+            xMin = Double.MAX_VALUE;
+            xMax = -Double.MAX_VALUE;
+            yMin = Double.MAX_VALUE;
+            yMax = -Double.MAX_VALUE;
             for (int i = 0; i < aXValues.length; i++) {
                 // Safeguard for NaN values in value item
                 try {
@@ -274,38 +275,38 @@ public class ChartUtil {
                 } catch (Exception anException) {
                     continue;
                 }
-                tmpXmin = Math.min(tmpXmin, aXValues[i]);
-                tmpXmax = Math.max(tmpXmax, aXValues[i]);
-                tmpYmin = Math.min(tmpYmin, aYValues[i]);
-                tmpYmax = Math.max(tmpYmax, aYValues[i]);
-                tmpXySeries.add(aXValues[i], aYValues[i]);
+                xMin = Math.min(xMin, aXValues[i]);
+                xMax = Math.max(xMax, aXValues[i]);
+                yMin = Math.min(yMin, aYValues[i]);
+                yMax = Math.max(yMax, aYValues[i]);
+                xySeries.add(aXValues[i], aYValues[i]);
             }
-            double tmpXoffset;
-            if (Math.abs(tmpXmax - tmpXmin) < tmpXmax * TINY_THRESHOLD) {
-                tmpXoffset = (tmpXmax + tmpXmin) * 0.5 * 0.05;
+            double xOffset;
+            if (Math.abs(xMax - xMin) < xMax * TINY_THRESHOLD) {
+                xOffset = (xMax + xMin) * 0.5 * 0.05;
             } else {
-                tmpXoffset = (tmpXmax - tmpXmin) * 0.05;
+                xOffset = (xMax - xMin) * 0.05;
             }
-            double tmpX1 = tmpXmin - tmpXoffset;
-            double tmpX2 = tmpXmax + tmpXoffset;
-            double tmpYoffset;
-            if (Math.abs(tmpYmax - tmpYmin) < tmpYmax * TINY_THRESHOLD) {
-                tmpYoffset = (tmpYmax + tmpYmin) * 0.5 * 0.05;
+            double x1 = xMin - xOffset;
+            double x2 = xMax + xOffset;
+            double yOffset;
+            if (Math.abs(yMax - yMin) < yMax * TINY_THRESHOLD) {
+                yOffset = (yMax + yMin) * 0.5 * 0.05;
             } else {
-                tmpYoffset = (tmpYmax - tmpYmin) * 0.05;
+                yOffset = (yMax - yMin) * 0.05;
             }
-            double tmpY1 = tmpYmin - tmpYoffset;
-            double tmpY2 = tmpYmax + tmpYoffset;
+            double y1 = yMin - yOffset;
+            double y2 = yMax + yOffset;
 
-            XYDataset tmpXyDataset = new XYSeriesCollection(tmpXySeries);
+            XYDataset xyDataset = new XYSeriesCollection(xySeries);
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="- Create chart">
-            JFreeChart tmpXyChart = 
+            JFreeChart xyChart = 
                 ChartFactory.createXYLineChart(
                     aTitle, // Title
                     aXAxisLabel, // xAxisLabel
                     aYAxisLabel, // yAxisLabel
-                    tmpXyDataset, // dataset
+                    xyDataset, // dataset
                     PlotOrientation.VERTICAL, // orientation
                     false, // legend flag
                     false, // tooltips flag
@@ -313,32 +314,32 @@ public class ChartUtil {
                 ); 
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="- Set axis ranges">
-            XYPlot tmpXyPlot = (XYPlot) tmpXyChart.getPlot();
-            ValueAxis tmpXaxis = tmpXyPlot.getDomainAxis();
-            tmpXaxis.setRange(tmpX1, tmpX2);
-            ValueAxis tmpYaxis = tmpXyPlot.getRangeAxis();
-            tmpYaxis.setRange(tmpY1, tmpY2);
+            XYPlot xyPlot = (XYPlot) xyChart.getPlot();
+            ValueAxis xAxis = xyPlot.getDomainAxis();
+            xAxis.setRange(x1, x2);
+            ValueAxis yAxis = xyPlot.getRangeAxis();
+            yAxis.setRange(y1, y2);
             // </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="- Set outline, shapes and thickness">
-            XYLineAndShapeRenderer tmpRenderer = (XYLineAndShapeRenderer) tmpXyPlot.getRenderer();
-            tmpRenderer.setPaint(Color.BLACK);
+            XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) xyPlot.getRenderer();
+            renderer.setPaint(Color.BLACK);
             if (anIsThickLines) {
-                tmpRenderer.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+                renderer.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
             }
             if (anIsShapePaint) {
-                tmpRenderer.setShape(new Ellipse2D.Float(-5.0f, -5.0f, 10.0f, 10.0f));
-                tmpRenderer.setShapesVisible(true);
-                tmpRenderer.setShapesFilled(true);
+                renderer.setShape(new Ellipse2D.Float(-5.0f, -5.0f, 10.0f, 10.0f));
+                renderer.setShapesVisible(true);
+                renderer.setShapesFilled(true);
                 if (anIsFillColorWhite) {
-                    tmpRenderer.setUseFillPaint(true);
-                    tmpRenderer.setFillPaint(Color.white);
+                    renderer.setUseFillPaint(true);
+                    renderer.setFillPaint(Color.white);
                 } else if (anIsOutlinePaintWhite) {
-                    tmpRenderer.setOutlinePaint(Color.white);
-                    tmpRenderer.setUseOutlinePaint(true);
+                    renderer.setOutlinePaint(Color.white);
+                    renderer.setUseOutlinePaint(true);
                 }
             }
             // </editor-fold>
-            return tmpXyChart;
+            return xyChart;
         } catch (Exception anException) {
             return null;
         }
@@ -379,41 +380,32 @@ public class ChartUtil {
      * read
      */
     private String[][] readJaggedStringArrayFromFile(
-        String aSourceFilePathname
-    ) {
+            String aSourceFilePathname) {
         // <editor-fold defaultstate="collapsed" desc="Checks">
         if (aSourceFilePathname == null || aSourceFilePathname.isEmpty()) {
             return null;
         }
         // </editor-fold>
-        BufferedReader tmpBufferedReader = null;
-        try {
-            if (!(new File(aSourceFilePathname)).isFile()) {
-                return null;
-            }
-            FileReader tmpFileReader = new FileReader(aSourceFilePathname);
-            tmpBufferedReader = 
-                new BufferedReader(tmpFileReader, BUFFER_SIZE);
-            LinkedList<String[]> tmpLinkedList = new LinkedList<>();
-            String tmpLine;
-            while ((tmpLine = tmpBufferedReader.readLine()) != null) {
-                String[] tmpItems = this.splitAndTrim(tmpLine.trim());
-                if (tmpItems != null) {
-                    tmpLinkedList.add(tmpItems);
+        
+        Path filePath = Paths.get(aSourceFilePathname);
+        if (!Files.isRegularFile(filePath)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(filePath)){
+            LinkedList<String[]> linkedList = new LinkedList<>();
+            String line;
+            
+            while ((line = reader.readLine()) != null) {
+                String[] items = this.splitAndTrim(line.trim());
+                if (items != null) {
+                    linkedList.add(items);
                 }
             }
-            return tmpLinkedList.toArray(String[][]::new);
+            
+            return linkedList.toArray(String[][]::new);
         } catch (IOException anException) {
             return null;
-        } finally {
-            if (tmpBufferedReader != null) {
-                try {
-                    tmpBufferedReader.close();
-                } catch (IOException anException) {
-                    return null;
-                }
-            }
-        }
+        } 
     }
     
     /**
@@ -432,13 +424,13 @@ public class ChartUtil {
             return null;
         }
         // </editor-fold>
-        String[] tmpItems = WHITESPACE_PATTERN.split(aString.trim());
-        if (tmpItems == null || tmpItems.length == 0) {
+        String[] items = WHITESPACE_PATTERN.split(aString.trim());
+        if (items == null || items.length == 0) {
             return null;
         }
         // NOTE: Trim-operation is not necessary since all whitespace characters 
         // are removed
-        return tmpItems;
+        return items;
     }
 
     /**
@@ -471,18 +463,23 @@ public class ChartUtil {
         }
         // </editor-fold>
         try {
-            Iterator<ImageWriter> tmpIterator = ImageIO.getImageWritersByFormatName("jpg");
-            if (tmpIterator.hasNext()) {
-                ImageWriter tmpImageWriter = tmpIterator.next();
-                try (ImageOutputStream tmpIoStream = ImageIO.createImageOutputStream(aFile)) {
-                    tmpImageWriter.setOutput(tmpIoStream);
-                    ImageWriteParam tmpParameters = tmpImageWriter.getDefaultWriteParam();
-                    tmpParameters.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            Iterator<ImageWriter> iterator = ImageIO
+                    .getImageWritersByFormatName("jpg");
+            if (iterator.hasNext()) {
+                ImageWriter imageWriter = iterator.next();
+                try (ImageOutputStream ioStream = ImageIO
+                        .createImageOutputStream(aFile)) {
+                    imageWriter.setOutput(ioStream);
+                    ImageWriteParam parameters = imageWriter
+                            .getDefaultWriteParam();
+                    parameters.setCompressionMode(
+                            ImageWriteParam.MODE_EXPLICIT);
                     // Parameter 1.0f: High image quality
-                    tmpParameters.setCompressionQuality(1.0f);
-                    tmpImageWriter.write(null, new IIOImage(anImage, null, null), tmpParameters);
-                    tmpIoStream.flush();
-                    tmpImageWriter.dispose();
+                    parameters.setCompressionQuality(1.0f);
+                    imageWriter.write(null, new IIOImage(anImage, null, null), 
+                            parameters);
+                    ioStream.flush();
+                    imageWriter.dispose();
                 }
                 return true;
             } else {

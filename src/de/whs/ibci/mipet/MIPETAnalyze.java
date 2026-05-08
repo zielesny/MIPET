@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,12 +47,6 @@ public class MIPETAnalyze implements Callable<WgtEnergyRecord> {
     private static final Logger LOGGER = Logger
             .getLogger(MIPETAnalyze.class.getName());
     
-    /**
-     * File separator
-     */
-    private final String FILESEPARATOR = FileSystems.getDefault()
-            .getSeparator();
-
     /**
      * Tinkerxyz object
      */

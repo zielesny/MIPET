@@ -29,6 +29,6 @@ package de.whs.ibci.mipet;
  */
 public record Distance_EnergyRecord(
         double distance,
-        double Emin,
+        double eMin,
         double wgtEmin) {
 }

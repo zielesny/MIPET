@@ -39,9 +39,9 @@ package de.whs.ibci.mipet;
  */
 public record EnergyRecord(
         double[] distances,
-        double[] Emins,
+        double[] eMins,
         double[] wgtEmins,
         double eqDistance,
-        double Emin,
+        double eMin,
         double wgtEmin) {
 }

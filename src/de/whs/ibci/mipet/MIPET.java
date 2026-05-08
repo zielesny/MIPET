@@ -936,12 +936,12 @@ public class MIPET {
                             xyzRotData2,
                             1E10);
                     double glbEminDist = energyRecords[0].eqDistance();
-                    glbEmin = energyRecords[0].Emin();
+                    glbEmin = energyRecords[0].eMin();
 
                     for (int i = 0; i < distances.length; i++) {
                         distEminRecords.add(new Distance_EnergyRecord(
                                 energyRecords[0].distances()[i], 
-                                energyRecords[0].Emins()[i],
+                                energyRecords[0].eMins()[i],
                                 energyRecords[0].wgtEmins()[i]));
                     }
 
@@ -981,15 +981,15 @@ public class MIPET {
                             xyzRotData1, 
                             xyzRotData2,
                             glbEmin);
-                    if (energyRecords[1].Emin() < glbEmin) {
+                    if (energyRecords[1].eMin() < glbEmin) {
                         glbEminDist = energyRecords[1].eqDistance();
-                        glbEmin = energyRecords[1].Emin();
+                        glbEmin = energyRecords[1].eMin();
                     }
 
                     for (int i = 0; i < distances.length; i++) {
                         distEminRecords.add(new Distance_EnergyRecord(
                                 energyRecords[1].distances()[i], 
-                                energyRecords[1].Emins()[i],
+                                energyRecords[1].eMins()[i],
                                 energyRecords[1].wgtEmins()[i]));
                     }
 
@@ -1029,15 +1029,15 @@ public class MIPET {
                             xyzRotData1, 
                             xyzRotData2,
                             glbEmin);
-                    if (energyRecords[2].Emin() < glbEmin) {
+                    if (energyRecords[2].eMin() < glbEmin) {
                         glbEminDist = energyRecords[2].eqDistance();
-                        glbEmin = energyRecords[2].Emin();
+                        glbEmin = energyRecords[2].eMin();
                     }
                     
                     for (int i = 0; i < distances.length; i++) {
                         distEminRecords.add(new Distance_EnergyRecord(
                                 energyRecords[2].distances()[i], 
-                                energyRecords[2].Emins()[i],
+                                energyRecords[2].eMins()[i],
                                 energyRecords[2].wgtEmins()[i]));
                     }
                     
@@ -1069,15 +1069,15 @@ public class MIPET {
                             xyzRotData1, 
                             xyzRotData2,
                             glbEmin);
-                    if (energyRecords[3].Emin() < glbEmin) {
+                    if (energyRecords[3].eMin() < glbEmin) {
                         glbEminDist = energyRecords[3].eqDistance();
-                        glbEmin = energyRecords[3].Emin();
+                        glbEmin = energyRecords[3].eMin();
                     }
 
                     for (int i = 0; i < distances.length; i++) {
                         distEminRecords.add(new Distance_EnergyRecord(
                                 energyRecords[3].distances()[i], 
-                                energyRecords[3].Emins()[i],
+                                energyRecords[3].eMins()[i],
                                 energyRecords[3].wgtEmins()[i]));
                     }
 
@@ -1126,7 +1126,7 @@ public class MIPET {
                         for (int i = 0; i < distances.length; i++) {
                             distEminRecords.add(new Distance_EnergyRecord(
                                     energyRecords[4].distances()[i], 
-                                    energyRecords[4].Emins()[i],
+                                    energyRecords[4].eMins()[i],
                                     energyRecords[4].wgtEmins()[i]));
                             glbWgtEminCand = energyRecords[4]
                                     .wgtEmins()[i];
@@ -1153,7 +1153,7 @@ public class MIPET {
                                 .distance();
                         sortedResults[i][1] = distEminRecords
                                 .get(distIndices[i])
-                                .Emin();
+                                .eMin();
                         sortedResults[i][2] = distEminRecords
                                 .get(distIndices[i])
                                 .wgtEmin();

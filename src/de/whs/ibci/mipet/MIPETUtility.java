@@ -236,7 +236,6 @@ public class MIPETUtility{
      * vdW-radii in Angstrom, index number = atomic number
      */
     public double[] getVdWRadii() {
-        double[] vdWRadii = new double[93];
         
         for (int i = 1; i < 93; i++) {
             if (PeriodicTable
@@ -251,14 +250,12 @@ public class MIPETUtility{
     
     /**
      * Read the box length from a given .arc file
-     * @param aFileName Filename of .arc file
+     * @param aPath Pathname of .arc file
      * @return Box length in Angstrom
      */
-    public double getBoxLength(String aFileName) {
+    public double getBoxLength(Path aPath) {
         double boxLength = 0.0;
-        Path path = Paths.get(aFileName);
-        
-        try (BufferedReader reader = Files.newBufferedReader(path, 
+        try (BufferedReader reader = Files.newBufferedReader(aPath, 
                 StandardCharsets.UTF_8)) {
             reader.readLine();
             String line = reader.readLine();
