@@ -134,12 +134,10 @@ public class MIPETCN implements Callable<int[]> {
     @Override
     public int[] call() {
         LinkedList<int[]> currNeighbors;
-        LinkedList<Integer> neighborNumbers;
-        String dynamicLogName;
         ProcessBuilder pBuilder;
         CoordinatesRecord coordRecord;
         
-        neighborNumbers = new LinkedList<>();
+        LinkedList<Integer> neighborNumbers = new LinkedList<>();
         MIPETUtility MIPET4JUtil = new MIPETUtility();
         int stepsPerRound = 2000;
         String forcefield = this.JOBTASK_RECORD.forcefield_CN_Name();
@@ -152,7 +150,7 @@ public class MIPETCN implements Callable<int[]> {
         TinkerXYZ tXyz1 = new TinkerXYZ(forcefield, particle1,
                 currPath.resolve(particle1 + ".xyz"));
         TinkerXYZ tXyz2;
-        double tmpBoxLength = MIPET4JUtil.getBoxLength(currPath.resolve(
+        double boxLength = MIPET4JUtil.getBoxLength(currPath.resolve(
                 particlePair + ".xyz"));
         int atomNumber1 = tXyz1.getN_atom();
         int atomNumber2;
@@ -239,20 +237,21 @@ public class MIPETCN implements Callable<int[]> {
                     coordRecord, 
                     elements1, 
                     elements2,
-                    tmpBoxLength,
+                    boxLength,
                     this.CATCH_RADIUS);
             Path  targetPath = Paths.get(resultPathName, 
                     particlePair + "_warmUpNeighbors.txt");
-            int tmpIterationSize = currNeighbors.size();
-            int tmpNeighborsSize = currNeighbors
-                    .get(tmpIterationSize - 1).length;
+            int iterationSize = currNeighbors.size();
+            int neighborsSize = currNeighbors.get(iterationSize - 1).length;
             
             try (BufferedWriter writer = Files.newBufferedWriter(targetPath)) {
-                for (int i = 0; i < tmpNeighborsSize; i++) {
+                
+                for (int i = 0; i < neighborsSize; i++) {
                     writer.append(String.valueOf(currNeighbors
-                            .get(tmpIterationSize - 1)[i]));
+                            .get(iterationSize - 1)[i]));
                     writer.newLine();
                 }
+                
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during writing _warmUpNeighbors.txt file.",
@@ -261,10 +260,8 @@ public class MIPETCN implements Callable<int[]> {
             
             // Copy .xyz file after warmup to result directory
             source = target;
-            target = Paths.get(resultPathName 
-                    + FILESEPARATOR
-                    + particlePair 
-                    + "_warmUpCoords.xyz");
+            target = Paths.get(resultPathName, 
+                    particlePair + "_warmUpCoords.xyz");
             try {
                 Files.copy(source, target, StandardCopyOption
                         .REPLACE_EXISTING);
@@ -274,8 +271,8 @@ public class MIPETCN implements Callable<int[]> {
             }
             
             // Delete useless files
-            try (Stream<Path> tmpList = Files.list(currPath)) {
-                tmpList.filter(file -> !Files.isDirectory(file))
+            try (Stream<Path> pathList = Files.list(currPath)) {
+                pathList.filter(file -> !Files.isDirectory(file))
                         .filter(file -> file.endsWith(".xyz_2"))
                         .map(Path::toFile)
                         .forEach(File::delete);
@@ -285,16 +282,8 @@ public class MIPETCN implements Callable<int[]> {
             }
             return null;
         }
-        int tmpIterationSize;
-        int tmpNeighborSize;
-        int tmpCurrentNeighborsSize;
-        
-        dynamicLogName = resultPathName
-                        + FILESEPARATOR
-                        + particle1
-                        + "_"
-                        + particle2
-                        + "_dynamic.log";
+        Path dynamicLogPath = Paths.get(resultPathName,
+                particle1 + "_" + particle2 + "_dynamic.log");
         
         for (int i = 0; i < iteration; i++) {
             pBuilder = new ProcessBuilder();
@@ -310,7 +299,7 @@ public class MIPETCN implements Callable<int[]> {
             pBuilder.command(commandList);
             pBuilder.redirectErrorStream(true);
             if (ISLOGDYNAMIC) {
-                pBuilder.redirectOutput(new File(dynamicLogName));
+                pBuilder.redirectOutput(dynamicLogPath.toFile());
             } else {
                 // This loop is necessary for linux version
                 pBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
@@ -332,7 +321,7 @@ public class MIPETCN implements Callable<int[]> {
                     .getNeighborNumbersBruteForce(coordRecord, 
                               elements1, 
                               elements2,
-                              tmpBoxLength,
+                              boxLength,
                               this.CATCH_RADIUS);
             //      Cell index method
             /*tmpNeighborNumber = MIPET4JUtil
@@ -353,16 +342,16 @@ public class MIPETCN implements Callable<int[]> {
                 // Write _lastStepNeighbors.txt file
                 Path targetPath = Paths.get(resultPathName,
                         particlePair + "_lastStepNeighbors.txt");
-                tmpIterationSize = currNeighbors.size();
-                tmpNeighborSize = currNeighbors
-                        .get(tmpIterationSize - 1).length;
-                try (BufferedWriter tmpBW = Files.newBufferedWriter(
+                int iterationSize = currNeighbors.size();
+                int neighborSize = currNeighbors
+                        .get(iterationSize - 1).length;
+                try (BufferedWriter writer = Files.newBufferedWriter(
                         targetPath)) {
                     
-                    for (int j = 0; j < tmpNeighborSize; j++) {
-                        tmpBW.append(String.valueOf(currNeighbors
-                                        .get(tmpIterationSize - 1)[j]));
-                        tmpBW.append(LINESEPARATOR);
+                    for (int j = 0; j < neighborSize; j++) {
+                        writer.append(String.valueOf(currNeighbors
+                                        .get(iterationSize - 1)[j]));
+                        writer.append(LINESEPARATOR);
                     }
                     
                 } catch (IOException ex) {
@@ -393,9 +382,9 @@ public class MIPETCN implements Callable<int[]> {
                             "IOException during deleting .arc file.", ex);
                 }
             }
-            tmpCurrentNeighborsSize = currNeighbors.size();
+            int currentNeighborsSize = currNeighbors.size();
             
-            for (int j = 0; j < tmpCurrentNeighborsSize; j++) {
+            for (int j = 0; j < currentNeighborsSize; j++) {
                 neighborNumbers.add(currNeighbors.get(j).length);
             }
             

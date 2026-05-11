@@ -219,13 +219,13 @@ public class MIPETUtility{
      */
     public HashMap<String, Integer> getAtomicNumberTable() {
         
-        HashMap<String, Integer> tmpAtomicNumberTable = new HashMap<>();
+        HashMap<String, Integer> atomicNumberTable = new HashMap<>();
         
         for (int i = 1; i < 93; i++) {
-            tmpAtomicNumberTable.put(PeriodicTable.getSymbol(i), i); 
+            atomicNumberTable.put(PeriodicTable.getSymbol(i), i); 
         }
         
-        return tmpAtomicNumberTable;
+        return atomicNumberTable;
     }
     
     /**
@@ -316,89 +316,78 @@ public class MIPETUtility{
             double aCatchRadius) {
         
         final double ONEHALF = 0.5;
-        LinkedList<int[]> tmpResult;
-        double[][][] tmpCoord1 = aCoordRecord.coord1();
-        double[][][][] tmpCoord2 = aCoordRecord.coord2();
-        double tmpDeltaX;
-        double tmpDeltaY;
-        double tmpDeltaZ;
-        double tmpDistQ;
-        double tmpMinDist;
-        double tmpMinDistQ;
-        int tmpIndex;
-        int tmpAtomSize1;
-        int tmpAtomSize2;
-        int tmpPartSize2;
-        int tmpIterSize;
-        int[] tmpNeighborIndices;
         
-        tmpResult = new LinkedList<>();
-        tmpAtomSize1 = aCoordRecord.coord1()[0].length;
-        tmpAtomSize2 = aCoordRecord.coord2()[0][0].length;
-        tmpPartSize2 = aCoordRecord.coord2()[0].length;
-        tmpIterSize = aCoordRecord.coord1().length;
-        double[] tmpVdWRadii1 = new double[tmpAtomSize1];
-        double[] tmpVdWRadii2 = new double[tmpAtomSize2];
-        HashSet<String> tmpIgnoreElements = new HashSet<>();
-        HashSet<Integer> tmpNeighborPart = new HashSet<>();
-        HashSet<Integer> tmpIgnoreIndex1 = new HashSet<>();
-        HashSet<Integer> tmpIgnoreIndex2 = new HashSet<>();
+        int atomSize1 = aCoordRecord.coord1()[0].length;
+        int atomSize2 = aCoordRecord.coord2()[0][0].length;
+        int partSize2 = aCoordRecord.coord2()[0].length;
+        HashSet<String> ignoreElements = new HashSet<>();
+        HashSet<Integer> neighborPart = new HashSet<>();
+        HashSet<Integer> ignoreIndex1 = new HashSet<>();
+        HashSet<Integer> ignoreIndex2 = new HashSet<>();
+        ignoreElements.add("M");
+        ignoreElements.add("Lp");
+        double[] vdWRadii1 = new double[atomSize1];
+        double[] vdWRadii2 = new double[atomSize2];
         
-        tmpIgnoreElements.add("M");
-        tmpIgnoreElements.add("Lp");
-        for (int i = 0; i < tmpAtomSize1; i++) {
-            if (! tmpIgnoreElements.contains(anElements1[i])) {
-                tmpVdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
+        for (int i = 0; i < atomSize1; i++) {
+            if (! ignoreElements.contains(anElements1[i])) {
+                vdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
             } else {
-                tmpIgnoreIndex1.add(i);
+                ignoreIndex1.add(i);
             }
         }
         
-        for (int i = 0; i < tmpAtomSize2; i++) {
-            if (! tmpIgnoreElements.contains(anElements2[i])) {
-                tmpVdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
+        for (int i = 0; i < atomSize2; i++) {
+            if (! ignoreElements.contains(anElements2[i])) {
+                vdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
             } else {
-                tmpIgnoreIndex2.add(i);
+                ignoreIndex2.add(i);
             }
         }
         
-        for (int i = 0; i < tmpIterSize; i++) {
+        int iterSize = aCoordRecord.coord1().length;
+        double[][][] coord1 = aCoordRecord.coord1();
+        double[][][][] coord2 = aCoordRecord.coord2();
+        LinkedList<int[]> resultList = new LinkedList<>();
+        
+        for (int i = 0; i < iterSize; i++) {
 
-            for (int j = 0; j < tmpAtomSize1; j++) {
-                if (!tmpIgnoreIndex1.contains(j)) {
-                    for (int k = 0; k < tmpPartSize2; k++) {
-                        if (tmpNeighborPart.contains(k)) {
+            for (int j = 0; j < atomSize1; j++) {
+                if (!ignoreIndex1.contains(j)) {
+                    
+                    for (int k = 0; k < partSize2; k++) {
+                        if (neighborPart.contains(k)) {
                             continue;
                         }
 
-                        for (int l = 0; l < tmpAtomSize2; l++) {
-                            if (!tmpIgnoreIndex2.contains(l)) {
-                                tmpDeltaX = tmpCoord1[i][j][0] 
-                                        - tmpCoord2[i][k][l][0];
-                                tmpDeltaY = tmpCoord1[i][j][1] 
-                                        - tmpCoord2[i][k][l][1];
-                                tmpDeltaZ = tmpCoord1[i][j][2] 
-                                        - tmpCoord2[i][k][l][2];
-                                if(tmpDeltaX > aBoxLength * ONEHALF)
-                                    tmpDeltaX -= aBoxLength;
-                                if(tmpDeltaX <= -aBoxLength * ONEHALF)
-                                    tmpDeltaX += aBoxLength;
-                                if(tmpDeltaY > aBoxLength * ONEHALF)
-                                    tmpDeltaY -= aBoxLength;
-                                if(tmpDeltaY <= -aBoxLength * ONEHALF)
-                                    tmpDeltaY += aBoxLength;
-                                if(tmpDeltaZ > aBoxLength * ONEHALF)
-                                    tmpDeltaZ -= aBoxLength;
-                                if(tmpDeltaZ <= -aBoxLength * ONEHALF)		
-                                    tmpDeltaZ += aBoxLength;
-                                tmpDistQ = tmpDeltaX * tmpDeltaX 
-                                        + tmpDeltaY * tmpDeltaY 
-                                        + tmpDeltaZ * tmpDeltaZ;
-                                tmpMinDist = aCatchRadius + tmpVdWRadii1[j] 
-                                        + tmpVdWRadii2[l];
-                                tmpMinDistQ = tmpMinDist * tmpMinDist;
-                                if (tmpDistQ <= tmpMinDistQ) {
-                                    tmpNeighborPart.add(k);
+                        for (int l = 0; l < atomSize2; l++) {
+                            if (!ignoreIndex2.contains(l)) {
+                                double deltaX = coord1[i][j][0] 
+                                        - coord2[i][k][l][0];
+                                double deltaY = coord1[i][j][1] 
+                                        - coord2[i][k][l][1];
+                                double deltaZ = coord1[i][j][2] 
+                                        - coord2[i][k][l][2];
+                                if(deltaX > aBoxLength * ONEHALF)
+                                    deltaX -= aBoxLength;
+                                if(deltaX <= -aBoxLength * ONEHALF)
+                                    deltaX += aBoxLength;
+                                if(deltaY > aBoxLength * ONEHALF)
+                                    deltaY -= aBoxLength;
+                                if(deltaY <= -aBoxLength * ONEHALF)
+                                    deltaY += aBoxLength;
+                                if(deltaZ > aBoxLength * ONEHALF)
+                                    deltaZ -= aBoxLength;
+                                if(deltaZ <= -aBoxLength * ONEHALF)		
+                                    deltaZ += aBoxLength;
+                                double distQ = deltaX * deltaX 
+                                        + deltaY * deltaY 
+                                        + deltaZ * deltaZ;
+                                double minDist = aCatchRadius + vdWRadii1[j] 
+                                        + vdWRadii2[l];
+                                double minDistQ = minDist * minDist;
+                                if (distQ <= minDistQ) {
+                                    neighborPart.add(k);
                                     break;
                                 } 
                             }
@@ -409,19 +398,19 @@ public class MIPETUtility{
                 }
             }
             
-            tmpIndex = 0;
-            tmpNeighborIndices = new int[tmpNeighborPart.size()];
+            int index = 0;
+            int[] neighborIndices = new int[neighborPart.size()];
             
-            for (int tmpCN : tmpNeighborPart) {
-                tmpNeighborIndices[tmpIndex++] = tmpCN;
+            for (int cn : neighborPart) {
+                neighborIndices[index++] = cn;
             }
             
-            Arrays.sort(tmpNeighborIndices);
-            tmpResult.add(tmpNeighborIndices);
-            tmpNeighborPart.clear();
+            Arrays.sort(neighborIndices);
+            resultList.add(neighborIndices);
+            neighborPart.clear();
         }
         
-        return tmpResult;
+        return resultList;
     }
     
     /**
@@ -448,16 +437,11 @@ public class MIPETUtility{
             double aCatchRadius) {
         final double ONEHALF = 0.5;
         LinkedList<int[]> tmpResult = new LinkedList<>();
-        int tmpIndex;
         int tmpCellsInRow;
         int tmpCellIndex;
         int tmpCellX;
         int tmpCellY;
         int tmpCellZ;
-        int tmpAtomNumber1;
-        int tmpAtomNumber2;
-        int tmpPartNumber2;
-        int tmpIterNumber;
         int[] tmpNeighborIndices;
         double tmpDeltaX;
         double tmpDeltaY;
@@ -473,23 +457,23 @@ public class MIPETUtility{
         double[][][] tmpCoord1;
         double[][][][] tmpCoord2;
         
-        tmpAtomNumber1 = aCoordRecord.coord1()[0].length;
-        tmpAtomNumber2 = aCoordRecord.coord2()[0][0].length;
-        tmpPartNumber2 = aCoordRecord.coord2()[0].length;
-        tmpIterNumber = aCoordRecord.coord1().length;
+        int atomNumber1 = aCoordRecord.coord1()[0].length;
+        int atomNumber2 = aCoordRecord.coord2()[0][0].length;
+        int partNumber2 = aCoordRecord.coord2()[0].length;
+        int iterNumber = aCoordRecord.coord1().length;
         tmpCoord1 = aCoordRecord.coord1();
         tmpCoord2 = aCoordRecord.coord2();
-        tmpVdWRadii1 = new double[tmpAtomNumber1];
-        tmpVdWRadii2 = new double[tmpAtomNumber2];
+        tmpVdWRadii1 = new double[atomNumber1];
+        tmpVdWRadii2 = new double[atomNumber2];
         HashSet<Integer> tmpNeighborCells = new HashSet<>();
         HashSet<Integer> tmpNeighborPartCand = new HashSet<>();
         HashSet<Integer> tmpNeighborPart = new HashSet<>();
         
-        for (int i = 0; i < tmpAtomNumber1; i++) {
+        for (int i = 0; i < atomNumber1; i++) {
             tmpVdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
         }
         
-        for (int i = 0; i < tmpAtomNumber2; i++) {
+        for (int i = 0; i < atomNumber2; i++) {
             tmpVdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
         }
         
@@ -501,11 +485,11 @@ public class MIPETUtility{
         tmpCellsInRow = (int) tmpCellDist;
         tmpCellDist = aBoxDist / tmpCellsInRow;
         
-        for (int i = 0; i < tmpIterNumber; i++) {
+        for (int i = 0; i < iterNumber; i++) {
             tmpCellIndex = 1;
             
             // Determine the solute particle cells
-            for (int j = 0; j < tmpAtomNumber1; j++) {
+            for (int j = 0; j < atomNumber1; j++) {
                 tmpCellX = (int) ((tmpCoord1[i][j][0] + aBoxDist / 2) 
                         / tmpCellDist) + 1;
                 if(tmpCellX > tmpCellsInRow) {
@@ -531,9 +515,9 @@ public class MIPETUtility{
                     .getNeighborCellNumbers(tmpCellsInRow, tmpNeighborCells);
             
             // Determine the neighbor particles
-            for (int j = 0; j < tmpPartNumber2; j++) {
+            for (int j = 0; j < partNumber2; j++) {
                 
-                for (int k = 0; k < tmpAtomNumber2; k++) {
+                for (int k = 0; k < atomNumber2; k++) {
                     tmpCellX = (int) ((tmpCoord2[i][j][k][0] + aBoxDist / 2)
                             / tmpCellDist) + 1;
                     if(tmpCellX > tmpCellsInRow) {
@@ -562,11 +546,11 @@ public class MIPETUtility{
                 }
             }
             
-            for (int j = 0; j < tmpAtomNumber1; j++) {
+            for (int j = 0; j < atomNumber1; j++) {
                 
-                for (int k = 0; k < tmpPartNumber2; k++) {
+                for (int k = 0; k < partNumber2; k++) {
                     if (tmpNeighborPartCand.contains(k)) {
-                        for (int l = 0; l < tmpAtomNumber2; l++) {
+                        for (int l = 0; l < atomNumber2; l++) {
                             tmpDeltaX = tmpCoord1[i][j][0] 
                                     - tmpCoord2[i][k][l][0];
                             tmpDeltaY = tmpCoord1[i][j][1] 
@@ -601,11 +585,11 @@ public class MIPETUtility{
                 
             }
             
-            tmpIndex = 0;
+            int index = 0;
             tmpNeighborIndices = new int[tmpNeighborPart.size()];
             
             for (int tmpCN : tmpNeighborPart) {
-                tmpNeighborIndices[tmpIndex++] = tmpCN;
+                tmpNeighborIndices[index++] = tmpCN;
             }
             
             Arrays.sort(tmpNeighborIndices);
