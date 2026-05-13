@@ -87,7 +87,8 @@ public class TestTinkerXYZ {
         Assert.assertArrayEquals(tmpExpectedConnectList, tmpConnectList);
         
         // Test with two sorts of particles
-        txyz = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
+        Path path = Paths.get("./testdata/H2O_Et.txyz");
+        txyz = new TinkerXYZ(path, 1, 3, 8);
         atomNumber = txyz.getN_atom();
         Assert.assertEquals(75, atomNumber);
         Assert.assertEquals(3, txyz.getN_atom1());
@@ -153,7 +154,8 @@ public class TestTinkerXYZ {
         Assert.assertArrayEquals(tmpExpectedElementList, tmpElementList);
         
         // Test .arc file
-        txyz = new TinkerXYZ("./testdata/H2O_Et_simulated.arc", 100, 3, 8);
+        path = Paths.get("./testdata/H2O_Et_simulated.arc");
+        txyz = new TinkerXYZ(path, 100, 3, 8);
         double[] expectedCoord100_2_8 = 
                 new double[]{1.899158, -0.746083, 4.3549006};
         Assert.assertArrayEquals(expectedCoord100_2_8,
@@ -177,7 +179,7 @@ public class TestTinkerXYZ {
         TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
                 tmpParticle1,
                 "./testdata/Me.txyz");
-        tmpCentre= tmpMethane.findCentreCoordinate(tmpMethane.
+        tmpCentre= tmpMethane.findCenterCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         Assert.assertEquals(-0.8588, tmpCentre[0], 0.000001);
         Assert.assertEquals(0.5892, tmpCentre[1], 0.000001);
@@ -193,7 +195,7 @@ public class TestTinkerXYZ {
         TinkerXYZ tmpMethane = new TinkerXYZ(tmpForcefield,
                 tmpParticle1,
                 "./testdata/Me.txyz");
-        tmpCentre = tmpMethane.findCentreCoordinate(tmpMethane.
+        tmpCentre = tmpMethane.findCenterCoordinate(tmpMethane.
                 getCoordinateList1()[0]);
         double[][] tmpMoved;
         tmpMoved = tmpMethane.moveCoordinates(tmpMethane.getCoordinateList1()[0], tmpCentre);
@@ -232,7 +234,7 @@ public class TestTinkerXYZ {
                 tmpParticle1,
                 "./testdata/Me.txyz");
         double[][] tmpCentreCoordinate;
-        tmpCentreCoordinate = tmpMethane.getCentreOfMass1();
+        tmpCentreCoordinate = tmpMethane.getCenterOfMass1();
         Assert.assertEquals(-0.8589372, tmpCentreCoordinate[0][0], 0.000001);
         Assert.assertEquals(0.58906283, tmpCentreCoordinate[0][1], 0.000001);
         Assert.assertEquals(0.000000, tmpCentreCoordinate[0][2], 0.000001);
@@ -240,11 +242,12 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestGetCentreOfMass2() {
-        TinkerXYZ tmpH2O_Et = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
+        Path path = Paths.get("./testdata/H2O_Et.txyz");
+        TinkerXYZ tmpH2O_Et = new TinkerXYZ(path, 1, 3, 8);
         double[][] tmpCentreCoord1;
         double[][][] tmpCentreCoords2;
         
-        tmpCentreCoord1 = tmpH2O_Et.getCentreOfMass1();
+        tmpCentreCoord1 = tmpH2O_Et.getCenterOfMass1();
         tmpCentreCoords2 = tmpH2O_Et.getCentreOfMass2();
         Assert.assertEquals(0.0, tmpCentreCoord1[0][0], 0.000001);
         Assert.assertEquals(0.0, tmpCentreCoord1[0][1], 0.000001);
@@ -259,7 +262,8 @@ public class TestTinkerXYZ {
     
     @Test
     public void TestgetPBCDistances() {
-        TinkerXYZ tmpH2O_Et = new TinkerXYZ("./testdata/H2O_Et.txyz", 1, 3, 8);
+        Path path = Paths.get("./testdata/H2O_Et.txyz");
+        TinkerXYZ tmpH2O_Et = new TinkerXYZ(path, 1, 3, 8);
         double[][] tmpDistances;
         double tmpBoxLength;
         
@@ -289,9 +293,10 @@ public class TestTinkerXYZ {
         double tmpCubic1;
         double tmpCubic2;
         double tmpShellVolume;
-        TinkerXYZ tmpMeOH = new TinkerXYZ("Z:/Scratch/MeOH_MeOH.xyz", 1, 6, 6);
         double[][] tmpDistances;
         double[] tmpRDFs;
+        Path path = Paths.get("Z:/Scratch/MeOH_MeOH.xyz");
+        TinkerXYZ tmpMeOH = new TinkerXYZ(path, 1, 6, 6);
         
         Locale.setDefault(Locale.ENGLISH);
         tmpParticle2 = "MeOH";

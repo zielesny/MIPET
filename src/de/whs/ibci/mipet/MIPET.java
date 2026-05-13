@@ -827,7 +827,7 @@ public class MIPET {
                         xyzContent1[xyz1ID]);
                 TinkerXYZ tinkerXYZ2;
                 double[][] data1 = tinkerXYZ1.getCoordinateList1()[0];
-                double[] centre1 = tinkerXYZ1.findCentreCoordinate();
+                double[] centre1 = tinkerXYZ1.findCenterCoordinate();
                 data1 = tinkerXYZ1.moveCoordinates(data1, centre1);
                 if (isSameParticle) {
                     tinkerXYZ2  = new TinkerXYZ(forcefield,
@@ -840,7 +840,7 @@ public class MIPET {
                             xyzContent2[xyz2ID]);
                 }
                 double[][] xyzData2 = tinkerXYZ2.getCoordinateList1()[0];
-                double[] centre2 = tinkerXYZ2.findCentreCoordinate();
+                double[] centre2 = tinkerXYZ2.findCenterCoordinate();
                 xyzData2 = tinkerXYZ2.moveCoordinates(xyzData2, centre2);
 
                 //</editor-fold>

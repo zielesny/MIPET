@@ -24,7 +24,6 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -57,8 +56,8 @@ public class MIPETUtility{
     /**
      * Logger of this class
      */
-    private static final Logger LOGGER = Logger
-            .getLogger(MIPET.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(
+            MIPET.class.getName());
     
      /**
      * Line separator
@@ -436,110 +435,91 @@ public class MIPETUtility{
             double aBoxDist,
             double aCatchRadius) {
         final double ONEHALF = 0.5;
-        LinkedList<int[]> tmpResult = new LinkedList<>();
-        int tmpCellsInRow;
-        int tmpCellIndex;
-        int tmpCellX;
-        int tmpCellY;
-        int tmpCellZ;
-        int[] tmpNeighborIndices;
-        double tmpDeltaX;
-        double tmpDeltaY;
-        double tmpDeltaZ;
-        double tmpDistQ;
-        double tmpMinDist;
-        double tmpMinDistQ;
-        double tmpMaxRadii1;
-        double tmpMaxRadii2;
-        double tmpCellDist; // cell edge length in Angstrom
-        double[] tmpVdWRadii1;
-        double[] tmpVdWRadii2;
-        double[][][] tmpCoord1;
-        double[][][][] tmpCoord2;
-        
+        int[] neighborIndices;
         int atomNumber1 = aCoordRecord.coord1()[0].length;
         int atomNumber2 = aCoordRecord.coord2()[0][0].length;
         int partNumber2 = aCoordRecord.coord2()[0].length;
         int iterNumber = aCoordRecord.coord1().length;
-        tmpCoord1 = aCoordRecord.coord1();
-        tmpCoord2 = aCoordRecord.coord2();
-        tmpVdWRadii1 = new double[atomNumber1];
-        tmpVdWRadii2 = new double[atomNumber2];
-        HashSet<Integer> tmpNeighborCells = new HashSet<>();
-        HashSet<Integer> tmpNeighborPartCand = new HashSet<>();
-        HashSet<Integer> tmpNeighborPart = new HashSet<>();
+        double[][][] coord1 = aCoordRecord.coord1();
+        double[][][][] coord2 = aCoordRecord.coord2();
+        double[] vdWRadii1 = new double[atomNumber1];
+        double[] vdWRadii2 = new double[atomNumber2];
         
         for (int i = 0; i < atomNumber1; i++) {
-            tmpVdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
+            vdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
         }
         
         for (int i = 0; i < atomNumber2; i++) {
-            tmpVdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
+            vdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
         }
         
         // Determine cell edge length and cell number
-        tmpMaxRadii1 = this.getMax(tmpVdWRadii1);
-        tmpMaxRadii2 = this.getMax(tmpVdWRadii2);
-        tmpCellDist = aBoxDist / 
-                (tmpMaxRadii1 + tmpMaxRadii2 + aCatchRadius);
-        tmpCellsInRow = (int) tmpCellDist;
-        tmpCellDist = aBoxDist / tmpCellsInRow;
+        double maxRadii1 = this.getMax(vdWRadii1);
+        double maxRadii2 = this.getMax(vdWRadii2);
+        double cellDist = aBoxDist / (maxRadii1 + maxRadii2 + aCatchRadius); // cell edge length in Angstrom
+        int cellX;
+        int cellY;
+        int cellZ;
+        int cellIndex;
+        int cellsInRow = (int) cellDist;
+        cellDist = aBoxDist / cellsInRow;
+        LinkedList<int[]> resultList = new LinkedList<>();
+        HashSet<Integer> neighborCells = new HashSet<>();
+        HashSet<Integer> neighborPartCand = new HashSet<>();
+        HashSet<Integer> neighborPart = new HashSet<>();
         
         for (int i = 0; i < iterNumber; i++) {
-            tmpCellIndex = 1;
+            cellIndex = 1;
             
             // Determine the solute particle cells
             for (int j = 0; j < atomNumber1; j++) {
-                tmpCellX = (int) ((tmpCoord1[i][j][0] + aBoxDist / 2) 
-                        / tmpCellDist) + 1;
-                if(tmpCellX > tmpCellsInRow) {
-                    tmpCellX = tmpCellsInRow;
+                cellX = (int) ((coord1[i][j][0] + aBoxDist / 2) / cellDist) + 1;
+                if(cellX > cellsInRow) {
+                    cellX = cellsInRow;
                 }
-                tmpCellY = (int) ((tmpCoord1[i][j][1] + aBoxDist / 2) 
-                        / tmpCellDist) + 1;
-                if(tmpCellY > tmpCellsInRow) {
-                    tmpCellY = tmpCellsInRow;
+                cellY = (int) ((coord1[i][j][1] + aBoxDist / 2) / cellDist) + 1;
+                if(cellY > cellsInRow) {
+                    cellY = cellsInRow;
                 }
-                tmpCellZ = (int) ((tmpCoord1[i][j][2] + aBoxDist / 2) 
-                        / tmpCellDist) + 1;
-                if(tmpCellZ > tmpCellsInRow) {
-                    tmpCellZ = tmpCellsInRow;
+                cellZ = (int) ((coord1[i][j][2] + aBoxDist / 2) / cellDist) + 1;
+                if(cellZ > cellsInRow) {
+                    cellZ = cellsInRow;
                 }
-                tmpCellIndex = tmpCellX + (tmpCellY - 1) * tmpCellsInRow +
-                        (tmpCellZ - 1) * tmpCellsInRow * tmpCellsInRow;
-                tmpNeighborCells.add(tmpCellIndex);
+                cellIndex = cellX + (cellY - 1) * cellsInRow +
+                        (cellZ - 1) * cellsInRow * cellsInRow;
+                neighborCells.add(cellIndex);
             }
             
             // Determine the neighbor cells
-            tmpNeighborCells = this
-                    .getNeighborCellNumbers(tmpCellsInRow, tmpNeighborCells);
+            neighborCells = this.getNeighborCellNumbers(cellsInRow, 
+                    neighborCells);
             
             // Determine the neighbor particles
             for (int j = 0; j < partNumber2; j++) {
                 
                 for (int k = 0; k < atomNumber2; k++) {
-                    tmpCellX = (int) ((tmpCoord2[i][j][k][0] + aBoxDist / 2)
-                            / tmpCellDist) + 1;
-                    if(tmpCellX > tmpCellsInRow) {
-                        tmpCellX = tmpCellsInRow;
+                    cellX = (int) ((coord2[i][j][k][0] + aBoxDist / 2)
+                            / cellDist) + 1;
+                    if(cellX > cellsInRow) {
+                        cellX = cellsInRow;
                     }
-                    tmpCellY = (int) ((tmpCoord2[i][j][k][1] + aBoxDist / 2) 
-                            / tmpCellDist) + 1;
-                    if(tmpCellY > tmpCellsInRow) {
-                        tmpCellY = tmpCellsInRow;
+                    cellY = (int) ((coord2[i][j][k][1] + aBoxDist / 2) 
+                            / cellDist) + 1;
+                    if(cellY > cellsInRow) {
+                        cellY = cellsInRow;
                     }
-                    tmpCellZ = (int) ((tmpCoord2[i][j][k][2] + aBoxDist / 2) 
-                            / tmpCellDist) + 1;
-                    if(tmpCellZ > tmpCellsInRow) {
-                        tmpCellZ = tmpCellsInRow;
+                    cellZ = (int) ((coord2[i][j][k][2] + aBoxDist / 2) 
+                            / cellDist) + 1;
+                    if(cellZ > cellsInRow) {
+                        cellZ = cellsInRow;
                     }
-                    tmpCellIndex = tmpCellX + (tmpCellY - 1) * tmpCellsInRow +
-                        (tmpCellZ - 1) * tmpCellsInRow * tmpCellsInRow;
-                    if (tmpNeighborCells.contains(tmpCellIndex)) {
-                        if(tmpNeighborPartCand.contains(j)) {
+                    cellIndex = cellX + (cellY - 1) * cellsInRow +
+                        (cellZ - 1) * cellsInRow * cellsInRow;
+                    if (neighborCells.contains(cellIndex)) {
+                        if(neighborPartCand.contains(j)) {
                             break;
                         } else {
-                            tmpNeighborPartCand.add(j);
+                            neighborPartCand.add(j);
                             break;
                         }
                     }
@@ -549,33 +529,34 @@ public class MIPETUtility{
             for (int j = 0; j < atomNumber1; j++) {
                 
                 for (int k = 0; k < partNumber2; k++) {
-                    if (tmpNeighborPartCand.contains(k)) {
+                    if (neighborPartCand.contains(k)) {
+                        
                         for (int l = 0; l < atomNumber2; l++) {
-                            tmpDeltaX = tmpCoord1[i][j][0] 
-                                    - tmpCoord2[i][k][l][0];
-                            tmpDeltaY = tmpCoord1[i][j][1] 
-                                    - tmpCoord2[i][k][l][1];
-                            tmpDeltaZ = tmpCoord1[i][j][2] 
-                                    - tmpCoord2[i][k][l][2];
-                            if(tmpDeltaX > aBoxDist * ONEHALF)
-                                tmpDeltaX -= aBoxDist;
-                            if(tmpDeltaX <= -aBoxDist * ONEHALF)
-                                tmpDeltaX += aBoxDist;
-                            if(tmpDeltaY > aBoxDist * ONEHALF)
-                                tmpDeltaY -= aBoxDist;
-                            if(tmpDeltaY <= -aBoxDist * ONEHALF)
-                                tmpDeltaY += aBoxDist;
-                            if(tmpDeltaZ > aBoxDist * ONEHALF)
-                                tmpDeltaZ -= aBoxDist;
-                            if(tmpDeltaZ <= -aBoxDist * ONEHALF)		
-                                tmpDeltaZ += aBoxDist;
-                            tmpDistQ = tmpDeltaX * tmpDeltaX + tmpDeltaY 
-                                    * tmpDeltaY + tmpDeltaZ * tmpDeltaZ;
-                            tmpMinDist = aCatchRadius + tmpVdWRadii1[j] 
-                                    + tmpVdWRadii2[l];
-                            tmpMinDistQ = tmpMinDist * tmpMinDist;
-                            if (tmpDistQ <= tmpMinDistQ) {
-                                tmpNeighborPart.add(k);
+                            double deltaX = coord1[i][j][0] 
+                                    - coord2[i][k][l][0];
+                            double deltaY = coord1[i][j][1] 
+                                    - coord2[i][k][l][1];
+                            double deltaZ = coord1[i][j][2] 
+                                    - coord2[i][k][l][2];
+                            if(deltaX > aBoxDist * ONEHALF)
+                                deltaX -= aBoxDist;
+                            if(deltaX <= -aBoxDist * ONEHALF)
+                                deltaX += aBoxDist;
+                            if(deltaY > aBoxDist * ONEHALF)
+                                deltaY -= aBoxDist;
+                            if(deltaY <= -aBoxDist * ONEHALF)
+                                deltaY += aBoxDist;
+                            if(deltaZ > aBoxDist * ONEHALF)
+                                deltaZ -= aBoxDist;
+                            if(deltaZ <= -aBoxDist * ONEHALF)		
+                                deltaZ += aBoxDist;
+                            double distQ = deltaX * deltaX + deltaY * deltaY 
+                                    + deltaZ * deltaZ;
+                            double minDist = aCatchRadius + vdWRadii1[j] 
+                                    + vdWRadii2[l];
+                            double minDistQ = minDist * minDist;
+                            if (distQ <= minDistQ) {
+                                neighborPart.add(k);
                                 break;
                             }
                         }
@@ -586,18 +567,18 @@ public class MIPETUtility{
             }
             
             int index = 0;
-            tmpNeighborIndices = new int[tmpNeighborPart.size()];
+            neighborIndices = new int[neighborPart.size()];
             
-            for (int tmpCN : tmpNeighborPart) {
-                tmpNeighborIndices[index++] = tmpCN;
+            for (int cn : neighborPart) {
+                neighborIndices[index++] = cn;
             }
             
-            Arrays.sort(tmpNeighborIndices);
-            tmpResult.add(tmpNeighborIndices);
-            tmpNeighborPart.clear();
+            Arrays.sort(neighborIndices);
+            resultList.add(neighborIndices);
+            neighborPart.clear();
         }
         
-        return tmpResult;
+        return resultList;
     }
     
     /**
@@ -608,22 +589,18 @@ public class MIPETUtility{
      */
     public HashSet<Integer> getNeighborCellNumbers(int aCellsInRow, 
             HashSet<Integer> aSoluteCellIndices) {
-        HashSet<Integer> tmpNeighborIndices;
-        int[][][] tmpIndexCube;
-        int tmpCellIndex;
-        
-        tmpNeighborIndices = new HashSet<>();
-        tmpIndexCube = 
+        HashSet<Integer> neighborIndices = new HashSet<>();
+        int[][][] indexCube = 
                 new int[aCellsInRow + 2][aCellsInRow + 2][aCellsInRow + 2];
-        tmpCellIndex = 1;
+        int cellIdx = 1;
         
         for (int i = 1; i <= aCellsInRow; i++) {
             
             for (int j = 1; j <= aCellsInRow; j++) {
                 
                 for (int k = 1; k <= aCellsInRow; k++) {
-                    tmpIndexCube[i][j][k] = tmpCellIndex;
-                    tmpCellIndex++;
+                    indexCube[i][j][k] = cellIdx;
+                    cellIdx++;
                 }
                 
             }
@@ -634,8 +611,8 @@ public class MIPETUtility{
         for (int j = 1; j <= aCellsInRow; j++) {
             
             for (int k = 1; k <= aCellsInRow; k++) {
-                tmpIndexCube[0][j][k] = tmpIndexCube[aCellsInRow][j][k];
-                tmpIndexCube[aCellsInRow + 1][j][k] = tmpIndexCube[1][j][k];
+                indexCube[0][j][k] = indexCube[aCellsInRow][j][k];
+                indexCube[aCellsInRow + 1][j][k] = indexCube[1][j][k];
             }
             
         }
@@ -644,8 +621,8 @@ public class MIPETUtility{
         for (int i = 0; i <= aCellsInRow + 1; i++) {
             
             for (int j = 1; j <= aCellsInRow; j++) {
-                tmpIndexCube[i][j][0] = tmpIndexCube[i][j][aCellsInRow];
-                tmpIndexCube[i][j][aCellsInRow + 1] = tmpIndexCube[i][j][1];
+                indexCube[i][j][0] = indexCube[i][j][aCellsInRow];
+                indexCube[i][j][aCellsInRow + 1] = indexCube[i][j][1];
             }
             
         }
@@ -654,70 +631,70 @@ public class MIPETUtility{
         for (int i = 0; i <= aCellsInRow + 1; i++) {
             
             for (int k = 0; k <= aCellsInRow + 1; k++) {
-                tmpIndexCube[i][0][k] = tmpIndexCube[i][aCellsInRow][k];
-                tmpIndexCube[i][aCellsInRow + 1][k] = tmpIndexCube[i][1][k];
+                indexCube[i][0][k] = indexCube[i][aCellsInRow][k];
+                indexCube[i][aCellsInRow + 1][k] = indexCube[i][1][k];
             }
         }
         
-        for (int tmpSoluteCellIndex : aSoluteCellIndices) {
-            tmpCellIndex = 1;
+        for (int soluteCellIdx : aSoluteCellIndices) {
+            cellIdx = 1;
             
             for (int i = 1; i <= aCellsInRow; i++) {
             
                 for (int j = 1; j <= aCellsInRow; j++) {
                 
                     for (int k = 1; k <= aCellsInRow; k++) {
-                        if (tmpSoluteCellIndex == tmpCellIndex) {
-                            tmpNeighborIndices.add(tmpIndexCube[i][j][k]);
-                            tmpNeighborIndices.add(tmpIndexCube[i][j][k + 1]);
-                            tmpNeighborIndices.add(tmpIndexCube[i][j][k - 1]);
-                            tmpNeighborIndices.add(tmpIndexCube[i][j + 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i][j + 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i][j + 1][k - 1]);
-                            tmpNeighborIndices.add(tmpIndexCube[i][j - 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i][j - 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i][j - 1][k - 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j][k - 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j + 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j + 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j + 1][k - 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j - 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j - 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i + 1][j - 1][k - 1]);
-                            tmpNeighborIndices.add(tmpIndexCube[i - 1][j][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j][k - 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j + 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j + 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j + 1][k - 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j - 1][k]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j - 1][k + 1]);
-                            tmpNeighborIndices
-                                    .add(tmpIndexCube[i - 1][j - 1][k - 1]);
+                        if (soluteCellIdx == cellIdx) {
+                            neighborIndices.add(indexCube[i][j][k]);
+                            neighborIndices.add(indexCube[i][j][k + 1]);
+                            neighborIndices.add(indexCube[i][j][k - 1]);
+                            neighborIndices.add(indexCube[i][j + 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i][j + 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i][j + 1][k - 1]);
+                            neighborIndices.add(indexCube[i][j - 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i][j - 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i][j - 1][k - 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j][k]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j][k - 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j + 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j + 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j + 1][k - 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j - 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j - 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i + 1][j - 1][k - 1]);
+                            neighborIndices.add(indexCube[i - 1][j][k]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j][k - 1]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j + 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j + 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j + 1][k - 1]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j - 1][k]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j - 1][k + 1]);
+                            neighborIndices
+                                    .add(indexCube[i - 1][j - 1][k - 1]);
                         }
-                        tmpCellIndex++;
+                        cellIdx++;
                     }
                 
                 }
@@ -725,7 +702,7 @@ public class MIPETUtility{
             }
         }
         
-        return tmpNeighborIndices;
+        return neighborIndices;
     }
     
     /**
@@ -740,108 +717,87 @@ public class MIPETUtility{
             int anAtomNumber1, int anAtomNumber2) {
         // Check parameters
         if (path == null) {
-            throw new IllegalArgumentException("Null was passed to the " 
-                    + "setFileContent method.");
+            throw new IllegalArgumentException("Null was passed to the setFileContent method.");
         }
         if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
-            throw new IllegalArgumentException("Illegal numbers" 
-                    + "passed in getCoordinatesFromArcFile.");
+            throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromArcFile.");
         }
-        
-        int tmpLength1;
-        int tmpLength2;
-        int tmpLineCounter; 
-        int tmpIndex;
-        int tmpIndex1;
-        int tmpIndex2;
-        int tmpParticleIndex2;
-        int tmpParticleNumber2;
-        int tmpAtomNumber;
-        double[][] tmpCoord1;
-        double[][][] tmpCoord2;
-        double[][][] tmpCoordinate1;
-        double[][][][] tmpCoordinate2;
-        String tmpLine;
-        String[] tmpLineArray;
-        LinkedList<double[][]> tmpCoordList1 = new LinkedList<>();
-        LinkedList<double[][][]> tmpCoordList2 = new LinkedList<>();
-        CoordinatesRecord tmpCoordRecord;
-        
-        tmpLineCounter = 1; 
-        tmpIndex = 0;
-        tmpIndex1 = 0;
-        tmpIndex2 = 0;
-        tmpParticleIndex2 = 0;
-        tmpParticleNumber2 = 0;
-        tmpCoord1 = new double[anAtomNumber1][3];
-        try (BufferedReader tmpBR = Files.newBufferedReader(path,
+        LinkedList<double[][]> coordList1 = new LinkedList<>();
+        LinkedList<double[][][]> coordList2 = new LinkedList<>();
+        CoordinatesRecord coordRecord;
+        int lineCounter = 1; 
+        int idx = 0;
+        int idx1 = 0;
+        int idx2 = 0;
+        int particleIdx2 = 0;
+        int particleNumber2 = 0;
+        double[][] coord1 = new double[anAtomNumber1][3];
+        try (BufferedReader reader = Files.newBufferedReader(path,
                 StandardCharsets.UTF_8)) {
-            tmpBR.mark(80);
-            tmpLine = tmpBR.readLine();
-            tmpAtomNumber = Integer.parseInt(tmpLine.substring(0, 6).trim());
-            tmpBR.reset();
-            tmpParticleNumber2 = (tmpAtomNumber - anAtomNumber1) 
-                    / anAtomNumber2;
-            tmpCoord2 = new double[tmpParticleNumber2][anAtomNumber2][3];
+            reader.mark(80);
+            String line = reader.readLine();
+            int atomNumber = Integer.parseInt(line.substring(0, 6).trim());
+            reader.reset();
+            particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
+            double[][][] coord2 = 
+                    new double[particleNumber2][anAtomNumber2][3];
+            String[] lineArray;
             
-            while((tmpLine = tmpBR.readLine()) != null) {
-                if (tmpIndex >= 2 && tmpIndex <= anAtomNumber1 + 1) {
-                    tmpLineArray = this.split(tmpLine.trim());
-                    tmpCoord1[tmpIndex1][0] = Double.parseDouble(
-                            tmpLineArray[0]);
-                    tmpCoord1[tmpIndex1][1] = Double.parseDouble(
-                            tmpLineArray[1]);
-                    tmpCoord1[tmpIndex1][2] = Double.parseDouble(
-                            tmpLineArray[2]);
-                    tmpLineCounter++;
-                    tmpIndex1++;
-                    if (tmpIndex1 >= anAtomNumber1) {
-                        tmpIndex1 = 0;
+            while((line = reader.readLine()) != null) {
+                if (idx >= 2 && idx <= anAtomNumber1 + 1) {
+                    lineArray = this.split(line.trim());
+                    coord1[idx1][0] = Double.parseDouble(lineArray[0]);
+                    coord1[idx1][1] = Double.parseDouble(lineArray[1]);
+                    coord1[idx1][2] = Double.parseDouble(lineArray[2]);
+                    lineCounter++;
+                    idx1++;
+                    if (idx1 >= anAtomNumber1) {
+                        idx1 = 0;
                     }
-                } else if (tmpIndex > anAtomNumber1 + 1) {
-                    tmpLineArray = this.split(tmpLine.trim());
-                    tmpCoord2[tmpParticleIndex2][tmpIndex2][0] = Double
-                            .parseDouble(tmpLineArray[0]);
-                    tmpCoord2[tmpParticleIndex2][tmpIndex2][1] = Double
-                            .parseDouble(tmpLineArray[1]);
-                    tmpCoord2[tmpParticleIndex2][tmpIndex2][2] = Double
-                            .parseDouble(tmpLineArray[2]);
-                    tmpLineCounter++;
-                    tmpIndex2++;
-                    if (tmpIndex2 >= anAtomNumber2) {
-                        tmpIndex2 = 0;
-                        tmpParticleIndex2++;
-                        if (tmpParticleIndex2 >= tmpParticleNumber2) {
-                            tmpParticleIndex2 = 0;
-                            tmpCoordList1.add(tmpCoord1);
-                            tmpCoordList2.add(tmpCoord2);
-                            tmpCoord1 = new double[anAtomNumber1][3];
-                            tmpCoord2 = new double[tmpParticleNumber2]
+                } else if (idx > anAtomNumber1 + 1) {
+                    lineArray = this.split(line.trim());
+                    coord2[particleIdx2][idx2][0] = Double
+                            .parseDouble(lineArray[0]);
+                    coord2[particleIdx2][idx2][1] = Double
+                            .parseDouble(lineArray[1]);
+                    coord2[particleIdx2][idx2][2] = Double
+                            .parseDouble(lineArray[2]);
+                    lineCounter++;
+                    idx2++;
+                    if (idx2 >= anAtomNumber2) {
+                        idx2 = 0;
+                        particleIdx2++;
+                        if (particleIdx2 >= particleNumber2) {
+                            particleIdx2 = 0;
+                            coordList1.add(coord1);
+                            coordList2.add(coord2);
+                            coord1 = new double[anAtomNumber1][3];
+                            coord2 = new double[particleNumber2]
                                     [anAtomNumber2][3];
                         }
                     }
                 } else {
-                    tmpLineCounter++;
+                    lineCounter++;
                 }
-                tmpIndex = (tmpLineCounter - 1) % (tmpAtomNumber + 2);
+                idx = (lineCounter - 1) % (atomNumber + 2);
             }
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException in getCoordinatesFromArcFile.", ex);
         }
-        tmpLength1 = tmpCoordList1.size();
-        tmpLength2 = tmpCoordList2.size();
-        tmpCoordinate1 = new double[tmpLength1][anAtomNumber1][3];
-        tmpCoordinate2 =
-                new double[tmpLength2][tmpParticleNumber2][anAtomNumber1][3];
+        int coordSize1 = coordList1.size();
+        int coordSize2 = coordList2.size();
+        double[][][] multiCoord1 = new double[coordSize1][anAtomNumber1][3];
+        double[][][][] multiCoord2 =
+                new double[coordSize2][particleNumber2][anAtomNumber1][3];
         
-        for (int i = 0; i < tmpLength1; i++) {
-            tmpCoordinate1[i] = tmpCoordList1.get(i);
-            tmpCoordinate2[i] = tmpCoordList2.get(i);
+        for (int i = 0; i < coordSize1; i++) {
+            multiCoord1[i] = coordList1.get(i);
+            multiCoord2[i] = coordList2.get(i);
         }
         
-        tmpCoordRecord = new CoordinatesRecord(tmpCoordinate1, tmpCoordinate2);
-        return tmpCoordRecord;
+        coordRecord = new CoordinatesRecord(multiCoord1, multiCoord2);
+        return coordRecord;
     }
     
     /**
@@ -851,56 +807,39 @@ public class MIPETUtility{
      * @return (Widest) molecular diameter
      */
     public double getMolecularDiameter(TinkerXYZ aTinkerXYZ) {
-        int tmpAtomSize;
-        final int tmpAtomicNumber1;
-        int tmpAtomicNumber2;
-        int tmpIndex1;
-        int tmpIndex2;
-        final double tmpVdW1;
-        final double tmpVdW2;
-        double tmpDeltaX;
-        double tmpDeltaY;
-        double tmpDeltaZ;
-        double tmpMaxDistanceQ;
-        double tmpMaxDistanceQCandidate;
-        double tmpReturn;
-        double[][] tmpCoordinates;
-        String[] tmpElements;
+        int atomSize = aTinkerXYZ.getN_atom1();
+        String[] elements = aTinkerXYZ.getElementList1();
+        double[][] coord = aTinkerXYZ.getCoordinateList1()[0];
+        double maxDistanceQ = 0.0;
+        int idx1 = 0;
+        int idx2 = 0;
         
-        tmpAtomSize = aTinkerXYZ.getN_atom1();
-        tmpElements = aTinkerXYZ.getElementList1();
-        tmpCoordinates = aTinkerXYZ.getCoordinateList1()[0];
-        tmpMaxDistanceQ = 0.0;
-        tmpIndex1 = 0;
-        tmpIndex2 = 0;
-        
-        for (int i = 0; i < tmpAtomSize; i++) {
+        for (int i = 0; i < atomSize; i++) {
             
-            for (int j = i + 1; j < tmpAtomSize; j++) {
-                tmpDeltaX = tmpCoordinates[i][0] - tmpCoordinates[j][0];
-                tmpDeltaY = tmpCoordinates[i][1] - tmpCoordinates[j][1];
-                tmpDeltaZ = tmpCoordinates[i][2] - tmpCoordinates[j][2];
-                tmpMaxDistanceQCandidate = tmpDeltaX * tmpDeltaX + 
-                        tmpDeltaY * tmpDeltaY +
-                        tmpDeltaZ * tmpDeltaZ;
-                if (tmpMaxDistanceQCandidate > tmpMaxDistanceQ) {
-                    tmpMaxDistanceQ = tmpMaxDistanceQCandidate;
-                    tmpIndex1 = i;
-                    tmpIndex2 = j;
+            for (int j = i + 1; j < atomSize; j++) {
+                double deltaX = coord[i][0] - coord[j][0];
+                double deltaY = coord[i][1] - coord[j][1];
+                double deltaZ = coord[i][2] - coord[j][2];
+                double maxDistQCandidate = deltaX * deltaX 
+                        + deltaY * deltaY +deltaZ * deltaZ;
+                if (maxDistQCandidate > maxDistanceQ) {
+                    maxDistanceQ = maxDistQCandidate;
+                    idx1 = i;
+                    idx2 = j;
                 }
             }
             
         }
         
-        tmpReturn = Math.sqrt(tmpMaxDistanceQ);
-        tmpAtomicNumber1 = PeriodicTable
-                .getAtomicNumber(tmpElements[tmpIndex1]);
-        tmpAtomicNumber2 = PeriodicTable
-                .getAtomicNumber(tmpElements[tmpIndex2]);
-        tmpVdW1 = this.getVdWRadii()[tmpAtomicNumber1];
-        tmpVdW2 = this.getVdWRadii()[tmpAtomicNumber2];
-        tmpReturn += tmpVdW1 + tmpVdW2;
-        return tmpReturn;
+        double diameter = Math.sqrt(maxDistanceQ);
+        final int atomicNumber1 = PeriodicTable.getAtomicNumber(
+                elements[idx1]);
+        final int atomicNumber2 = PeriodicTable.getAtomicNumber(
+                elements[idx2]);
+        final double vdWRadii1 = this.getVdWRadii()[atomicNumber1];
+        final double vdWRadii2 = this.getVdWRadii()[atomicNumber2];
+        diameter += vdWRadii1 + vdWRadii2;
+        return diameter;
     }
     
     /**
@@ -913,22 +852,22 @@ public class MIPETUtility{
      *   Step number in the .arc file
      */
     public void writeLastPartToXYZ(Path anArcPath, Path aXyzPath, int aSteps) {
-        try (BufferedReader tmpBR = Files.newBufferedReader(anArcPath, 
+        try (BufferedReader reader = Files.newBufferedReader(anArcPath, 
                 StandardCharsets.UTF_8);
-                BufferedWriter tmpBW = Files.newBufferedWriter(aXyzPath, 
+                BufferedWriter writer = Files.newBufferedWriter(aXyzPath, 
                         StandardCharsets.UTF_8)) {
             int headerSize = 2;
-            String line = tmpBR.readLine();
+            String line = reader.readLine();
             int atomSize = Integer.parseInt(line.substring(0, 6).trim());
             int ignoreLineSize = (atomSize + headerSize) * (aSteps - 1) - 1;
             
             for (int i = 0; i < ignoreLineSize; i++) {
-                tmpBR.readLine();
+                reader.readLine();
             }
             
-            while((line = tmpBR.readLine()) != null) {
-                tmpBW.append(line);
-                tmpBW.append(LINESEPARATOR);
+            while((line = reader.readLine()) != null) {
+                writer.append(line);
+                writer.newLine();
             }
                 
         } catch (IOException ex) {
@@ -944,15 +883,15 @@ public class MIPETUtility{
      * @return Molecule name and SMILES as hashmap
      */
     public HashMap<String, String> getSmilesData(String aSmilesFileName) {
-        HashMap <String, String> tmpSmiles = new HashMap<>();
+        HashMap <String, String> smiles = new HashMap<>();
         Path path = Paths.get(aSmilesFileName);
-        try (BufferedReader tmpBR = Files.newBufferedReader(path,
+        try (BufferedReader reader = Files.newBufferedReader(path,
                 StandardCharsets.UTF_8)) {
             String line;
             
-            while((line = tmpBR.readLine()) != null) {
+            while((line = reader.readLine()) != null) {
                 String[] lineArray = line.trim().split("\\s+");
-                tmpSmiles.put(lineArray[0], lineArray[1]);
+                smiles.put(lineArray[0], lineArray[1]);
             }
             
         } catch (FileNotFoundException ex) {
@@ -962,7 +901,7 @@ public class MIPETUtility{
             LOGGER.log(Level.SEVERE, 
                     "IOException in getSmilesData.", ex);
         }
-        return tmpSmiles;
+        return smiles;
     }
     
     /**
@@ -1032,8 +971,8 @@ public class MIPETUtility{
      *   All lines with aSearchString in it as a list.
      */
     public List<String> findList(String fileName, String searchString) {
-        Path filePath = Paths.get(fileName);
-        try (Stream<String> lines = Files.lines(filePath)) {
+        Path path = Paths.get(fileName);
+        try (Stream<String> lines = Files.lines(path)) {
             return lines.filter(line -> line.contains(searchString))
                     .collect(Collectors.toList());
 
@@ -1050,13 +989,13 @@ public class MIPETUtility{
      * @return Sum of the array elements
      */
     public double sum(double[] aDoubleArray) {
-        double tmpSum = 0;
+        double sum = 0;
 
-        for (double tmpValue : aDoubleArray) {
-            tmpSum += tmpValue;
+        for (double value : aDoubleArray) {
+            sum += value;
         }
         
-        return tmpSum;
+        return sum;
     }
     
     /**
@@ -1066,13 +1005,13 @@ public class MIPETUtility{
      * @return Sum of the array elements
      */
     public long sum(int[] anIntArray) {
-        int tmpSum = 0;
+        int sum = 0;
 
-        for (int tmpValue : anIntArray) {
-            tmpSum += tmpValue;
+        for (int value : anIntArray) {
+            sum += value;
         }
         
-        return tmpSum;
+        return sum;
     }
     
     /**
@@ -1083,12 +1022,12 @@ public class MIPETUtility{
      * @return Sum of element products of two arrays
      */
     public double productSum(double[] aDoubleArray1, double[] aDoubleArray2) {
-        double tmpSum = 0;
+        double sum = 0;
         
         for (int i = 0; i < aDoubleArray1.length; i++) {
-            tmpSum += aDoubleArray1[i] * aDoubleArray2[i];
+            sum += aDoubleArray1[i] * aDoubleArray2[i];
         }
-        return tmpSum;
+        return sum;
     }
     
     /**
@@ -1098,15 +1037,15 @@ public class MIPETUtility{
      * @return standard deviation
      */
     public double standarddeviation(int[] aValues, double aMean) {
-        double tmpSum = 0;
-        double tmpReturnValue;
+        double sum = 0;
+        double returnValue;
 
-        for (int tmpValue : aValues) {
-            tmpSum += (tmpValue - aMean) * (tmpValue - aMean);
+        for (int value : aValues) {
+            sum += (value - aMean) * (value - aMean);
         }
         
-        tmpReturnValue = Math.sqrt(1.0 / (aValues.length - 1) * tmpSum);
-        return tmpReturnValue;
+        returnValue = Math.sqrt(1.0 / (aValues.length - 1) * sum);
+        return returnValue;
     }
     
     /**
@@ -1115,15 +1054,15 @@ public class MIPETUtility{
      * @return biggest value of an integer array
      */
     public int getMax(int[] aValues) {
-        int tmpMax = aValues[0];
+        int max = aValues[0];
         
         for (int i = 1; i < aValues.length; i++) {
-            if (tmpMax < aValues[i]) {
-                tmpMax = aValues[i];
+            if (max < aValues[i]) {
+                max = aValues[i];
             }
         }
         
-        return tmpMax;
+        return max;
     }
     
     /**
@@ -1132,15 +1071,15 @@ public class MIPETUtility{
      * @return biggest value of a double array
      */
     public double getMax(double[] aValues) {
-        double tmpMax = aValues[0];
+        double max = aValues[0];
         
         for (int i = 1; i < aValues.length; i++) {
-            if (tmpMax < aValues[i]) {
-                tmpMax = aValues[i];
+            if (max < aValues[i]) {
+                max = aValues[i];
             }
         }
         
-        return tmpMax;
+        return max;
     }
     
     
@@ -1150,15 +1089,15 @@ public class MIPETUtility{
      * @return smallest value of an integer array
      */
     public int getMin(int[] aValues) {
-        int tmpMin = aValues[0];
+        int min = aValues[0];
         
         for (int i = 1; i < aValues.length; i++) {
-            if (tmpMin > aValues[i]) {
-                tmpMin = aValues[i];
+            if (min > aValues[i]) {
+                min = aValues[i];
             }
         }
         
-        return tmpMin;
+        return min;
     }
     
     /**
@@ -1168,18 +1107,12 @@ public class MIPETUtility{
      * @return distance of point1 and point2
      */
     public double getDistance(double[] aCoord1, double[] aCoord2) {
-        double tmpDeltaX;
-        double tmpDeltaY;
-        double tmpDeltaZ;
-        double tmpResult;
-        
-        tmpDeltaX = aCoord2[0] - aCoord1[0];
-        tmpDeltaY = aCoord2[1] - aCoord1[1];
-        tmpDeltaZ = aCoord2[2] - aCoord1[2];
-        tmpResult = Math.sqrt(tmpDeltaX * tmpDeltaX + 
-                tmpDeltaY * tmpDeltaY +
-                tmpDeltaZ * tmpDeltaZ);
-        return tmpResult;
+        double deltaX = aCoord2[0] - aCoord1[0];
+        double deltaY = aCoord2[1] - aCoord1[1];
+        double deltaZ = aCoord2[2] - aCoord1[2];
+        double result = Math.sqrt(deltaX * deltaX + deltaY * deltaY 
+                + deltaZ * deltaZ);
+        return result;
     }
     
     /**
@@ -1196,37 +1129,32 @@ public class MIPETUtility{
         double shortestDistQ;
         
         for (int i = 0; i < 29; i++) {
-            int tmpMolNumber = sphereNodeNumber[i];
-            String tmpFileName = sphereNodeFileName + tmpMolNumber + ".txt";
-            Path path = Paths.get(tmpFileName);
-            try (BufferedReader tmpBR = Files.newBufferedReader(path,
+            int molNumber = sphereNodeNumber[i];
+            Path path = Paths.get(sphereNodeFileName + molNumber + ".txt");
+            try (BufferedReader reader = Files.newBufferedReader(path,
                     StandardCharsets.UTF_8)) {
                 double[][] matrix = new double[sphereNodeNumber[i]][3];
-                int atomIndex = 0;
+                int atomIdx = 0;
                 shortestDistQ = 1000.;
-                String tmpLine;
+                String line;
                 
-                while ((tmpLine = tmpBR.readLine()) != null) {
-                    int startIndex = tmpLine.indexOf("{");
-                    int endIndex = tmpLine.lastIndexOf("}");
-                    String subString = tmpLine
+                while ((line = reader.readLine()) != null) {
+                    int startIndex = line.indexOf("{");
+                    int endIndex = line.lastIndexOf("}");
+                    String subString = line
                             .substring(startIndex + 1, endIndex);
-                    String[] tmpTokens = subString.split(",");
-                    matrix[atomIndex][0] = Double.parseDouble(
-                            tmpTokens[0].trim());
-                    matrix[atomIndex][1] = Double.parseDouble(
-                            tmpTokens[1].trim());
-                    matrix[atomIndex][2] = Double.parseDouble(
-                            tmpTokens[2].trim());
-                    atomIndex++;
+                    String[] tokens = subString.split(",");
+                    matrix[atomIdx][0] = Double.parseDouble(tokens[0].trim());
+                    matrix[atomIdx][1] = Double.parseDouble(tokens[1].trim());
+                    matrix[atomIdx][2] = Double.parseDouble(tokens[2].trim());
+                    atomIdx++;
                 }
                 
-                for (int j = 1; j < tmpMolNumber; j++) {
+                for (int j = 1; j < molNumber; j++) {
                     double distQX = matrix[j][0] - matrix[0][0];
                     double distQY = matrix[j][1] - matrix[0][1];
                     double distQZ = matrix[j][2] - matrix[0][2];
-                    double distQ = distQX * distQX
-                            + distQY * distQY
+                    double distQ = distQX * distQX + distQY * distQY
                             + distQZ * distQZ;
                     if (distQ < shortestDistQ) {
                         shortestDistQ = distQ;
@@ -1257,27 +1185,27 @@ public class MIPETUtility{
      * 
      * @param aPath
      *   A Path name
-     * @param aStartIndex
+     * @param aStartIdx
      *   Zero-based start line index
-     * @param aEndIndex
+     * @param aEndIdx
      *   Zero-based end line index
      * @return 
      * Content of the selected part of .arc file
      */
-    public static StringBuilder readPartArcFile(Path aPath, 
-            int aStartIndex, int aEndIndex) {
+    public static StringBuilder readPartArcFile(Path aPath, int aStartIdx, 
+            int aEndIdx) {
         String line;
-        int index = 0;
+        int idx = 0;
         StringBuilder strBuilder = new StringBuilder();
         try (BufferedReader reader = Files.newBufferedReader(aPath, 
                 StandardCharsets.UTF_8)) {
             
             while ((line = reader.readLine()) != null) {
-                if (aStartIndex <= index && index <= aEndIndex) {
+                if (aStartIdx <= idx && idx <= aEndIdx) {
                     strBuilder.append(line);
                     strBuilder.append(LINESEPARATOR);
                 }
-                index++;
+                idx++;
             }
             
         } catch (IOException ex) {
@@ -1388,7 +1316,7 @@ public class MIPETUtility{
             int[][] aCNs,
             double aTemperature) {
         int jobTaskLength = aJobTaskRecords.size();
-        int index = 0;
+        int idx = 0;
         
         for (int i = 0; i < jobTaskLength; i++) {
             if (aJobTaskRecords.get(i).hasCNJob()) {
@@ -1398,26 +1326,26 @@ public class MIPETUtility{
                 String targetDirName = aJobTaskRecords.get(i).result_CN_PathName();
                 Path zijPath = Paths.get(targetDirName,
                         particlePair + "_ZijTable.dat");
-                try (BufferedWriter tmpBW = Files.newBufferedWriter(zijPath, 
+                try (BufferedWriter writer = Files.newBufferedWriter(zijPath, 
                         StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE,
                         StandardOpenOption.APPEND)) {
-                    tmpBW.append("temperature [K]: ")
+                    writer.append("temperature [K]: ")
                             .append(Double.toString(aTemperature));
-                    tmpBW.newLine();
-                    tmpBW.append(Integer.toString(aCNs[index][0]));
+                    writer.newLine();
+                    writer.append(Integer.toString(aCNs[idx][0]));
 
-                    for (int j = 1; j < aCNs[index].length; j++) {
-                        tmpBW.newLine();
-                        tmpBW.append(Integer.toString(aCNs[index][j]));
+                    for (int j = 1; j < aCNs[idx].length; j++) {
+                        writer.newLine();
+                        writer.append(Integer.toString(aCNs[idx][j]));
                     }
 
-                    tmpBW.newLine();
+                    writer.newLine();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, 
                     "IOException during Writing logfile.", ex);
                 }
-                index++;
+                idx++;
             }
         }
         
@@ -1437,7 +1365,7 @@ public class MIPETUtility{
         if (aPathName == null || aPathName.isEmpty())  {
             throw new IllegalArgumentException("Illegal argument was used in getParameterParticleName().");
         }
-        LinkedList<String[]> tmpParameterParticleList = new LinkedList<>();
+        LinkedList<String[]> parameterParticleList = new LinkedList<>();
 
         for (String s : aPathName) {
             int paramStartIndex = -1;
@@ -1470,18 +1398,18 @@ public class MIPETUtility{
             parameterParticle[1] = particle1;
             String particle2 = s.substring(separateIndex + 1);
             parameterParticle[2] = particle2;
-            tmpParameterParticleList.add(parameterParticle);
+            parameterParticleList.add(parameterParticle);
             if (!parameterParticle[1].equals(parameterParticle[2])) {
                 parameterParticle = new String[3];
                 parameterParticle[0] = parameter;
                 parameterParticle[1] = particle2;
                 parameterParticle[2] = particle1;
-                tmpParameterParticleList.add(parameterParticle);
+                parameterParticleList.add(parameterParticle);
             }
         }
         
-        String[][] result = tmpParameterParticleList
-                .toArray(new String[tmpParameterParticleList.size()][3]);
+        String[][] result = parameterParticleList.toArray(
+                new String[parameterParticleList.size()][3]);
         return result;
     }
     
@@ -1493,9 +1421,8 @@ public class MIPETUtility{
      *   Content of .key file
      */
     public void writeKeyFile(Path keyPath, String aContent) {
-        try (PrintWriter tmpOut = new PrintWriter(Files
-                .newBufferedWriter(keyPath, StandardCharsets.UTF_8))) {
-            tmpOut.print(aContent);
+        try {
+            Files.writeString(keyPath, aContent);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .key file.", ex);
@@ -1527,12 +1454,12 @@ public class MIPETUtility{
             writer.newLine();
             writer.append("[energies]");
             writer.newLine();
-            int tmpEnergiesNumber;
+            int energySize;
             
             for (double[] aEnergySorted1 : aEnergySorted) {
-                tmpEnergiesNumber = aEnergySorted1.length;
+                energySize = aEnergySorted1.length;
                 
-                for (int j = 0; j < tmpEnergiesNumber; j++) {
+                for (int j = 0; j < energySize; j++) {
                     writer.append(String.valueOf(aEnergySorted1[j]));
                     writer.append("    ");
                 }
@@ -1554,15 +1481,13 @@ public class MIPETUtility{
      * @return String with changed atom type number
      */
     public String changeAtomType(String[] aTokens) {
-        String tmpResult;
-        
-        tmpResult = null;
+        String result = null;
         switch (aTokens[0]) {
             case "atom" -> {
                 aTokens[1] = String.valueOf((Integer.
                         parseInt(aTokens[1]) + 100));
                 aTokens[2] = aTokens[1];
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(8),
                         aTokens[1],
@@ -1582,7 +1507,7 @@ public class MIPETUtility{
             case "vdw" -> {
                 aTokens[1] = String.valueOf((Integer.
                         parseInt(aTokens[1]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(9),
                         aTokens[1],
@@ -1596,7 +1521,7 @@ public class MIPETUtility{
                         parseInt(aTokens[1]) + 100));
                 aTokens[2] = String.valueOf((Integer.
                         parseInt(aTokens[2]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(8),
                         aTokens[1],
@@ -1614,7 +1539,7 @@ public class MIPETUtility{
                         parseInt(aTokens[2]) + 100));
                 aTokens[3] = String.valueOf((Integer.
                         parseInt(aTokens[3]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(7),
                         aTokens[1],
@@ -1636,7 +1561,7 @@ public class MIPETUtility{
                         parseInt(aTokens[3]) + 100));
                 aTokens[4] = String.valueOf((Integer.
                         parseInt(aTokens[4]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(5),
                         aTokens[1],
@@ -1674,7 +1599,7 @@ public class MIPETUtility{
                         parseInt(aTokens[3]) + 100));
                 aTokens[4] = String.valueOf((Integer.
                         parseInt(aTokens[4]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(5),
                         aTokens[1],
@@ -1694,7 +1619,7 @@ public class MIPETUtility{
             case "charge" -> {
                 aTokens[1] = String.valueOf((Integer.
                         parseInt(aTokens[1]) + 100));
-                tmpResult = String.join("",
+                result = String.join("",
                         aTokens[0], 
                         " ".repeat(9),
                         aTokens[1],
@@ -1702,7 +1627,7 @@ public class MIPETUtility{
                         aTokens[2]);
             }
         }
-        return tmpResult; 
+        return result; 
     }
     
     /**
@@ -1716,8 +1641,6 @@ public class MIPETUtility{
      *   String with left filled with spaces
      */
     public String padLeft(String aInput, int aPadUpTo) {
-        String tmpSB;
-
         // Check parameters
         if (aInput == null || aInput.isEmpty()) {
             throw new IllegalArgumentException("aInput is null or empty.");
@@ -1725,10 +1648,10 @@ public class MIPETUtility{
             throw new IllegalArgumentException("aPadUpTo should be positive.");
         }
 
-        char tmpPadChar = ' ';
-        tmpSB = String.valueOf(tmpPadChar)
+        char padChar = ' ';
+        String resultStr = String.valueOf(padChar)
                 .repeat(Math.max(0, aPadUpTo - aInput.length())) + aInput;
-        return tmpSB;
+        return resultStr;
     }
     
     /**
@@ -1742,18 +1665,16 @@ public class MIPETUtility{
      *   String with right filled with spaces
      */
     public String padRight(String aInput, int aPadUpTo) {
-        String tmpSb;
-
         if (aInput == null || aInput.isEmpty()) {
             throw new IllegalArgumentException("aInput is null or empty.");
         } else if (aPadUpTo <= 0) {
             throw new IllegalArgumentException("aPadUpTo should be positive.");
         }
 
-        char tmpPadChar = ' ';
-        tmpSb = aInput + String.valueOf(tmpPadChar)
+        char padChar = ' ';
+        String resultStr = aInput + String.valueOf(padChar)
                 .repeat(Math.max(0, aPadUpTo - aInput.length()));
-        return tmpSb;
+        return resultStr;
     }
     
     /**
@@ -1769,10 +1690,10 @@ public class MIPETUtility{
         int index = 0;
         Path path = Paths.get(aFileName);
         
-        try (BufferedReader tmpBR = Files.newBufferedReader(path, 
+        try (BufferedReader reader = Files.newBufferedReader(path, 
                 StandardCharsets.UTF_8)) {
             
-            while ((line = tmpBR.readLine()) != null ) {
+            while ((line = reader.readLine()) != null ) {
                 if (index == startIndex) {
                     newLine = line.substring(0, 8)
                             + " O"
@@ -1802,9 +1723,9 @@ public class MIPETUtility{
                     ex);
         }
         path.toFile().delete();
-        try (BufferedWriter tmpBW = Files.newBufferedWriter(path,
+        try (BufferedWriter writer = Files.newBufferedWriter(path,
                 StandardCharsets.UTF_8)) {
-            tmpBW.append(strBuilder);
+            writer.append(strBuilder);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during writing .xyz file in fixTinkerXYZ_H2O."
@@ -1817,24 +1738,24 @@ public class MIPETUtility{
     // <editor-fold defaultstate="collapsed" desc="Private methods">
     
     private void initialize() {
-        ResourceBundle tmpBundle;
-        Path tmpExternalPath = Paths.get(BUNDLE_NAME_EXTERN);
+        ResourceBundle bundle;
+        Path externalPath = Paths.get(BUNDLE_NAME_EXTERN);
 
-        if (Files.exists(tmpExternalPath)) {
+        if (Files.exists(externalPath)) {
             // 1. Try: Load the external file (for the production)
-            try (InputStream is = Files.newInputStream(tmpExternalPath)) {
-                tmpBundle = new PropertyResourceBundle(is);
+            try (InputStream is = Files.newInputStream(externalPath)) {
+                bundle = new PropertyResourceBundle(is);
             } catch (IOException ex) {
             // Fallback during reading the file 
-                tmpBundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+                bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
                         Locale.getDefault(), this.getClass().getClassLoader());
             }
         } else {
             // 2. Fallback: Read internal file (for the development)
-            tmpBundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+            bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
                     Locale.getDefault(), this.getClass().getClassLoader());
         }
-        RESOURCE_BUNDLE = tmpBundle;
+        RESOURCE_BUNDLE = bundle;
         smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
         atomicNumber = this.getAtomicNumberTable();
         vdWRadii = this.getVdWRadii();
@@ -1846,37 +1767,31 @@ public class MIPETUtility{
      * @return  coordinates
      */
     private String[] split(String aString) {
-        boolean tmpIsSpace;
-        int tmpStart;
-        int tmpEnd;
-        int tmpTokenIndex;
-        int tmpIndex;
-        
-        String[] tmpSplitedString = new String[3];
-        tmpStart = 0;
-        tmpTokenIndex = 0;
-        tmpIndex = 0;
-        while ((tmpEnd = aString.indexOf(' ', tmpStart)) >= 0) {
-            if (tmpTokenIndex > 1) {
-                tmpSplitedString[tmpIndex] = aString.substring(tmpStart, 
-                        tmpEnd);
-                tmpIndex++;
+        int endIdx;
+        String[] splitedStrs = new String[3];
+        int startIdx = 0;
+        int tokenIdx = 0;
+        int idx = 0;
+        while ((endIdx = aString.indexOf(' ', startIdx)) >= 0) {
+            if (tokenIdx > 1) {
+                splitedStrs[idx] = aString.substring(startIdx, endIdx);
+                idx++;
             }
-            tmpTokenIndex++;
-            if(tmpTokenIndex > 4) {
+            tokenIdx++;
+            if(tokenIdx > 4) {
                 break;
             }
-            tmpIsSpace = true;
-            tmpStart = tmpEnd + 1;
-            while (tmpIsSpace) {
-                if (aString.charAt(tmpStart) != ' ') {
-                    tmpIsSpace = false;
+            boolean isSpace = true;
+            startIdx = endIdx + 1;
+            while (isSpace) {
+                if (aString.charAt(startIdx) != ' ') {
+                    isSpace = false;
                 } else {
-                    tmpStart++;
+                    startIdx++;
                 }
             }
         }
-        return tmpSplitedString;
+        return splitedStrs;
     }
     
     // </editor-fold>

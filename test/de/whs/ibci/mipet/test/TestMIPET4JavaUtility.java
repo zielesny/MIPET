@@ -29,6 +29,8 @@ import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.exception.CDKException;
 import de.whs.ibci.mipet.MIPETUtility;
 import de.whs.ibci.mipet.TinkerXYZ;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -203,11 +205,11 @@ public class TestMIPET4JavaUtility {
     
     @Test
     public void testGetCoordinatesFromArcFile() {
-        String tmpFileName = "testdata/H2O_Et_simulated.arc";
+        Path path = Paths.get("testdata/H2O_Et_simulated.arc");
         int tmpAtomNumber1 = 3;
         int tmpAtomNumber2 = 8;
         CoordinatesRecord tmpCoordRecord = mipetUtil
-                .getCoordinatesFromArcFile(tmpFileName, tmpAtomNumber1, 
+                .getCoordinatesFromArcFile(path, tmpAtomNumber1, 
                 tmpAtomNumber2);
         Assert.assertEquals(0.226803, tmpCoordRecord.coord1()[0][0][0], 
                 0.000001);
@@ -249,7 +251,7 @@ public class TestMIPET4JavaUtility {
     
     @Test
     public void testGetNeighborNumber() {
-        String tmpFileName = "testdata/H2O_Et_simulated.arc";
+        Path path = Paths.get("testdata/H2O_Et_simulated.arc");
         int tmpAtomNumber1 = 3;
         int tmpAtomNumber2 = 8;
         double tmpBoxLength = 9.070700;
@@ -260,7 +262,7 @@ public class TestMIPET4JavaUtility {
         LinkedList<int[]> tmpNeighborNumber;
         
         CoordinatesRecord tmpCoordRecord = mipetUtil
-                .getCoordinatesFromArcFile(tmpFileName, tmpAtomNumber1, 
+                .getCoordinatesFromArcFile(path, tmpAtomNumber1, 
                 tmpAtomNumber2);
         tmpNeighborNumber = mipetUtil
                 .getNeighborNumbersBruteForce(tmpCoordRecord, 
@@ -282,10 +284,10 @@ public class TestMIPET4JavaUtility {
         Assert.assertEquals(6, tmpNeighborNumber.get(1).length);
         Assert.assertEquals(5, tmpNeighborNumber.get(2).length);
         
-        tmpFileName = "testdata/H2O_Et.arc";
+        path = Paths.get("testdata/H2O_Et.arc");
         tmpBoxLength = 31.021344;
         tmpCoordRecord = mipetUtil
-                .getCoordinatesFromArcFile(tmpFileName, tmpAtomNumber1, 
+                .getCoordinatesFromArcFile(path, tmpAtomNumber1, 
                 tmpAtomNumber2);
         tmpNeighborNumber = mipetUtil
                 .getNeighborNumbersBruteForce(tmpCoordRecord, 
@@ -308,8 +310,8 @@ public class TestMIPET4JavaUtility {
     
     @Test
     public void testGetBoxLength() {
-        String tmpFileName = "testdata/H2O_Et_simulated.arc";
-        double tmpBoxLength = mipetUtil.getBoxLength(tmpFileName);
+        Path path = Paths.get("testdata/H2O_Et_simulated.arc");
+        double tmpBoxLength = mipetUtil.getBoxLength(path);
         Assert.assertEquals(9.070700, tmpBoxLength, 0.000001);
     }
     
