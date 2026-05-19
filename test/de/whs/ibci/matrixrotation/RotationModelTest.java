@@ -27,6 +27,7 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -154,7 +155,6 @@ public class RotationModelTest {
      */
     private void testMatricesNxNxM(int aSphereNodeNumber, int aRotationNumber, 
             double aDelta) {
-        String tmpFileNameSphereNode;
         String tmpFileNameRotationMatrices;
         String tmpLine;
         String tmpNewSubString;
@@ -167,13 +167,22 @@ public class RotationModelTest {
         int tmpEndOfSubString;
         double[][] tmpDoubleRowTokens;
         
-        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes" 
+        String resourcePath = "/de/whs/ibci/mipet/sphereNodes/SphereNodes" 
                 + aSphereNodeNumber + ".txt";
         tmpFileNameRotationMatrices = "resources/de/whs/ibci/mipet/expectedRotationMatrices/expectedRotationMatrices" 
                 + aSphereNodeNumber + "x" 
                 + aSphereNodeNumber + "x" 
                 + aRotationNumber + ".txt";
-        tmpSphereNodeList = RotationUtil.readSphereNodes(tmpFileNameSphereNode);
+        try (InputStream is = RotationUtil.class.getResourceAsStream(
+                resourcePath)) {
+            if (is == null) {
+                throw new RuntimeException("Could'nt find the file in the JAR: " 
+                        + resourcePath);
+            }
+            tmpSphereNodeList = RotationUtil.readSphereNodes(is);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during load sphereNodes.", e);
+        }
         tmpActualRotationMatrices = RotationUtil
                 .getRotationMatrices2(tmpSphereNodeList, 
                         new double[] {-1.0, 0.0, 0.0}, aRotationNumber);
@@ -227,7 +236,6 @@ public class RotationModelTest {
      * @param aDelta Accepted difference between expected and actual value
      */
     private void testMatricesNxN(int aSphereNodeNumber, double aDelta) {
-        String tmpFileNameSphereNode;
         String tmpFileNameRotationMatrices;
         String tmpNewSubString;
         String[] tmpRowTokens;
@@ -241,11 +249,20 @@ public class RotationModelTest {
         double[][] tmpDoubleRowTokens;
         double[] tmpDoubleColumnTokens;
         
-        tmpFileNameSphereNode = "resources/de/whs/ibci/mipet/sphereNodes/SphereNodes"
+        String resourcePath = "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
                 + aSphereNodeNumber + ".txt";
         tmpFileNameRotationMatrices = "resources/de/whs/ibci/mipet/expectedRotationMatrices/expectedRotationMatrices" 
                 + aSphereNodeNumber + "x" + aSphereNodeNumber + ".txt";
-        tmpSphereNodeList = RotationUtil.readSphereNodes(tmpFileNameSphereNode);
+        try (InputStream is = RotationUtil.class.getResourceAsStream(
+                resourcePath)) {
+            if (is == null) {
+                throw new RuntimeException("Could'nt find the file in the JAR: " 
+                        + resourcePath);
+            }
+            tmpSphereNodeList = RotationUtil.readSphereNodes(is);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during load sphereNodes.", e);
+        }
         tmpActualRotationMatrices = RotationUtil
                 .getRotationMatrices1(tmpSphereNodeList, 
                         new double[] {1.0, 0.0, 0.0});

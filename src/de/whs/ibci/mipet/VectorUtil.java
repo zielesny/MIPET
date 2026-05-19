@@ -53,16 +53,18 @@ public class VectorUtil {
      * @return The scalar product of the first and second vector.
      */
     public static double dotProduct(double[] aVector1, double[] aVector2) throws IllegalArgumentException {
-        int tmpVector1Dim = aVector1.length;
-        int tmpVector2Dim = aVector2.length;
-        if (tmpVector1Dim != tmpVector2Dim) {
+        int vector1Dim = aVector1.length;
+        int vector2Dim = aVector2.length;
+        if (vector1Dim != vector2Dim) {
             throw new IllegalArgumentException("Vectors do not have the same dimension.");
         }
-        double tmpProduct = 0;
+        double product = 0;
+        
         for (int i = 0; i < aVector1.length; i++) {
-            tmpProduct += aVector1[i] * aVector2[i];
+            product += aVector1[i] * aVector2[i];
         }
-        return tmpProduct;
+        
+        return product;
     }
 
     /**
@@ -90,11 +92,11 @@ public class VectorUtil {
      * @return The Norm of the input vector.
      */
     public static double normOfVector(double[] aVector) {
-        double tmpNormSquared = 0;
+        double normQ = 0;
         for(double element : aVector) {
-            tmpNormSquared += element * element;
+            normQ += element * element;
         }
-        return Math.sqrt(tmpNormSquared);
+        return Math.sqrt(normQ);
     }
 
     /**
@@ -104,8 +106,8 @@ public class VectorUtil {
      * @return Normalized vector.
      */
     public static double[] normalizeVector(double[] aVector) {
-        double tmpNormOfVector = normOfVector(aVector);
-        return multiplyWithScalar((1/tmpNormOfVector), aVector);
+        double normOfVector = normOfVector(aVector);
+        return multiplyWithScalar((1 / normOfVector), aVector);
     }
 
     /**
@@ -116,11 +118,13 @@ public class VectorUtil {
      * @return Product of the scalar multiplication.
      */
     public static double[] multiplyWithScalar(double aScalar, double[] aVector) {
-        double[] tmpNewVector = new double[aVector.length];
+        double[] newVector = new double[aVector.length];
+        
         for(int i = 0; i < aVector.length; i++) {
-            tmpNewVector[i] = aVector[i] * aScalar;
+            newVector[i] = aVector[i] * aScalar;
         }
-        return tmpNewVector;
+        
+        return newVector;
     }
 
     /**
@@ -131,19 +135,25 @@ public class VectorUtil {
      * @return The sum of the Vectors
      */
     public static double[] add(double[] ...aVectorList) throws IllegalArgumentException {
-        int tmpDimension = aVectorList[0].length;
+        int dimension = aVectorList[0].length;
+        
         for(double[] aVector : aVectorList) {
-            if(aVector.length != tmpDimension) {
+            if(aVector.length != dimension) {
                 throw new IllegalArgumentException("One or more vectors do not have the same dimension.");
             }
         }
-        double[] tmpNewVector = new double[tmpDimension];
-        for(int i = 0; i < tmpDimension; i++) {
+        
+        double[] newVector = new double[dimension];
+        
+        for(int i = 0; i < dimension; i++) {
+            
             for(double[] aVector : aVectorList) {
-                tmpNewVector[i] += aVector[i];
+                newVector[i] += aVector[i];
             }
+            
         }
-        return tmpNewVector;
+        
+        return newVector;
     }
 
     /**
@@ -161,6 +171,7 @@ public class VectorUtil {
             newVectors[i][1] = vectors[i][1];
             newVectors[i][2] = vectors[i][2];
         }
+        
         return newVectors;
     } 
 
@@ -173,14 +184,15 @@ public class VectorUtil {
      */
     public static double[][][] moveX(double[][][] aVectorMoveTo, 
             double aXLength) {
-        int tmpDim1 = aVectorMoveTo.length;
-        int tmpDim2 = aVectorMoveTo[0].length;  
-        double[][][] tmpNewVecotList = new double[tmpDim1][tmpDim2][3];
+        int dim1 = aVectorMoveTo.length;
+        int dim2 = aVectorMoveTo[0].length;  
+        double[][][] newVecotList = new double[dim1][dim2][3];
         
-        for (int i = 0; i < tmpDim1; i++) {
-            tmpNewVecotList[i] = moveX(aVectorMoveTo[i], aXLength);
+        for (int i = 0; i < dim1; i++) {
+            newVecotList[i] = moveX(aVectorMoveTo[i], aXLength);
         }
-        return tmpNewVecotList;
+        
+        return newVecotList;
     }
 
     /**
@@ -190,13 +202,17 @@ public class VectorUtil {
      * @return A nxn Matrix.
      */
     public static double[][] dyadicProduct(double[] aVector) {
-        double[][] tmpDyadic = new double[3][3];
+        double[][] dyadic = new double[3][3];
+        
         for(int i = 0; i < aVector.length; i++) {
+            
             for(int j = 0; j < aVector.length; j++) {
-                tmpDyadic[i][j] = aVector[i] * aVector[j];
+                dyadic[i][j] = aVector[i] * aVector[j];
             }
+            
         }
-        return tmpDyadic;
+        
+        return dyadic;
     }
 
     /**
@@ -213,5 +229,6 @@ public class VectorUtil {
                 {-aVector[1], aVector[0], 0}
         };
     }
+    
     //</editor-fold>
 }

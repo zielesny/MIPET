@@ -19,7 +19,8 @@
  */
 package de.whs.ibci.mipet;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class FibonacciSphere
@@ -29,7 +30,10 @@ import java.util.LinkedList;
  *
  */
 public class FibonacciSphere {
-    
+    /**
+     * Golden angle
+     */
+    private static final double GOLDEN_ANGLE = (3.0 - Math.sqrt(5.0)) * Math.PI;
     /**
      * Constructor FibonacciSphere
      */
@@ -38,34 +42,26 @@ public class FibonacciSphere {
     
     /**
      * Determine the coordinates of nodes of fibonaccisphere 
-     * @param aNodeNumber 
-     *   Number of nodes
-     * @return 
-     *   xyz-Coordinates of nodes
+     * @param aNodeNumber Number of nodes
+     * @return xyz-Coordinates of nodes
      */
-    public static LinkedList<double[]> getSphereNodes(int aNodeNumber) {
-        double phi; // Golden angle in radians
-        double theta; // Golden angle increment
-        double x; // x-coordinate [-1; 1]
-        double y; // y-coordinate
-        double z; // z-coordinate
-        double radius; // Radius at tmpY
-        double[] coords;
-        LinkedList<double[]> coordsList = new LinkedList<>();
-        
-        phi = (3.0 - Math.sqrt(5.0)) * Math.PI;
+    public static List<double[]> getSphereNodes(int aNodeNumber) {
+        if (aNodeNumber < 1) {
+            throw new IllegalArgumentException("Node number must be at least 1.");
+        }
+        List<double[]> coordsList = new ArrayList<>(aNodeNumber);
+        if (aNodeNumber == 1) {
+            coordsList.add(new double[]{0.0, 1.0, 0.0});
+            return coordsList;
+        }
          
         for (int i = 0; i < aNodeNumber; i++) {
-            y = 1 - (i / (double)(aNodeNumber - 1)) * 2;
-            radius = Math.sqrt(1 - y * y);
-            theta = i * phi;
-            x = Math.cos(theta) * radius;
-            z = Math.sin(theta) * radius;
-            coords = new double[3];
-            coords[0]= x;
-            coords[1]= y;
-            coords[2]= z;
-            coordsList.add(coords);
+            double y = 1.0 - (i / (double)(aNodeNumber - 1)) * 2.0;
+            double radius = Math.sqrt(1.0 - y * y);
+            double theta = i * GOLDEN_ANGLE;
+            double x = Math.cos(theta) * radius;
+            double z = Math.sin(theta) * radius;
+            coordsList.add(new double[]{x, y, z});
         }
         
         return coordsList;

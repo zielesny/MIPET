@@ -20,12 +20,9 @@
 package de.whs.ibci.mipet;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -61,65 +58,54 @@ public class RotationUtil {
     /**
      * Reads the input file (only .txt) and saves the coordinates as a list of arrays
      *
-     * @param aFilePath Path of the file
+     * @param inputStream Inputstream
      * @return A List of all sphere node coordinates, saved as double arrays
      */
-    public static LinkedList<double[]> readSphereNodes(String aFilePath) {
-        if (aFilePath == null || aFilePath.isEmpty()) {
-            throw new NullPointerException("Null was passed to readSphereNodes");
+    public static List<double[]> readSphereNodes(InputStream inputStream) {
+        if (inputStream == null) {
+            throw new IllegalArgumentException("InputStream cannot be null (File not found in classpath).");
         }
-        
-        LinkedList<double[]> tmpCoordinateList = new LinkedList<>();
-        // Use this in the development phase
-        File tmpFile = new File(aFilePath);
-        try (BufferedReader tmpReader = new BufferedReader(
-                new FileReader(tmpFile))) {
-            String tmpNewSubString;
-            String tmpLine;
-            String[] tmpStringTokens;
-            int tmpStartIndex;
-            int tmpEndIndex;
-            int tmpIndex;
-            double tmpTokenAsDouble;
-            double[] tmpParsedTokens;
+        List<double[]> coordList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String line;
             
-            while ((tmpLine = tmpReader.readLine()) != null) {
-                tmpStartIndex = tmpLine.indexOf("{");
-                tmpEndIndex = tmpLine.indexOf("}");
-                tmpNewSubString = tmpLine.substring(tmpStartIndex + 1, 
-                        tmpEndIndex);
-                tmpStringTokens = tmpNewSubString.split(",\\s+");
-                tmpParsedTokens = new double[3];
-                tmpIndex = 0;
-                
-                for (String tmpToken : tmpStringTokens) {
+            while ((line = reader.readLine()) != null) {
+                int startIdx = line.indexOf('{');
+                int endIdx = line.indexOf('}');
+                if (startIdx == -1 || endIdx == -1 || startIdx >= endIdx) {
+                    continue; 
+                }
+                String newSubString = line.substring(startIdx + 1, endIdx);
+                String[] tokens = newSubString.split(",\\s+");
+                if (tokens.length != 3) {
+                    continue;
+                }
+                double[] parsedTokens = new double[3];
+                boolean parseError = false;
+
+                for (int i = 0; i < tokens.length; i++) {
                     try {
-                        String tmpNewToken = tmpToken
-                                .replaceAll("\\*10\\^", "E");
-                        tmpTokenAsDouble = Double.parseDouble(tmpNewToken);
-                        tmpParsedTokens[tmpIndex] = tmpTokenAsDouble;
-                        tmpIndex++;
-                    } catch (NullPointerException | NumberFormatException 
-                            anException) {
-                        RotationUtil.LOGGER.log(Level.SEVERE,
-                                "String is null or could not be parsed.",
-                                anException);
+                        parsedTokens[i] = Double.parseDouble(tokens[i].replace("*10^", "E"));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.log(Level.SEVERE, "String could not be parsed: " + tokens[i], ex);
+                        parseError = true;
+                        break;
                     }
                 }
-                
-                tmpCoordinateList.add(tmpParsedTokens);
+
+                if (!parseError) {
+                    coordList.add(parsedTokens);
+                }
             }
-            tmpReader.close();
-            return tmpCoordinateList;
-        } catch(IOException | NullPointerException | IllegalArgumentException 
-                anException) {
-            RotationUtil.LOGGER.log(Level.SEVERE,
-                    "File could not be read, FilePath is Null or array could " 
-                    + "not be added to the list.",
-                    anException);
+            return coordList;
+
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error reading the input stream.", ex);
             return null;
         }
     }
+    
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Properties">
@@ -207,18 +193,18 @@ public class RotationUtil {
      */
     public static List<double[][]> getRotationMatrices1(
             List<double[]> sphereNodeCoordinates, double[] aVector) {
-        LinkedList<double[][]> tmpRotationMatrixList = new LinkedList<>();
+        List<double[][]> rotMatrixList = new LinkedList<>();
         
         for(double[] anElement : sphereNodeCoordinates) {
-            tmpRotationMatrixList.add(RotationUtil
+            rotMatrixList.add(RotationUtil
                     .getRotationMatrix(anElement, aVector));
         }
         
-        return tmpRotationMatrixList;
+        return rotMatrixList;
     }
     
     /**
-     * Get the coordinatates of particle1 and particle2
+     * Get the coordinatates of molecule1 and molecule2
      * 
      * @param sphereNodeNumber: Sphere node number
      * @param rotNumber: Rotation node number
@@ -227,64 +213,52 @@ public class RotationUtil {
      * @param isFibonacciSphereAlgorithm: Flag whether fibonaccis phere algorithm is used
      * @return Coordinates of particle1 after rotations
      */
-    public static List<double[][][]> getRotationsCoords(
+    public static RotationRecord getRotationsCoords(
             int sphereNodeNumber,
             int rotNumber, 
             double[][] xyzData1,
             double[][] xyzData2,
             boolean isFibonacciSphereAlgorithm) {
-        int confCount1;
-        int confCount2;
-        int atomSize1;
-        int atomSize2;
-        double[][][] rotatedXyzData1;
-        double[][][] rotatedXyzData2;
-        List<double[][]> rotationMatrices1;
-        List<double[][]> rotationMatrices2;
+        int confSize1 = sphereNodeNumber;
+        int confSize2 = sphereNodeNumber * rotNumber;
+        
+        // Load sphere nodes
         List<double[]> sphereNodeCoord;
-        List<double[][][]> result;
-        
-        atomSize1 = xyzData1.length;
-        atomSize2 = xyzData2.length;
-        confCount1 = sphereNodeNumber;
-        confCount2 = sphereNodeNumber * rotNumber;
-        rotatedXyzData2 = new double[confCount2][xyzData2.length][3];
-        
-        // Determine rotation matrices used to rotate 
-        //   the particle/atom coordinates
         if (isFibonacciSphereAlgorithm) {
-            sphereNodeCoord = FibonacciSphere
-                    .getSphereNodes(sphereNodeNumber);
+            sphereNodeCoord = FibonacciSphere.getSphereNodes(sphereNodeNumber);
         } else {
             //<editor-fold defaultstate="collapsed" desc="Load surface coordinates">
             /* The coordinates for equidistantly distributed points on a sphere 
                 from Technical University of Dortmund are used, thanks to 
                 J. Fliege and U. Maier
                 http://www.mathematik.uni-dortmund.de/lsx/research/projects/fliege/nodes/nodes.html */
-            String fileNameSphereNode = 
-                  "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
-                  + sphereNodeNumber + ".txt";
-            Path nodePath = Paths.get(fileNameSphereNode);
-            if (!Files.exists(nodePath)) {
-                fileNameSphereNode = 
-                    "de/whs/ibci/mipet/sphereNodes/SphereNodes"
+            String resourcePath = "/de/whs/ibci/mipet/sphereNodes/SphereNodes"
                     + sphereNodeNumber + ".txt";
-            } 
-            sphereNodeCoord = RotationUtil
-                    .readSphereNodes (fileNameSphereNode);
+            try (InputStream is = RotationUtil.class.getResourceAsStream(
+                    resourcePath)) {
+                if (is == null) {
+                    throw new RuntimeException("Could'nt find the file in the JAR: " 
+                            + resourcePath);
+                }
+                sphereNodeCoord = RotationUtil.readSphereNodes(is);
+            } catch (Exception e) {
+                throw new RuntimeException("Error during load sphereNodes.", e);
+            }
 
             //</editor-fold>
         }
-        if (atomSize1 == 1) {
-            rotatedXyzData1 = new double[][][] {{{0., 0., 0.}}};
+        
+        // Data of molecule 1
+        double[][][] rotatedXyzData1;
+        if (xyzData1.length == 1) {
+            rotatedXyzData1 = new double[confSize1][1][3];
         } else {
             final double[] xAxisVector = {1.0, 0.0, 0.0};
-            rotationMatrices1 = RotationUtil
-                    .getRotationMatrices1 (sphereNodeCoord, xAxisVector);
-            rotatedXyzData1 = 
-                    new double[confCount1][xyzData1.length][];
+            List<double[][]> rotationMatrices1 = RotationUtil
+                    .getRotationMatrices1(sphereNodeCoord, xAxisVector);
+            rotatedXyzData1 = new double[confSize1][xyzData1.length][3];
 
-            for (int i = 0; i < confCount1; i++) {
+            for (int i = 0; i < confSize1; i++) {
                 double[][] currRotationMatrix = rotationMatrices1.get(i);
 
                 for (int j = 0; j < xyzData1.length; j++) {
@@ -295,14 +269,19 @@ public class RotationUtil {
             }
 
         }
-        if (atomSize2 == 1) {
-            rotatedXyzData2 = new double[][][] {{{0., 0., 0.}}};
+        
+        // Data of molecule 2
+        double[][][] rotatedXyzData2;
+        if (xyzData2.length == 1) {
+            rotatedXyzData2 = new double[confSize2][1][3];
         } else {
             final double[] xAxisVector = {-1.0, 0.0, 0.0};
-            rotationMatrices2 = RotationUtil.getRotationMatrices2 (
-                    sphereNodeCoord, xAxisVector, rotNumber);
+            List<double[][]> rotationMatrices2 = RotationUtil
+                    .getRotationMatrices2(sphereNodeCoord, xAxisVector, 
+                            rotNumber);
+            rotatedXyzData2 = new double[confSize2][xyzData2.length][3];
 
-            for (int i = 0; i < confCount2; i++) {
+            for (int i = 0; i < confSize2; i++) {
                 double[][] currRotationMatrix = rotationMatrices2.get(i);
 
                 for (int j = 0; j < xyzData2.length; j++) {
@@ -313,10 +292,7 @@ public class RotationUtil {
             }
 
         }
-        result = new LinkedList<>();
-        result.add(rotatedXyzData1);
-        result.add(rotatedXyzData2);
-        return result;
+        return new RotationRecord(rotatedXyzData1, rotatedXyzData2);
     }
     
     /**
@@ -376,6 +352,6 @@ public class RotationUtil {
             return Collections.emptyList();
         }
     }
+    
     //</editor-fold>
 }
-
