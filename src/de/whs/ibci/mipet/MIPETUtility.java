@@ -722,8 +722,8 @@ public class MIPETUtility{
         if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
             throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromArcFile.");
         }
-        LinkedList<double[][]> coordList1 = new LinkedList<>();
-        LinkedList<double[][][]> coordList2 = new LinkedList<>();
+        List<double[][]> coordList1 = new LinkedList<>();
+        List<double[][][]> coordList2 = new LinkedList<>();
         CoordinatesRecord coordRecord;
         int lineCounter = 1; 
         int idx = 0;
@@ -799,6 +799,91 @@ public class MIPETUtility{
         coordRecord = new CoordinatesRecord(multiCoord1, multiCoord2);
         return coordRecord;
     }
+    
+    public CoordinatesRecord getCoordinatesFromStreamLines(
+            List<String> streamLines, int anAtomNumber1, int anAtomNumber2) {
+        // Parameter check
+        if (streamLines == null || streamLines.isEmpty()) {
+            throw new IllegalArgumentException("Null or empty list was passed to getCoordinatesFromStreamLines.");
+        }
+        if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
+            throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromStreamLines.");
+        }
+
+        List<double[][]> coordList1 = new LinkedList<>();
+        List<double[][][]> coordList2 = new LinkedList<>();
+        CoordinatesRecord coordRecord;
+        int lineCounter = 1;
+        int idx = 0;
+        int idx1 = 0;
+        int idx2 = 0;
+        int particleIdx2 = 0;
+        int particleNumber2 = 0;
+        double[][] coord1 = new double[anAtomNumber1][3];
+
+        java.util.Iterator<String> iterator = streamLines.iterator();
+        if (iterator.hasNext()) {
+            String firstLine = iterator.next();
+            int atomNumber = Integer.parseInt(firstLine.substring(0, 6).trim());
+            particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
+            double[][][] coord2 = new double[particleNumber2][anAtomNumber2][3];
+            String[] lineArray;
+
+            while (iterator.hasNext()) {
+                String line = iterator.next();
+                if (idx >= 2 && idx <= anAtomNumber1 + 1) {
+                    lineArray = this.split(line.trim());
+                    coord1[idx1][0] = Double.parseDouble(lineArray[0]);
+                    coord1[idx1][1] = Double.parseDouble(lineArray[1]);
+                    coord1[idx1][2] = Double.parseDouble(lineArray[2]);
+                    lineCounter++;
+                    idx1++;
+                    if (idx1 >= anAtomNumber1) {
+                        idx1 = 0;
+                    }
+                } else if (idx > anAtomNumber1 + 1) {
+                    lineArray = this.split(line.trim());
+                    coord2[particleIdx2][idx2][0] = Double.parseDouble(lineArray[0]);
+                    coord2[particleIdx2][idx2][1] = Double.parseDouble(lineArray[1]);
+                    coord2[particleIdx2][idx2][2] = Double.parseDouble(lineArray[2]);
+                    lineCounter++;
+                    idx2++;
+                    if (idx2 >= anAtomNumber2) {
+                        idx2 = 0;
+                        particleIdx2++;
+                        if (particleIdx2 >= particleNumber2) {
+                            particleIdx2 = 0;
+                            coordList1.add(coord1);
+                            coordList2.add(coord2);
+                            coord1 = new double[anAtomNumber1][3];
+                            coord2 = new double[particleNumber2][anAtomNumber2][3];
+                        }
+                    }
+                } else {
+                    lineCounter++;
+                }
+                idx = (lineCounter - 1) % (atomNumber + 2);
+            }
+        }
+
+        int coordSize1 = coordList1.size();
+        int coordSize2 = coordList2.size();
+        double[][][] multiCoord1 = new double[coordSize1][anAtomNumber1][3];
+        double[][][][] multiCoord2 = 
+                new double[coordSize2][particleNumber2][anAtomNumber2][3];
+
+        for (int i = 0; i < coordSize1; i++) {
+            multiCoord1[i] = coordList1.get(i);
+            multiCoord2[i] = coordList2.get(i);
+        }
+
+        coordRecord = new CoordinatesRecord(multiCoord1, multiCoord2);
+        return coordRecord;
+    }
+    
+    
+    
+    
     
     /**
      * Determine (widest) molecular diameter 

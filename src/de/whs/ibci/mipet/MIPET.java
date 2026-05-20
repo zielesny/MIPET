@@ -560,39 +560,44 @@ public class MIPET {
         /*
          * Standard .key file content
          */
-        String keyFileStringOrigin;
-        if ("OPLSAALIGPARGEN".equals(forceField_IE)) {
-            keyFileStringOrigin =
+        String keyFileOrigin =
                 "# Force Field Selection"
                 + LINESEPARATOR
                 + "PARAMETERS\t\""
                 + parameterDirectory
-                + "/"
-                + "oplsaa.prm\""
-                + LINESEPARATOR;
-        } else {
-            keyFileStringOrigin =
-                "# Force Field Selection"
-                + LINESEPARATOR
-                + "PARAMETERS\t\""
-                + parameterDirectory
-                + "/"
-                + forceField_IE.toLowerCase() + ".prm\""
-                + LINESEPARATOR;
+                + "/";
+        if (forceField_IE != null) {
+            if ("OPLSAALIGPARGEN".equals(forceField_IE)) {
+                keyFileOrigin +=
+                        "oplsaa.prm\""
+                        + LINESEPARATOR;
+            } else {
+                keyFileOrigin +=
+                        forceField_IE + ".prm\""
+                        + LINESEPARATOR;
+            }
         }
         
         // </editor-fold>
         
         //<editor-fold defaultstate="collapsed" desc="Create log file">
-        Path gblLogDirFile = Paths.get(resultDirectory, "IE", forceField_IE);
+        Path gblLogPath;
+        Path logPath;
+        if (forceField_IE == null) {
+            gblLogPath = Paths.get(resultDirectory, "CN", forceField_CN);
+            logPath = Paths.get(resultDirectory, "CN", forceField_CN, 
+                    "log.txt");
+        } else {
+            gblLogPath = Paths.get(resultDirectory, "IE", forceField_IE);
+            logPath = Paths.get(resultDirectory, "IE", forceField_IE, 
+                    "log.txt");
+        }
         try {
-            Files.createDirectories(gblLogDirFile);
+            Files.createDirectories(gblLogPath);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, 
                 "IOException during creating global log file.", ex);
         }
-        Path logPath = Paths.get(resultDirectory, "IE", forceField_IE, 
-                "log.txt");
         boolean fileAlreadyExists = Files.exists(logPath);
         try {
             BFGblLog = Files.newBufferedWriter(logPath, StandardCharsets.UTF_8);
@@ -777,7 +782,7 @@ public class MIPET {
         decimal4.applyPattern("#0.0000");
         boolean isExitCondition = false;
         int currIndex = 0;
-        String keyFileString = keyFileStringOrigin 
+        String keyFileString = keyFileOrigin 
                 + "DIELECTRIC\t" 
                 + dielectricConstant
                 + LINESEPARATOR;
@@ -877,7 +882,7 @@ public class MIPET {
                 Path keyPath = Paths.get(scratchDirectory,
                         particlePair + ".key");
                 StringBuilder keyContent = new StringBuilder(
-                        keyFileStringOrigin)
+                        keyFileOrigin)
                         .append("DIELECTRIC\t")
                         .append(dielectricConstant)
                         .append(LINESEPARATOR)
@@ -1906,7 +1911,12 @@ public class MIPET {
             throw new IllegalArgumentException("IOException during"
                     + "reading job file.");
         }
+        if (forceField_IE == null && forceField_CN == null) {
+            System.out.println("No forcefield was defined in .job file.");
+            throw new IllegalStateException("No forcefield was defined in .job file.");
+        }
         if ("OPLSAALIGPARGEN".equals(forceField_IE)) {
+            
             for (String particle : particleNames) {
                 if (!smiles.containsKey(particle)) {
                     System.out.println(particle + " was not found in Smiles.dat");
@@ -1934,6 +1944,7 @@ public class MIPET {
                             + ".prm was not found.");
                 }
             }
+            
         }
     }
     
