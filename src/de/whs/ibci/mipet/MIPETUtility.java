@@ -412,6 +412,107 @@ public class MIPETUtility{
         return resultList;
     }
     
+    public int[] getNeighborNumbersBruteForceForBlock(
+            CoordinatesBlock block,
+            String[] anElements1,
+            String[] anElements2,
+            double aBoxLength,
+            double aCatchRadius) {
+
+        final double ONEHALF = 0.5;
+
+        // Dimensions from the block
+        double[][] coord1 = block.getCoord1();
+        double[][][] coord2 = block.getCoord2();
+        int atomSize1 = coord1.length;
+        int partSize2 = coord2.length;
+        int atomSize2 = coord2[0].length;
+        HashSet<String> ignoreElements = new HashSet<>();
+        HashSet<Integer> neighborPart = new HashSet<>();
+        HashSet<Integer> ignoreIndex1 = new HashSet<>();
+        HashSet<Integer> ignoreIndex2 = new HashSet<>();
+        ignoreElements.add("M");
+        ignoreElements.add("Lp");
+        double[] vdWRadii1 = new double[atomSize1];
+        double[] vdWRadii2 = new double[atomSize2];
+
+        for (int i = 0; i < atomSize1; i++) {
+            if (!ignoreElements.contains(anElements1[i])) {
+                vdWRadii1[i] = vdWRadii[atomicNumber.get(anElements1[i])];
+            } else {
+                ignoreIndex1.add(i);
+            }
+        }
+
+        for (int i = 0; i < atomSize2; i++) {
+            if (!ignoreElements.contains(anElements2[i])) {
+                vdWRadii2[i] = vdWRadii[atomicNumber.get(anElements2[i])];
+            } else {
+                ignoreIndex2.add(i);
+            }
+        }
+
+        // Calculation block
+        for (int j = 0; j < atomSize1; j++) {
+            if (!ignoreIndex1.contains(j)) {
+
+                for (int k = 0; k < partSize2; k++) {
+                    if (neighborPart.contains(k)) {
+                        continue;
+                    }
+
+                    for (int l = 0; l < atomSize2; l++) {
+                        if (!ignoreIndex2.contains(l)) {
+                            // Zugriff direkt über das 2D bzw. 3D Array des aktuellen Blocks
+                            double deltaX = coord1[j][0] - coord2[k][l][0];
+                            double deltaY = coord1[j][1] - coord2[k][l][1];
+                            double deltaZ = coord1[j][2] - coord2[k][l][2];
+
+                            if (deltaX > aBoxLength * ONEHALF) {
+                                deltaX -= aBoxLength;
+                            }
+                            if (deltaX <= -aBoxLength * ONEHALF) {
+                                deltaX += aBoxLength;
+                            }
+                            if (deltaY > aBoxLength * ONEHALF) {
+                                deltaY -= aBoxLength;
+                            }
+                            if (deltaY <= -aBoxLength * ONEHALF) {
+                                deltaY += aBoxLength;
+                            }
+                            if (deltaZ > aBoxLength * ONEHALF) {
+                                deltaZ -= aBoxLength;
+                            }
+                            if (deltaZ <= -aBoxLength * ONEHALF) {
+                                deltaZ += aBoxLength;
+                            }
+
+                            double distQ = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+                            double minDist = aCatchRadius + vdWRadii1[j] + vdWRadii2[l];
+                            double minDistQ = minDist * minDist;
+
+                            if (distQ <= minDistQ) {
+                                neighborPart.add(k);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Return block
+        int index = 0;
+        int[] neighborIndices = new int[neighborPart.size()];
+        
+        for (int cn : neighborPart) {
+            neighborIndices[index++] = cn;
+        }
+
+        java.util.Arrays.sort(neighborIndices);
+        return neighborIndices;
+    }
+    
     /**
      * Get method for the neighbor particle number of solute
      * 
@@ -745,7 +846,7 @@ public class MIPETUtility{
             
             while((line = reader.readLine()) != null) {
                 if (idx >= 2 && idx <= anAtomNumber1 + 1) {
-                    lineArray = this.split(line.trim());
+                    lineArray = split(line.trim());
                     coord1[idx1][0] = Double.parseDouble(lineArray[0]);
                     coord1[idx1][1] = Double.parseDouble(lineArray[1]);
                     coord1[idx1][2] = Double.parseDouble(lineArray[2]);
@@ -755,7 +856,7 @@ public class MIPETUtility{
                         idx1 = 0;
                     }
                 } else if (idx > anAtomNumber1 + 1) {
-                    lineArray = this.split(line.trim());
+                    lineArray = split(line.trim());
                     coord2[particleIdx2][idx2][0] = Double
                             .parseDouble(lineArray[0]);
                     coord2[particleIdx2][idx2][1] = Double
@@ -801,10 +902,10 @@ public class MIPETUtility{
     }
     
     public CoordinatesRecord getCoordinatesFromStreamLines(
-            List<String> streamLines, int anAtomNumber1, int anAtomNumber2) {
+            Stream<String> lineStream, int anAtomNumber1, int anAtomNumber2) {
         // Parameter check
-        if (streamLines == null || streamLines.isEmpty()) {
-            throw new IllegalArgumentException("Null or empty list was passed to getCoordinatesFromStreamLines.");
+        if (lineStream == null) {
+            throw new IllegalArgumentException("Stream was null in getCoordinatesFromStream.");
         }
         if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
             throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromStreamLines.");
@@ -812,7 +913,6 @@ public class MIPETUtility{
 
         List<double[][]> coordList1 = new LinkedList<>();
         List<double[][][]> coordList2 = new LinkedList<>();
-        CoordinatesRecord coordRecord;
         int lineCounter = 1;
         int idx = 0;
         int idx1 = 0;
@@ -821,7 +921,7 @@ public class MIPETUtility{
         int particleNumber2 = 0;
         double[][] coord1 = new double[anAtomNumber1][3];
 
-        java.util.Iterator<String> iterator = streamLines.iterator();
+        java.util.Iterator<String> iterator = lineStream.iterator();
         if (iterator.hasNext()) {
             String firstLine = iterator.next();
             int atomNumber = Integer.parseInt(firstLine.substring(0, 6).trim());
@@ -832,7 +932,7 @@ public class MIPETUtility{
             while (iterator.hasNext()) {
                 String line = iterator.next();
                 if (idx >= 2 && idx <= anAtomNumber1 + 1) {
-                    lineArray = this.split(line.trim());
+                    lineArray = split(line.trim());
                     coord1[idx1][0] = Double.parseDouble(lineArray[0]);
                     coord1[idx1][1] = Double.parseDouble(lineArray[1]);
                     coord1[idx1][2] = Double.parseDouble(lineArray[2]);
@@ -842,7 +942,7 @@ public class MIPETUtility{
                         idx1 = 0;
                     }
                 } else if (idx > anAtomNumber1 + 1) {
-                    lineArray = this.split(line.trim());
+                    lineArray = split(line.trim());
                     coord2[particleIdx2][idx2][0] = Double.parseDouble(lineArray[0]);
                     coord2[particleIdx2][idx2][1] = Double.parseDouble(lineArray[1]);
                     coord2[particleIdx2][idx2][2] = Double.parseDouble(lineArray[2]);
@@ -877,11 +977,105 @@ public class MIPETUtility{
             multiCoord2[i] = coordList2.get(i);
         }
 
-        coordRecord = new CoordinatesRecord(multiCoord1, multiCoord2);
-        return coordRecord;
+        return new CoordinatesRecord(multiCoord1, multiCoord2);
     }
     
+    public void processArcFileBlockByBlock(Path sourcePath, Path targetPath,
+            int anAtomNumber1, int anAtomNumber2,
+            String[] elements1, String[] elements2,
+            double boxLength, double catchRadius) {
+        if (sourcePath == null || targetPath == null) {
+            throw new IllegalArgumentException("Paths must not be null.");
+        }
+        try (BufferedReader reader = Files.newBufferedReader(sourcePath,
+                StandardCharsets.UTF_8); BufferedWriter writer = Files.newBufferedWriter(targetPath,
+                        StandardCharsets.UTF_8)) {
+            String firstLine = reader.readLine();
+            if (firstLine == null) {
+                return;
+            }
+            int atomNumber = Integer.parseInt(firstLine.substring(0, 6).trim());
+            int particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
+
+            writer.write(firstLine);
+            writer.newLine();
+
+            while (true) {
+                // Read block
+                CoordinatesBlock block = readNextBlock(reader, anAtomNumber1, anAtomNumber2, particleNumber2);
+                if (block == null) {
+                    break;
+                }
+
+                // Calculate neighbors for one block
+                int[] currNeighbors = getNeighborNumbersBruteForceForBlock(
+                        block, elements1, elements2, boxLength, catchRadius);
+
+                // 3. Ergebnis sofort wegschreiben (Beispielhafte Ausgabe der Nachbar-Indizes)
+                // Du kannst das Format natürlich anpassen (z.B. nur die Anzahl oder alle Indizes)
+                writer.write("Frame-Ergebnis: ");
+                
+                for (int neighborIdx : currNeighbors) {
+                    writer.write(neighborIdx + " ");
+                }
+                
+                writer.newLine(); // Ab in die nächste Zeile für den nächsten Frame
+
+                // Der RAM wird geleert, da 'block' und 'currNeighbors' im nächsten Durchlauf überschrieben werden!
+                
+            }
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, "Error processing ARC file block by block", ex);
+        }
+    }
     
+    private static CoordinatesBlock readNextBlock(
+            BufferedReader reader,
+            int anAtomNumber1,
+            int anAtomNumber2,
+            int particleNumber2) throws IOException {
+
+        // Read block header
+        String blockHeader = reader.readLine();
+        if (blockHeader == null) {
+            return null;
+        }
+
+        double[][] coord1 = new double[anAtomNumber1][3];
+        double[][][] coord2 = new double[particleNumber2][anAtomNumber2][3];
+        String[] lineArray;
+
+        // Read coordinates of rist particle
+        for (int i = 0; i < anAtomNumber1; i++) {
+            String line = reader.readLine();
+            if (line == null) {
+                return null; // Unerwartetes Dateiende
+            }
+            lineArray = split(line.trim());
+            coord1[i][0] = Double.parseDouble(lineArray[0]);
+            coord1[i][1] = Double.parseDouble(lineArray[1]);
+            coord1[i][2] = Double.parseDouble(lineArray[2]);
+        }
+
+        // Read coordinates of second particles (solvent)
+        for (int p = 0; p < particleNumber2; p++) {
+            
+            for (int a = 0; a < anAtomNumber2; a++) {
+                String line = reader.readLine();
+                if (line == null) {
+                    return null; // Unerwartetes Dateiende
+                }
+                lineArray = split(line.trim());
+                coord2[p][a][0] = Double.parseDouble(lineArray[0]);
+                coord2[p][a][1] = Double.parseDouble(lineArray[1]);
+                coord2[p][a][2] = Double.parseDouble(lineArray[2]);
+            }
+            
+        }
+        
+        return new CoordinatesBlock(coord1, coord2);
+    }
     
     
     
@@ -926,6 +1120,15 @@ public class MIPETUtility{
         diameter += vdWRadii1 + vdWRadii2;
         return diameter;
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     /**
      * Write the last part of .arc file to .xyz file
@@ -1851,7 +2054,7 @@ public class MIPETUtility{
      * @param aString string line
      * @return  coordinates
      */
-    private String[] split(String aString) {
+    private static String[] split(String aString) {
         int endIdx;
         String[] splitedStrs = new String[3];
         int startIdx = 0;
