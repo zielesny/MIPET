@@ -23,7 +23,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,8 +34,7 @@ import java.util.stream.Stream;
 /**
  * MIPETCN class
    This class helps to process determine coordination number (CN) parallaly.
- * 
- * @author Mirco Daniel
+ * * @author Mirco Daniel
  */
 public class MIPETCN implements Callable<int[]> {
     // <editor-fold defaultstate="collapsed" desc="Final Class variables">
@@ -100,8 +101,7 @@ public class MIPETCN implements Callable<int[]> {
     
     /**
      * Constructor of MIPETCN
-     * 
-     * @param aCommandList: Command list for tinker's dynamic.exe
+     * * @param aCommandList: Command list for tinker's dynamic.exe
      * @param aJobTaskRecord: Jobtasks
      * @param aScratchDir: Scratch directory name
      * @param aCatchRadius: Catch radius
@@ -133,13 +133,11 @@ public class MIPETCN implements Callable<int[]> {
     // <editor-fold defaultstate="collapsed" desc="Public methods">
     @Override
     public int[] call() {
-        LinkedList<int[]> currNeighbors;
         ProcessBuilder pBuilder;
-        CoordinatesRecord coordRecord;
         
         LinkedList<Integer> neighborNumbers = new LinkedList<>();
         MIPETUtility MIPET4JUtil = new MIPETUtility();
-        int stepsPerRound = 2000;
+        int stepsPerRound = 200;
         String forcefield = this.JOBTASK_RECORD.forcefield_CN_Name();
         String particle1 = this.JOBTASK_RECORD.particleName1(); // solute
         String particle2 = this.JOBTASK_RECORD.particleName2(); // solvent
@@ -173,7 +171,7 @@ public class MIPETCN implements Callable<int[]> {
         }
         int step;
         int restStep = stepNumber % stepsPerRound;
-        int stepOfLastIteration;
+        int lastIteration;
         String[] commandList = this.COMMAND_LIST.clone();
         int iteration;
         if (stepNumber > stepsPerRound) {
@@ -186,16 +184,18 @@ public class MIPETCN implements Callable<int[]> {
                 commandList[2] = Integer.toString(step);
             }
             if ( restStep == 0) {
-                stepOfLastIteration = step;
+                lastIteration = step;
             } else {
-                stepOfLastIteration = restStep;
+                lastIteration = restStep;
             }
         } else {
             iteration = 1;
             step = stepNumber;
-            stepOfLastIteration = step;
+            lastIteration = step;
         }
         Process process;
+        
+        // --- WARMUP PHASE ---
         if(ISWARMUP) {
             pBuilder = new ProcessBuilder();
             pBuilder.command(this.COMMAND_LIST);
@@ -205,83 +205,68 @@ public class MIPETCN implements Callable<int[]> {
                         particle1 + "_" + particle2 + "_warmUp.log");
                 pBuilder.redirectOutput(warmUpLogPath.toFile());
             } else {
-                // This loop is necessary for linux version
                 pBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             }
-            try {
-                process = pBuilder.start();
-                process.waitFor();
-            } catch(IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "IOException during tinker's dynamic.exe", ex);
-            } catch(InterruptedException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "InterruptException during tinker's dynamic.exe", ex);
-            }
             
-            // Rename .arc to .xyz
             Path source = currPath.resolve(particlePair + ".arc");
             Path target = currPath.resolve(particlePair + ".xyz");
+            
+            // Clean up old files before starting to prevent collisions
             try {
-                Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+                Files.deleteIfExists(source);
+                Files.deleteIfExists(target);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during remove .arc file to .xyz file.",
-                        ex);
+                LOGGER.log(Level.WARNING, "Could not clear old warmup files.", ex);
             }
-            
-            // Write _lastStepNeighbors.txt file
-            coordRecord = MIPET4JUtil.getCoordinatesFromArcFile(
-                    target, atomNumber1, atomNumber2);
-            currNeighbors = MIPET4JUtil.getNeighborNumbersBruteForce(
-                    coordRecord, 
-                    elements1, 
-                    elements2,
-                    boxLength,
-                    this.CATCH_RADIUS);
-            Path  targetPath = Paths.get(resultPathName, 
-                    particlePair + "_warmUpNeighbors.txt");
-            int iterationSize = currNeighbors.size();
-            int neighborsSize = currNeighbors.get(iterationSize - 1).length;
-            
-            try (BufferedWriter writer = Files.newBufferedWriter(targetPath)) {
-                
-                for (int i = 0; i < neighborsSize; i++) {
-                    writer.append(String.valueOf(currNeighbors
-                            .get(iterationSize - 1)[i]));
-                    writer.newLine();
+
+            try {
+                // Synchronously run Tinker until the warmup simulation is finished
+                process = pBuilder.start();
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    LOGGER.log(Level.WARNING, "Tinker warmup quitted with error code: " + exitCode);
                 }
-                
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during writing _warmUpNeighbors.txt file.",
-                        ex);
+            } catch(IOException ex) {
+                LOGGER.log(Level.SEVERE, "IOException during tinker's dynamic.exe warmup", ex);
+            } catch(InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, "InterruptException during tinker's dynamic.exe warmup", ex);
+                Thread.currentThread().interrupt();
             }
             
-            // Copy .xyz file after warmup to result directory
-            source = target;
-            target = Paths.get(resultPathName, 
-                    particlePair + "_warmUpCoords.xyz");
+            // Rename the generated .arc file to .xyz
             try {
-                Files.copy(source, target, StandardCopyOption
-                        .REPLACE_EXISTING);
+                if (Files.exists(source)) {
+                    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    LOGGER.log(Level.SEVERE, "Warmup failed: Tinker did not generate an ARC file.");
+                    return null;
+                }
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during copying .xyz file.", ex);
+                LOGGER.log(Level.SEVERE, "IOException during moving warmup .arc file to .xyz file.", ex);
             }
             
-            // Delete useless files
+            // Copy the final .xyz file after warmup to the result directory
+            Path finalWarmupTarget = Paths.get(resultPathName, particlePair + "_warmUpCoords.xyz");
+            try {
+                Files.copy(target, finalWarmupTarget, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "IOException during copying final warmup .xyz file.", ex);
+            }
+            
+            // Delete useless intermediate files created by Tinker
             try (Stream<Path> pathList = Files.list(currPath)) {
                 pathList.filter(file -> !Files.isDirectory(file))
-                        .filter(file -> file.endsWith(".xyz_2"))
+                        .filter(file -> file.toString().endsWith(".xyz_2"))
                         .map(Path::toFile)
                         .forEach(File::delete);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, 
-                        "IOException during deleting .xyz_2 file.", ex);
+                LOGGER.log(Level.SEVERE, "IOException during deleting .xyz_2 file.", ex);
             }
-            return null;
+            
+            return null; // Warmup is fully completed without needing to compute CNs
         }
+        
+        // --- PRODUCTION PHASE ---
         Path dynamicLogPath = Paths.get(resultPathName,
                 particle1 + "_" + particle2 + "_dynamic.log");
         
@@ -289,111 +274,127 @@ public class MIPETCN implements Callable<int[]> {
             pBuilder = new ProcessBuilder();
             if (i == iteration - 1 && restStep != 0) {
                 if (this.ISTINKER9) {
-                    commandList[3] = Integer
-                        .toString(stepOfLastIteration);
+                    commandList[3] = Integer.toString(lastIteration);
                 } else {
-                    commandList[2] = Integer
-                        .toString(stepOfLastIteration);
+                    commandList[2] = Integer.toString(lastIteration);
                 }
             }
             pBuilder.command(commandList);
             pBuilder.redirectErrorStream(true);
             if (ISLOGDYNAMIC) {
-                pBuilder.redirectOutput(dynamicLogPath.toFile());
+                pBuilder.redirectOutput(ProcessBuilder.Redirect
+                        .appendTo(dynamicLogPath.toFile()));
             } else {
-                // This loop is necessary for linux version
                 pBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             }
-            try {
-                process = pBuilder.start();
-                process.waitFor();
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "IOException during tinker's dynamic.exe", ex);
-            } catch ( InterruptedException ex) {
-                LOGGER.log(Level.SEVERE,
-                        "InterruptedException during tinker's dynamic.exe", ex);
-            }
             Path arcPath = currPath.resolve(particlePair + ".arc");
-            coordRecord = MIPET4JUtil.getCoordinatesFromArcFile(arcPath, 
-                    atomNumber1, atomNumber2);
-            currNeighbors = MIPET4JUtil
-                    .getNeighborNumbersBruteForce(coordRecord, 
-                              elements1, 
-                              elements2,
-                              boxLength,
-                              this.CATCH_RADIUS);
-            //      Cell index method
-            /*tmpNeighborNumber = MIPET4JUtil
-                  .getNeighborNumbers(tmpCoordRecord, 
-                          tmpElements1, 
-                          tmpElements2,
-                          tmpBoxLength,
-                          this.CATCH_RADIUS); */
             
-            // Copy .xyz file after the last simulation step to result directory
-            if (i == iteration - 1) {
-                arcPath = currPath.resolve(particlePair + ".arc");
-                Path xyzPath = Paths.get(resultPathName, particlePair 
-                        + "_lastCoords.xyz");
-                MIPET4JUtil.writeLastPartToXYZ(arcPath, 
-                        xyzPath, stepOfLastIteration);
-                
-                // Write _lastStepNeighbors.txt file
-                Path targetPath = Paths.get(resultPathName,
-                        particlePair + "_lastStepNeighbors.txt");
-                int iterationSize = currNeighbors.size();
-                int neighborSize = currNeighbors
-                        .get(iterationSize - 1).length;
-                try (BufferedWriter writer = Files.newBufferedWriter(
-                        targetPath)) {
-                    
-                    for (int j = 0; j < neighborSize; j++) {
-                        writer.append(String.valueOf(currNeighbors
-                                        .get(iterationSize - 1)[j]));
-                        writer.append(LINESEPARATOR);
-                    }
-                    
+            // Safe Delete
+            int deleteAttempts = 0;
+            while (Files.exists(arcPath) && deleteAttempts < 10) {
+                try {
+                    Files.deleteIfExists(arcPath);
                 } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during writing _lastStepNeighbors.txt file.",
-                            ex);
+                    deleteAttempts++;
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
             
+            // Thread-safe list for the results
+            List<int[]> ThreadSafeBlockNeighbors = Collections
+                    .synchronizedList(new LinkedList<>());
+            try {
+                // Start tinker process live(without waitFor())
+                process = pBuilder.start();
+                final Process tinkerProcess = process;
+
+                // Start block-wise process in its own thread
+                Thread readerThread = new Thread(() -> {
+                    MIPET4JUtil.processArcFileBlockByBlock(
+                            arcPath,
+                            atomNumber1,
+                            atomNumber2,
+                            elements1,
+                            elements2,
+                            boxLength,
+                            this.CATCH_RADIUS,
+                            tinkerProcess, 
+                            ThreadSafeBlockNeighbors::add
+                    );
+                });
+                readerThread.start();
+                
+                // Wait until Tinker is ready with the iteration
+                int exitCode = tinkerProcess.waitFor();
+                if (exitCode != 0) {
+                    LOGGER.log(Level.WARNING, "Tinker quitted with error code: " 
+                            + exitCode);
+                }
+
+                // Wait until the reader-thread processed the last line.
+                readerThread.join();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "IOException during tinker's dynamic.exe", ex);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, "The process was interrupted.", ex);
+                Thread.currentThread().interrupt();
+            }
+            
+            // Transfer the result of the block to the list
+            for (int[] blockResult : ThreadSafeBlockNeighbors) {
+                neighborNumbers.add(blockResult.length);
+            }
+            
+            // Copy .xyz file after the last simulation step to result directory
+            if (i == iteration - 1) {
+                Path xyzPath = Paths.get(resultPathName, 
+                        particlePair + "_lastCoords.xyz");
+                MIPET4JUtil.writeLastPartToXYZ(arcPath, xyzPath, lastIteration);
+
+                // Write _lastStepNeighbors.txt file
+                Path targetPath = Paths.get(resultPathName, 
+                        particlePair + "_lastStepNeighbors.txt");
+                if (!ThreadSafeBlockNeighbors.isEmpty()) {
+                    int[] lastBlock = ThreadSafeBlockNeighbors
+                            .get(ThreadSafeBlockNeighbors.size() - 1);
+                    try (BufferedWriter writer = Files
+                            .newBufferedWriter(targetPath)) {
+                        
+                        for (int j = 0; j < lastBlock.length; j++) {
+                            writer.append(String.valueOf(lastBlock[j]));
+                            writer.append(LINESEPARATOR);
+                        }
+                        
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.SEVERE, "IOException during writing _lastStepNeighbors.txt file.", ex);
+                    }
+                }
+            }
             if (iteration > 1 && i < iteration - 1) {
                 try {
-                    Files.deleteIfExists(Paths.get(currPath 
-                            + particlePair 
-                            + ".xyz"));
+                    Files.deleteIfExists(Paths.get(currPath + FILESEPARATOR + particlePair + ".xyz"));
                 } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                        "IOException during deleting .xyz file.", ex);
+                    LOGGER.log(Level.SEVERE, "IOException during deleting .xyz file.", ex);
                 }
                 Path sourcePath = currPath.resolve(particlePair + ".arc");
                 Path targetPath = currPath.resolve(particlePair + ".xyz");
                 MIPET4JUtil.writeLastPartToXYZ(sourcePath, targetPath, step);
                 try {
-                    Files.deleteIfExists(Paths.get(currPath 
-                            + particlePair 
-                            + ".arc"));
+                    Files.deleteIfExists(Paths.get(currPath + FILESEPARATOR + particlePair + ".arc"));
                 } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, 
-                            "IOException during deleting .arc file.", ex);
+                    LOGGER.log(Level.SEVERE, "IOException during deleting .arc file.", ex);
                 }
             }
-            int currentNeighborsSize = currNeighbors.size();
-            
-            for (int j = 0; j < currentNeighborsSize; j++) {
-                neighborNumbers.add(currNeighbors.get(j).length);
-            }
-            
         }
         
         int[] resultNeighborNumber = neighborNumbers.stream()
-                .mapToInt(Integer::intValue).toArray();
+                .mapToInt(Integer::intValue)
+                .toArray();
         return resultNeighborNumber;
     }
-    
     // </editor-fold>
 }

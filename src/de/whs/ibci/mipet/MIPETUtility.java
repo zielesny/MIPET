@@ -43,7 +43,7 @@ import org.openscience.cdk.smiles.SmilesParser;
  * Class MIPETUtility
  * @author Mirco Daniel
  */
-public class MIPETUtility{
+public class MIPETUtility {
     
     //<editor-fold defaultstate="collapsed" desc="Final class variables">
     
@@ -108,8 +108,7 @@ public class MIPETUtility{
     
     // <editor-fold defaultstate="collapsed" desc="Constructors">
     
-    /** 
-     * Constructor
+    /** * Constructor
      */
     public MIPETUtility(){
         initialize();
@@ -135,11 +134,10 @@ public class MIPETUtility{
     
     /**
      * Get method for Van der Waals volume by using VABCVolume of CDK
-     * 
-     * @param smilesString
-     *   input fragment as SMILES 
+     * * @param smilesString
+     * input fragment as SMILES 
      * @return 
-     *   Van der Waals volume by using VAB Volume of CDK
+     * Van der Waals volume by using VAB Volume of CDK
      */
     public double getVdwVolume(String smilesString) {
         if (smilesString == null || smilesString.isEmpty()) {
@@ -153,7 +151,7 @@ public class MIPETUtility{
         double vabcVolume = 0.0;
         try {
             if (!smilesString.equals("[Na+]")) {
-                IAtomContainer particle =smilesParser.parseSmiles(smilesString);
+                IAtomContainer particle = smilesParser.parseSmiles(smilesString);
                 AtomContainerManipulator.
                         percieveAtomTypesAndConfigureAtoms(particle);
                 vabcVolume = VABCVolume.calculate(particle);
@@ -170,11 +168,11 @@ public class MIPETUtility{
     /**
      * Get method for calculation of atomic mass by using CDK 
      * @param aSmilesString
-     *   input fragment as SMILES
+     * input fragment as SMILES
      * @param anIsSmiles
-     *   Flag if aSmilesString is a SMILES or not (element)
+     * Flag if aSmilesString is a SMILES or not (element)
      * @return
-     *   Atomic mass of the fragment
+     * Atomic mass of the fragment
      */
     public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
         if (aSmilesString == null || aSmilesString.trim().isEmpty()) {
@@ -202,7 +200,7 @@ public class MIPETUtility{
                     .percieveAtomTypesAndConfigureAtoms(particle);
             atomicMass  = AtomContainerManipulator.getMass(particle);
             
-            // Save to cach
+            // Save to cache
             atomicMassCache.put(cacheKey, atomicMass);
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE, 
@@ -229,9 +227,8 @@ public class MIPETUtility{
     
     /**
      * Get method for vdW-radii of atoms by using CDK
-     *   (remarks: there are some atoms without data)
-     * 
-     * @return 
+     * (remarks: there are some atoms without data)
+     * * @return 
      * vdW-radii in Angstrom, index number = atomic number
      */
     public double[] getVdWRadii() {
@@ -273,11 +270,11 @@ public class MIPETUtility{
     /**
      * Checks if a given double value is in a list
      * @param aList
-     *   A List with double values
+     * A List with double values
      * @param aValue
-     *   A value
+     * A value
      * @return 
-     *   True if the value is in the list (otherwise false)
+     * True if the value is in the list (otherwise false)
      */
     public boolean contains(List<Double> aList, double aValue) {
         double threshold = 0.001;
@@ -293,19 +290,18 @@ public class MIPETUtility{
     
     /**
      * Get method for the neighbor particle number of solute
-     * 
-     * @param aCoordRecord
-     *   Coordinate data of solute and solvent particles
+     * * @param aCoordRecord
+     * Coordinate data of solute and solvent particles
      * @param anElements1
-     *   Element names of solute particle
+     * Element names of solute particle
      * @param anElements2
-     *   Element names of solvent particles
+     * Element names of solvent particles
      * @param aBoxLength
-     *   Length of simulation box
+     * Length of simulation box
      * @param aCatchRadius
-     *   Catch radius
+     * Catch radius
      * @return 
-     *   Neighbor particle number of solute of each simulation iteration
+     * Neighbor particle number of solute of each simulation iteration
      */
     public LinkedList<int[]> getNeighborNumbersBruteForce(
             CoordinatesRecord aCoordRecord,
@@ -463,7 +459,7 @@ public class MIPETUtility{
 
                     for (int l = 0; l < atomSize2; l++) {
                         if (!ignoreIndex2.contains(l)) {
-                            // Zugriff direkt über das 2D bzw. 3D Array des aktuellen Blocks
+                            // Direct access via 2D and 3D array of the active block
                             double deltaX = coord1[j][0] - coord2[k][l][0];
                             double deltaY = coord1[j][1] - coord2[k][l][1];
                             double deltaZ = coord1[j][2] - coord2[k][l][2];
@@ -515,19 +511,18 @@ public class MIPETUtility{
     
     /**
      * Get method for the neighbor particle number of solute
-     * 
-     * @param aCoordRecord
-     *   Coordinate data of solute and solvent particles
+     * * @param aCoordRecord
+     * Coordinate data of solute and solvent particles
      * @param anElements1
-     *   Element names of solute particle
+     * Element names of solute particle
      * @param anElements2
-     *   Element names of solvent particles
+     * Element names of solvent particles
      * @param aBoxDist
-     *   Length of simulation box
+     * Length of simulation box
      * @param aCatchRadius
-     *   Catch radius
+     * Catch radius
      * @return 
-     *   Neighbor particle number of solute of each simulation iteration
+     * Neighbor particle number of solute of each simulation iteration
      */
     public LinkedList<int[]> getNeighborNumbers(
             CoordinatesRecord aCoordRecord,
@@ -806,223 +801,73 @@ public class MIPETUtility{
         return neighborIndices;
     }
     
-    /**
-     * Read the coordinates from an .arc file
-     * 
-     * @param path File name
-     * @param anAtomNumber1 Atom number of solute particle
-     * @param anAtomNumber2 Atom number of solvent particle
-     * @return All coordinates of .arc file
-     */
-    public CoordinatesRecord getCoordinatesFromArcFile(Path path,
-            int anAtomNumber1, int anAtomNumber2) {
-        // Check parameters
-        if (path == null) {
-            throw new IllegalArgumentException("Null was passed to the setFileContent method.");
-        }
-        if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
-            throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromArcFile.");
-        }
-        List<double[][]> coordList1 = new LinkedList<>();
-        List<double[][][]> coordList2 = new LinkedList<>();
-        CoordinatesRecord coordRecord;
-        int lineCounter = 1; 
-        int idx = 0;
-        int idx1 = 0;
-        int idx2 = 0;
-        int particleIdx2 = 0;
-        int particleNumber2 = 0;
-        double[][] coord1 = new double[anAtomNumber1][3];
-        try (BufferedReader reader = Files.newBufferedReader(path,
-                StandardCharsets.UTF_8)) {
-            reader.mark(80);
-            String line = reader.readLine();
-            int atomNumber = Integer.parseInt(line.substring(0, 6).trim());
-            reader.reset();
-            particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
-            double[][][] coord2 = 
-                    new double[particleNumber2][anAtomNumber2][3];
-            String[] lineArray;
-            
-            while((line = reader.readLine()) != null) {
-                if (idx >= 2 && idx <= anAtomNumber1 + 1) {
-                    lineArray = split(line.trim());
-                    coord1[idx1][0] = Double.parseDouble(lineArray[0]);
-                    coord1[idx1][1] = Double.parseDouble(lineArray[1]);
-                    coord1[idx1][2] = Double.parseDouble(lineArray[2]);
-                    lineCounter++;
-                    idx1++;
-                    if (idx1 >= anAtomNumber1) {
-                        idx1 = 0;
-                    }
-                } else if (idx > anAtomNumber1 + 1) {
-                    lineArray = split(line.trim());
-                    coord2[particleIdx2][idx2][0] = Double
-                            .parseDouble(lineArray[0]);
-                    coord2[particleIdx2][idx2][1] = Double
-                            .parseDouble(lineArray[1]);
-                    coord2[particleIdx2][idx2][2] = Double
-                            .parseDouble(lineArray[2]);
-                    lineCounter++;
-                    idx2++;
-                    if (idx2 >= anAtomNumber2) {
-                        idx2 = 0;
-                        particleIdx2++;
-                        if (particleIdx2 >= particleNumber2) {
-                            particleIdx2 = 0;
-                            coordList1.add(coord1);
-                            coordList2.add(coord2);
-                            coord1 = new double[anAtomNumber1][3];
-                            coord2 = new double[particleNumber2]
-                                    [anAtomNumber2][3];
-                        }
-                    }
-                } else {
-                    lineCounter++;
-                }
-                idx = (lineCounter - 1) % (atomNumber + 2);
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, 
-                    "IOException in getCoordinatesFromArcFile.", ex);
-        }
-        int coordSize1 = coordList1.size();
-        int coordSize2 = coordList2.size();
-        double[][][] multiCoord1 = new double[coordSize1][anAtomNumber1][3];
-        double[][][][] multiCoord2 =
-                new double[coordSize2][particleNumber2][anAtomNumber1][3];
-        
-        for (int i = 0; i < coordSize1; i++) {
-            multiCoord1[i] = coordList1.get(i);
-            multiCoord2[i] = coordList2.get(i);
-        }
-        
-        coordRecord = new CoordinatesRecord(multiCoord1, multiCoord2);
-        return coordRecord;
-    }
-    
-    public CoordinatesRecord getCoordinatesFromStreamLines(
-            Stream<String> lineStream, int anAtomNumber1, int anAtomNumber2) {
-        // Parameter check
-        if (lineStream == null) {
-            throw new IllegalArgumentException("Stream was null in getCoordinatesFromStream.");
-        }
-        if (anAtomNumber1 <= 0 || anAtomNumber2 <= 0) {
-            throw new IllegalArgumentException("Illegal numbers passed in getCoordinatesFromStreamLines.");
-        }
-
-        List<double[][]> coordList1 = new LinkedList<>();
-        List<double[][][]> coordList2 = new LinkedList<>();
-        int lineCounter = 1;
-        int idx = 0;
-        int idx1 = 0;
-        int idx2 = 0;
-        int particleIdx2 = 0;
-        int particleNumber2 = 0;
-        double[][] coord1 = new double[anAtomNumber1][3];
-
-        java.util.Iterator<String> iterator = lineStream.iterator();
-        if (iterator.hasNext()) {
-            String firstLine = iterator.next();
-            int atomNumber = Integer.parseInt(firstLine.substring(0, 6).trim());
-            particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
-            double[][][] coord2 = new double[particleNumber2][anAtomNumber2][3];
-            String[] lineArray;
-
-            while (iterator.hasNext()) {
-                String line = iterator.next();
-                if (idx >= 2 && idx <= anAtomNumber1 + 1) {
-                    lineArray = split(line.trim());
-                    coord1[idx1][0] = Double.parseDouble(lineArray[0]);
-                    coord1[idx1][1] = Double.parseDouble(lineArray[1]);
-                    coord1[idx1][2] = Double.parseDouble(lineArray[2]);
-                    lineCounter++;
-                    idx1++;
-                    if (idx1 >= anAtomNumber1) {
-                        idx1 = 0;
-                    }
-                } else if (idx > anAtomNumber1 + 1) {
-                    lineArray = split(line.trim());
-                    coord2[particleIdx2][idx2][0] = Double.parseDouble(lineArray[0]);
-                    coord2[particleIdx2][idx2][1] = Double.parseDouble(lineArray[1]);
-                    coord2[particleIdx2][idx2][2] = Double.parseDouble(lineArray[2]);
-                    lineCounter++;
-                    idx2++;
-                    if (idx2 >= anAtomNumber2) {
-                        idx2 = 0;
-                        particleIdx2++;
-                        if (particleIdx2 >= particleNumber2) {
-                            particleIdx2 = 0;
-                            coordList1.add(coord1);
-                            coordList2.add(coord2);
-                            coord1 = new double[anAtomNumber1][3];
-                            coord2 = new double[particleNumber2][anAtomNumber2][3];
-                        }
-                    }
-                } else {
-                    lineCounter++;
-                }
-                idx = (lineCounter - 1) % (atomNumber + 2);
-            }
-        }
-
-        int coordSize1 = coordList1.size();
-        int coordSize2 = coordList2.size();
-        double[][][] multiCoord1 = new double[coordSize1][anAtomNumber1][3];
-        double[][][][] multiCoord2 = 
-                new double[coordSize2][particleNumber2][anAtomNumber2][3];
-
-        for (int i = 0; i < coordSize1; i++) {
-            multiCoord1[i] = coordList1.get(i);
-            multiCoord2[i] = coordList2.get(i);
-        }
-
-        return new CoordinatesRecord(multiCoord1, multiCoord2);
-    }
-    
-    public void processArcFileBlockByBlock(Path sourcePath, Path targetPath,
+    public void processArcFileBlockByBlock(Path sourcePath,
             int anAtomNumber1, int anAtomNumber2,
             String[] elements1, String[] elements2,
-            double boxLength, double catchRadius) {
-        if (sourcePath == null || targetPath == null) {
-            throw new IllegalArgumentException("Paths must not be null.");
+            double boxLength, double catchRadius,
+            Process tinkerProcess, 
+            java.util.function.Consumer<int[]> resultConsumer) {
+        if (sourcePath == null || resultConsumer == null) {
+            throw new IllegalArgumentException("Paths and Consumer must not be null.");
         }
-        try (BufferedReader reader = Files.newBufferedReader(sourcePath,
-                StandardCharsets.UTF_8); BufferedWriter writer = Files.newBufferedWriter(targetPath,
-                        StandardCharsets.UTF_8)) {
+        
+        // Wait for a short time until Tinker creates the file
+        int waitAttempts = 0;
+        while (!Files.exists(sourcePath) && tinkerProcess.isAlive() 
+                && waitAttempts < 100) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            waitAttempts++;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(sourcePath, 
+                StandardCharsets.UTF_8)) {
             String firstLine = reader.readLine();
+            
+            // If Tinker starts extremely slow, wait a short time for the header
+            while (firstLine == null && tinkerProcess.isAlive()) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                firstLine = reader.readLine();
+            }
+
             if (firstLine == null) {
                 return;
             }
             int atomNumber = Integer.parseInt(firstLine.substring(0, 6).trim());
             int particleNumber2 = (atomNumber - anAtomNumber1) / anAtomNumber2;
 
-            writer.write(firstLine);
-            writer.newLine();
-
             while (true) {
-                // Read block
-                CoordinatesBlock block = readNextBlock(reader, anAtomNumber1, anAtomNumber2, particleNumber2);
+                // Read next block
+                CoordinatesBlock block = readNextBlock(reader, anAtomNumber1, 
+                        anAtomNumber2, particleNumber2, tinkerProcess);
+
                 if (block == null) {
-                    break;
+                    // If there is no block but tinker is still running -> wait and retry (Live-Streaming)
+                    if (tinkerProcess.isAlive()) {
+                        try {
+                            Thread.sleep(5); // Wait 5 ms
+                        } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                        continue;
+                    } else {
+                        // Tinker completed and there are no more blocks left
+                        break;
+                    }
                 }
 
-                // Calculate neighbors for one block
+                // Calculate the neighbors for the parsed block
                 int[] currNeighbors = getNeighborNumbersBruteForceForBlock(
                         block, elements1, elements2, boxLength, catchRadius);
 
-                // 3. Ergebnis sofort wegschreiben (Beispielhafte Ausgabe der Nachbar-Indizes)
-                // Du kannst das Format natürlich anpassen (z.B. nur die Anzahl oder alle Indizes)
-                writer.write("Frame-Ergebnis: ");
-                
-                for (int neighborIdx : currNeighbors) {
-                    writer.write(neighborIdx + " ");
-                }
-                
-                writer.newLine(); // Ab in die nächste Zeile für den nächsten Frame
-
-                // Der RAM wird geleert, da 'block' und 'currNeighbors' im nächsten Durchlauf überschrieben werden!
-                
+                resultConsumer.accept(currNeighbors);
             }
 
         } catch (IOException ex) {
@@ -1034,9 +879,9 @@ public class MIPETUtility{
             BufferedReader reader,
             int anAtomNumber1,
             int anAtomNumber2,
-            int particleNumber2) throws IOException {
+            int particleNumber2,
+            Process tinkerProcess) throws IOException {
 
-        // Read block header
         String blockHeader = reader.readLine();
         if (blockHeader == null) {
             return null;
@@ -1046,43 +891,76 @@ public class MIPETUtility{
         double[][][] coord2 = new double[particleNumber2][anAtomNumber2][3];
         String[] lineArray;
 
-        // Read coordinates of rist particle
+        // 2. Read coordinates of the first particle (Solute)
         for (int i = 0; i < anAtomNumber1; i++) {
             String line = reader.readLine();
-            if (line == null) {
-                return null; // Unerwartetes Dateiende
+
+            while (line == null && tinkerProcess.isAlive()) {
+                try {
+                    Thread.sleep(5); // Give the system I/O breathing room
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                line = reader.readLine();
             }
+
+            // STRICT SHIELD: Immediate safety exit if line remains null
+            if (line == null) {
+                if (!tinkerProcess.isAlive()) {
+                    return null; // Silent closure, Tinker terminated normally
+                }
+                LOGGER.log(Level.WARNING, "ARC file ended unexpectedly while Tinker is still running (Atom1).");
+                return null;
+            }
+
             lineArray = split(line.trim());
+            if (lineArray == null || lineArray[0] == null) {
+                return null;
+            }
             coord1[i][0] = Double.parseDouble(lineArray[0]);
             coord1[i][1] = Double.parseDouble(lineArray[1]);
             coord1[i][2] = Double.parseDouble(lineArray[2]);
         }
 
-        // Read coordinates of second particles (solvent)
+        // 3. Read coordinates of the second particle (Solvent)
         for (int p = 0; p < particleNumber2; p++) {
-            
             for (int a = 0; a < anAtomNumber2; a++) {
                 String line = reader.readLine();
-                if (line == null) {
-                    return null; // Unerwartetes Dateiende
+
+                while (line == null && tinkerProcess.isAlive()) {
+                    try {
+                        Thread.sleep(5);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    line = reader.readLine();
                 }
+
+                // STRICT SHIELD:
+                if (line == null) {
+                    if (!tinkerProcess.isAlive()) {
+                        return null; // Silent closure, Tinker terminated normally
+                    }
+                    LOGGER.log(Level.WARNING, "ARC file ended unexpectedly while Tinker is still running (Atom2).");
+                    return null;
+                }
+
                 lineArray = split(line.trim());
+                if (lineArray == null || lineArray[0] == null) {
+                    return null;
+                }
                 coord2[p][a][0] = Double.parseDouble(lineArray[0]);
                 coord2[p][a][1] = Double.parseDouble(lineArray[1]);
                 coord2[p][a][2] = Double.parseDouble(lineArray[2]);
             }
-            
         }
-        
+
         return new CoordinatesBlock(coord1, coord2);
     }
     
-    
-    
     /**
      * Determine (widest) molecular diameter 
-     * 
-     * @param aTinkerXYZ TinkerXYZ object
+     * * @param aTinkerXYZ TinkerXYZ object
      * @return (Widest) molecular diameter
      */
     public double getMolecularDiameter(TinkerXYZ aTinkerXYZ) {
@@ -1121,23 +999,14 @@ public class MIPETUtility{
         return diameter;
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     /**
      * Write the last part of .arc file to .xyz file
      * @param anArcPath
-     *   Path name of the .arc file
+     * Path name of the .arc file
      * @param aXyzPath
-     *   Path name of the .xyz file
+     * Path name of the .xyz file
      * @param aSteps 
-     *   Step number in the .arc file
+     * Step number in the .arc file
      */
     public void writeLastPartToXYZ(Path anArcPath, Path aXyzPath, int aSteps) {
         try (BufferedReader reader = Files.newBufferedReader(anArcPath, 
@@ -1166,7 +1035,7 @@ public class MIPETUtility{
     
     /**
      * Get SMILES data method
-     *   Loads the SMILES code of the "known" molecules
+     * Loads the SMILES code of the "known" molecules
      * @param aSmilesFileName: File name of SMILES
      * @return Molecule name and SMILES as hashmap
      */
@@ -1194,20 +1063,19 @@ public class MIPETUtility{
     
     /**
      * Determines if the smallest distance between two particles 
-     *   is less than minDistance or not. This method is used to exclude
-     *   two particle configurations, which are too close. This would produce
-     *   too high value of intermolecular energy which will be expressed 
-     *   by asterisks in tinker's output file.
-     * 
-     * @param aCoord1
-     *   Coordinates of atoms of first particle
+     * is less than minDistance or not. This method is used to exclude
+     * two particle configurations, which are too close. This would produce
+     * too high value of intermolecular energy which will be expressed 
+     * by asterisks in tinker's output file.
+     * * @param aCoord1
+     * Coordinates of atoms of first particle
      * @param aCoord2
-     *   Coordinates of atoms of second particle
+     * Coordinates of atoms of second particle
      * @param aMinDist
-     *   Minimum distance
+     * Minimum distance
      * @return 
-     *   true if the distance of two particles is too close
-     *   false otherwise
+     * true if the distance of two particles is too close
+     * false otherwise
      */
     public Boolean isTooClose(double[][] aCoord1, double[][] aCoord2, 
             double aMinDist) {
@@ -1232,8 +1100,7 @@ public class MIPETUtility{
     
     /**
      * Checks if a path is empty or not
-     * 
-     * @param path Directory name
+     * * @param path Directory name
      * @return true: is empty, false: isn't empty
      */
     public boolean isDirectoryEmpty(String path){
@@ -1252,11 +1119,11 @@ public class MIPETUtility{
     /**
      * Returns all Lines with aSearchString
      * @param fileName
-     *   A Text file
+     * A Text file
      * @param searchString
-     *   A search string
+     * A search string
      * @return 
-     *   All lines with aSearchString in it as a list.
+     * All lines with aSearchString in it as a list.
      */
     public List<String> findList(String fileName, String searchString) {
         Path path = Paths.get(fileName);
@@ -1272,8 +1139,7 @@ public class MIPETUtility{
 
     /**
      * Calculates the sum of the array elements.
-     * 
-     * @param aDoubleArray A double array
+     * * @param aDoubleArray A double array
      * @return Sum of the array elements
      */
     public double sum(double[] aDoubleArray) {
@@ -1288,8 +1154,7 @@ public class MIPETUtility{
     
     /**
      * Calculates the sum of the array elements.
-     * 
-     * @param anIntArray A double array
+     * * @param anIntArray A double array
      * @return Sum of the array elements
      */
     public long sum(int[] anIntArray) {
@@ -1304,8 +1169,7 @@ public class MIPETUtility{
     
     /**
      * Calculates the sum of element products of two arrays.
-     * 
-     * @param aDoubleArray1 A double array
+     * * @param aDoubleArray1 A double array
      * @param aDoubleArray2 Another double array
      * @return Sum of element products of two arrays
      */
@@ -1370,7 +1234,6 @@ public class MIPETUtility{
         return max;
     }
     
-    
     /**
      * Determine the smallest value of an integer array
      * @param aValues integer array
@@ -1405,7 +1268,7 @@ public class MIPETUtility{
     
     /**
      * Determine the distances to shortest neighbor
-     *   This is only for test purpose
+     * This is only for test purpose
      * @return Distances to shortest neighbor
      */
     public double[] getNextDistance() {
@@ -1459,24 +1322,21 @@ public class MIPETUtility{
     
     /**
      * Write status message in console
-     * 
-     * @param message Status message
+     * * @param message Status message
      */
     public static void updateStatus(String message) {
-        // \r Goto start position, \u001b[K Clear the rest
         System.out.print("\r\u001b[K" + message);
-        System.out.flush(); // Force immediatly output
+        System.out.flush(); 
     }
     
     /**
      * Read a part of .arc file and returns the content as StringBuilder object.
-     * 
-     * @param aPath
-     *   A Path name
+     * * @param aPath
+     * A Path name
      * @param aStartIdx
-     *   Zero-based start line index
+     * Zero-based start line index
      * @param aEndIdx
-     *   Zero-based end line index
+     * Zero-based end line index
      * @return 
      * Content of the selected part of .arc file
      */
@@ -1505,11 +1365,10 @@ public class MIPETUtility{
     
     /**
      * Write Particle logfiles
-     * 
-     * @param aJobTaskRecords
-     *   First Particle name, second Particle name, result directory name etc.
+     * * @param aJobTaskRecords
+     * First Particle name, second Particle name, result directory name etc.
      * @param aLabelValues
-     *   0: Label 1: Value
+     * 0: Label 1: Value
      */
     public static void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String[][] aLabelValues) {
@@ -1546,13 +1405,12 @@ public class MIPETUtility{
     
     /**
      * Write Particlelogfiles
-     * 
-     * @param aJobTaskRecords
-     *   Job task record list
+     * * @param aJobTaskRecords
+     * Job task record list
      * @param aLabel
-     *   Label name
+     * Label name
      * @param aValues
-     *   Value names
+     * Value names
      */
     public void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String aLabel, String[] aValues) {
@@ -1592,13 +1450,12 @@ public class MIPETUtility{
     
     /**
      * Write Zij data
-     * 
-     * @param aJobTaskRecords
-     *   Parameter and particle names etc.
+     * * @param aJobTaskRecords
+     * Parameter and particle names etc.
      * @param aCNs
-     *   Coordination numbers
+     * Coordination numbers
      * @param aTemperature 
-     *   Temperature
+     * Temperature
      */
     public void writeZij_Table(ArrayList<JobTaskRecord> aJobTaskRecords,
             int[][] aCNs,
@@ -1642,11 +1499,11 @@ public class MIPETUtility{
     /**
      * Get Parameter name and particle pair names
      * @param aPathName
-     *   Path name list
+     * Path name list
      * @return 
-     *   0: Parameter name
-     *   1: Particle name of first particle
-     *   2: Particle name of second particle
+     * 0: Parameter name
+     * 1: Particle name of first particle
+     * 2: Particle name of second particle
      */
     public String[][] getParameterParticleNameList(
             LinkedList<String> aPathName) {
@@ -1704,9 +1561,9 @@ public class MIPETUtility{
     /**
      * Save .key file
      * @param keyPath
-     *   Key path name
+     * Key path name
      * @param aContent
-     *   Content of .key file
+     * Content of .key file
      */
     public void writeKeyFile(Path keyPath, String aContent) {
         try {
@@ -1719,8 +1576,7 @@ public class MIPETUtility{
     
     /**
      * Write distance and energy values to create a diagram
-     * 
-     * @param aFileName: File name
+     * * @param aFileName: File name
      * @param aDistances: Distances
      * @param aDistanceIndices: Indices of distances
      * @param aEnergySorted: Sorted energy values
@@ -1920,16 +1776,15 @@ public class MIPETUtility{
     
     /**
      * Fills left side of the string with spaces so the string is right aligned
-     *   It is much faster version of String.format()
+     * It is much faster version of String.format()
      * @param aInput
-     *   Input string
+     * Input string
      * @param aPadUpTo
-     *   Total length of Input string and spaces
+     * Total length of Input string and spaces
      * @return 
-     *   String with left filled with spaces
+     * String with left filled with spaces
      */
     public String padLeft(String aInput, int aPadUpTo) {
-        // Check parameters
         if (aInput == null || aInput.isEmpty()) {
             throw new IllegalArgumentException("aInput is null or empty.");
         } else if (aPadUpTo <= 0) {
@@ -1944,13 +1799,13 @@ public class MIPETUtility{
     
     /**
      * Fills right side of string with spaces so the string is left aligned
-     *   Much faster version of String.format()
+     * Much faster version of String.format()
      * @param aInput
-     *   Input string
+     * Input string
      * @param aPadUpTo
-     *   Total length of Input string and spaces
+     * Total length of Input string and spaces
      * @return 
-     *   String with right filled with spaces
+     * String with right filled with spaces
      */
     public String padRight(String aInput, int aPadUpTo) {
         if (aInput == null || aInput.isEmpty()) {
@@ -2030,16 +1885,13 @@ public class MIPETUtility{
         Path externalPath = Paths.get(BUNDLE_NAME_EXTERN);
 
         if (Files.exists(externalPath)) {
-            // 1. Try: Load the external file (for the production)
             try (InputStream is = Files.newInputStream(externalPath)) {
                 bundle = new PropertyResourceBundle(is);
             } catch (IOException ex) {
-            // Fallback during reading the file 
                 bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
                         Locale.getDefault(), this.getClass().getClassLoader());
             }
         } else {
-            // 2. Fallback: Read internal file (for the development)
             bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
                     Locale.getDefault(), this.getClass().getClassLoader());
         }
@@ -2081,7 +1933,5 @@ public class MIPETUtility{
         }
         return splitedStrs;
     }
-    
     // </editor-fold>
-
 }
