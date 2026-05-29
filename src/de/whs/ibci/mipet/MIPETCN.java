@@ -101,7 +101,7 @@ public class MIPETCN implements Callable<int[]> {
     
     /**
      * Constructor of MIPETCN
-     * * @param aCommandList: Command list for tinker's dynamic.exe
+     * @param aCommandList: Command list for tinker's dynamic.exe
      * @param aJobTaskRecord: Jobtasks
      * @param aScratchDir: Scratch directory name
      * @param aCatchRadius: Catch radius
@@ -207,14 +207,12 @@ public class MIPETCN implements Callable<int[]> {
             } else {
                 pBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             }
-            
             Path source = currPath.resolve(particlePair + ".arc");
             Path target = currPath.resolve(particlePair + ".xyz");
             
             // Clean up old files before starting to prevent collisions
             try {
                 Files.deleteIfExists(source);
-                Files.deleteIfExists(target);
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, "Could not clear old warmup files.", ex);
             }
@@ -224,7 +222,8 @@ public class MIPETCN implements Callable<int[]> {
                 process = pBuilder.start();
                 int exitCode = process.waitFor();
                 if (exitCode != 0) {
-                    LOGGER.log(Level.WARNING, "Tinker warmup quitted with error code: " + exitCode);
+                    LOGGER.log(Level.WARNING, () -> "Tinker warmup quitted with error code: " 
+                            + exitCode);
                 }
             } catch(IOException ex) {
                 LOGGER.log(Level.SEVERE, "IOException during tinker's dynamic.exe warmup", ex);
@@ -331,7 +330,7 @@ public class MIPETCN implements Callable<int[]> {
                 // Wait until Tinker is ready with the iteration
                 int exitCode = tinkerProcess.waitFor();
                 if (exitCode != 0) {
-                    LOGGER.log(Level.WARNING, "Tinker quitted with error code: " 
+                    LOGGER.log(Level.WARNING, () -> "Tinker quitted with error code: " 
                             + exitCode);
                 }
 
@@ -391,10 +390,9 @@ public class MIPETCN implements Callable<int[]> {
             }
         }
         
-        int[] resultNeighborNumber = neighborNumbers.stream()
+        return neighborNumbers.stream()
                 .mapToInt(Integer::intValue)
                 .toArray();
-        return resultNeighborNumber;
     }
     // </editor-fold>
 }

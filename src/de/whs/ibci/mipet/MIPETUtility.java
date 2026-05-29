@@ -408,6 +408,17 @@ public class MIPETUtility {
         return resultList;
     }
     
+    /**
+     * Get method for neighbornumbers
+     *  It uses block-wise algorithm to minimize the output file size 
+     * 
+     * @param block Coodinates of one block
+     * @param anElements1 Element names of solut molecule
+     * @param anElements2 Element names of solvent molecule
+     * @param aBoxLength Box lenghth in Angstrom
+     * @param aCatchRadius Catch radius in Angstrom
+     * @return Neighbornumbers as an array
+     */
     public int[] getNeighborNumbersBruteForceForBlock(
             CoordinatesBlock block,
             String[] anElements1,

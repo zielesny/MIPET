@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -50,6 +51,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -3527,6 +3529,25 @@ public class MIPET {
             } catch(IOException ex) {
                 LOGGER.log(Level.SEVERE, 
                         "IOException during deleting scratch directory.", ex);
+            }Path scratchPath = Paths.get(scratchDirectory);
+            try {
+                if (Files.exists(scratchPath)) {
+                    try (Stream<Path> walk = Files.walk(scratchPath)) {
+                        walk.sorted(Comparator.reverseOrder()).forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException e) {
+                                LOGGER.log(Level.WARNING, () -> 
+                                        "Couldn't delete: " 
+                                                + path 
+                                                + " - Reason: " 
+                                                + e.getMessage());
+                            }
+                        });
+                    }
+                }
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "IOException beim Durchsuchen des Scratch-Verzeichnisses.", ex);
             }
             
             // </editor-fold>
