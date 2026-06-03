@@ -29,6 +29,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.openscience.cdk.exception.CDKException;
@@ -134,30 +135,28 @@ public class MIPETUtility {
     
     /**
      * Get method for Van der Waals volume by using VABCVolume of CDK
-     * * @param smilesString
-     * input fragment as SMILES 
-     * @return 
-     * Van der Waals volume by using VAB Volume of CDK
+     * @param smilesStr input fragment as SMILES 
+     * @return Van der Waals volume by using VAB Volume of CDK
      */
-    public double getVdwVolume(String smilesString) {
-        if (smilesString == null || smilesString.isEmpty()) {
+    public double getVdwVolume(String smilesStr) {
+        if (smilesStr == null || smilesStr.isEmpty()) {
             throw new IllegalArgumentException("Smiles was null or empty.");
         }
         // Check Cache
-        if (vdwVolumeCache.containsKey(smilesString)) {
-            return vdwVolumeCache.get(smilesString);
+        if (vdwVolumeCache.containsKey(smilesStr)) {
+            return vdwVolumeCache.get(smilesStr);
         }
         
         double vabcVolume = 0.0;
         try {
-            if (!smilesString.equals("[Na+]")) {
-                IAtomContainer particle = smilesParser.parseSmiles(smilesString);
+            if (!smilesStr.equals("[Na+]")) {
+                IAtomContainer particle = smilesParser.parseSmiles(smilesStr);
                 AtomContainerManipulator.
                         percieveAtomTypesAndConfigureAtoms(particle);
                 vabcVolume = VABCVolume.calculate(particle);
                 
                 // Save to Cache
-                vdwVolumeCache.put(smilesString, vabcVolume);
+                vdwVolumeCache.put(smilesStr, vabcVolume);
             }
         } catch (CDKException ex) {
             LOGGER.log(Level.SEVERE,"CDKException was thrown.", ex);
@@ -167,21 +166,19 @@ public class MIPETUtility {
     
     /**
      * Get method for calculation of atomic mass by using CDK 
-     * @param aSmilesString
-     * input fragment as SMILES
-     * @param anIsSmiles
-     * Flag if aSmilesString is a SMILES or not (element)
+     * @param aSmilesStr Input fragment as SMILES
+     * @param anIsSmiles Flag if aSmilesString is a SMILES or not (element)
      * @return
      * Atomic mass of the fragment
      */
-    public double getAtomicMass(String aSmilesString, boolean anIsSmiles) {
-        if (aSmilesString == null || aSmilesString.trim().isEmpty()) {
+    public double getAtomicMass(String aSmilesStr, boolean anIsSmiles) {
+        if (aSmilesStr == null || aSmilesStr.trim().isEmpty()) {
             return 0;
         }
-        if (aSmilesString.trim().equalsIgnoreCase("lp")) {
+        if (aSmilesStr.trim().equalsIgnoreCase("lp")) {
             return 0;
         }
-        String cacheKey = (anIsSmiles ? "S_" : "E_") + aSmilesString.trim();
+        String cacheKey = (anIsSmiles ? "S_" : "E_") + aSmilesStr.trim();
         
         // Check cache
         if (atomicMassCache.containsKey(cacheKey)) {
@@ -192,9 +189,9 @@ public class MIPETUtility {
         try {
             IAtomContainer particle;
             if (anIsSmiles) {
-                particle = smilesParser.parseSmiles(aSmilesString);
+                particle = smilesParser.parseSmiles(aSmilesStr);
             } else {
-                particle = smilesParser.parseSmiles("[" + aSmilesString + "]");
+                particle = smilesParser.parseSmiles("[" + aSmilesStr + "]");
             }
             AtomContainerManipulator
                     .percieveAtomTypesAndConfigureAtoms(particle);
@@ -227,9 +224,8 @@ public class MIPETUtility {
     
     /**
      * Get method for vdW-radii of atoms by using CDK
-     * (remarks: there are some atoms without data)
-     * * @return 
-     * vdW-radii in Angstrom, index number = atomic number
+     *  (remarks: there are some atoms without data)
+     * @return  vdW-radii in Angstrom, index number = atomic number
      */
     public double[] getVdWRadii() {
         
@@ -290,17 +286,12 @@ public class MIPETUtility {
     
     /**
      * Get method for the neighbor particle number of solute
-     * * @param aCoordRecord
-     * Coordinate data of solute and solvent particles
-     * @param anElements1
-     * Element names of solute particle
-     * @param anElements2
-     * Element names of solvent particles
-     * @param aBoxLength
-     * Length of simulation box
-     * @param aCatchRadius
-     * Catch radius
-     * @return 
+     * @param aCoordRecord Coordinate data of solute and solvent particles
+     * @param anElements1 Element names of solute particle
+     * @param anElements2 Element names of solvent particles
+     * @param aBoxLength Length of simulation box
+     * @param aCatchRadius Catch radius
+     * @return Neighbor numbers for each iteration
      * Neighbor particle number of solute of each simulation iteration
      */
     public LinkedList<int[]> getNeighborNumbersBruteForce(
@@ -521,19 +512,14 @@ public class MIPETUtility {
     }
     
     /**
-     * Get method for the neighbor particle number of solute
-     * * @param aCoordRecord
-     * Coordinate data of solute and solvent particles
-     * @param anElements1
-     * Element names of solute particle
-     * @param anElements2
-     * Element names of solvent particles
-     * @param aBoxDist
-     * Length of simulation box
-     * @param aCatchRadius
-     * Catch radius
-     * @return 
-     * Neighbor particle number of solute of each simulation iteration
+     * Get method for the neighbor particle number of solute (Using cell index method)
+     * 
+     * @param aCoordRecord Coordinate data of solute and solvent particles
+     * @param anElements1 Element names of solute particle
+     * @param anElements2 Element names of solvent particles
+     * @param aBoxDist Length of simulation box
+     * @param aCatchRadius Catch radius
+     * @return Neighbor particle number of solute of each simulation iteration
      */
     public LinkedList<int[]> getNeighborNumbers(
             CoordinatesRecord aCoordRecord,
@@ -812,12 +798,26 @@ public class MIPETUtility {
         return neighborIndices;
     }
     
+    /**
+     * processArcFileBlockByBlock method
+     * 
+     * @param sourcePath Source path name
+     * @param anAtomNumber1 Atom number of first molecule
+     * @param anAtomNumber2 Atom number of second molecule
+     * @param elements1 Element names of first molecule
+     * @param elements2 Element names of second molecule
+     * @param boxLength Box lengths in Angstrom
+     * @param catchRadius Catch radius in Angsrom
+     * @param tinkerProcess Tinker process
+     * @param resultConsumer Result consumer
+     */
+    
     public void processArcFileBlockByBlock(Path sourcePath,
             int anAtomNumber1, int anAtomNumber2,
             String[] elements1, String[] elements2,
             double boxLength, double catchRadius,
             Process tinkerProcess, 
-            java.util.function.Consumer<int[]> resultConsumer) {
+            Consumer<int[]> resultConsumer) {
         if (sourcePath == null || resultConsumer == null) {
             throw new IllegalArgumentException("Paths and Consumer must not be null.");
         }
@@ -971,7 +971,8 @@ public class MIPETUtility {
     
     /**
      * Determine (widest) molecular diameter 
-     * * @param aTinkerXYZ TinkerXYZ object
+     * 
+     * @param aTinkerXYZ TinkerXYZ object
      * @return (Widest) molecular diameter
      */
     public double getMolecularDiameter(TinkerXYZ aTinkerXYZ) {
@@ -1078,15 +1079,11 @@ public class MIPETUtility {
      * two particle configurations, which are too close. This would produce
      * too high value of intermolecular energy which will be expressed 
      * by asterisks in tinker's output file.
-     * * @param aCoord1
-     * Coordinates of atoms of first particle
-     * @param aCoord2
-     * Coordinates of atoms of second particle
-     * @param aMinDist
-     * Minimum distance
-     * @return 
-     * true if the distance of two particles is too close
-     * false otherwise
+     * 
+     * @param aCoord1 Coordinates of atoms of first particle
+     * @param aCoord2 Coordinates of atoms of second particle
+     * @param aMinDist Minimum distance
+     * @return true if the distance of two particles is too close false otherwise
      */
     public Boolean isTooClose(double[][] aCoord1, double[][] aCoord2, 
             double aMinDist) {
@@ -1111,7 +1108,8 @@ public class MIPETUtility {
     
     /**
      * Checks if a path is empty or not
-     * * @param path Directory name
+     * 
+     * @param path Directory name
      * @return true: is empty, false: isn't empty
      */
     public boolean isDirectoryEmpty(String path){
@@ -1129,19 +1127,15 @@ public class MIPETUtility {
     
     /**
      * Returns all Lines with aSearchString
-     * @param fileName
-     * A Text file
-     * @param searchString
-     * A search string
-     * @return 
-     * All lines with aSearchString in it as a list.
+     * @param fileName A Text file
+     * @param searchStr A search string
+     * @return All lines with aSearchString in it as a list.
      */
-    public List<String> findList(String fileName, String searchString) {
+    public List<String> findList(String fileName, String searchStr) {
         Path path = Paths.get(fileName);
         try (Stream<String> lines = Files.lines(path)) {
-            return lines.filter(line -> line.contains(searchString))
+            return lines.filter(line -> line.contains(searchStr))
                     .collect(Collectors.toList());
-
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "IOException in findList.", ex);
             return new ArrayList<>();
@@ -1150,7 +1144,8 @@ public class MIPETUtility {
 
     /**
      * Calculates the sum of the array elements.
-     * * @param aDoubleArray A double array
+     * 
+     * @param aDoubleArray A double array
      * @return Sum of the array elements
      */
     public double sum(double[] aDoubleArray) {
@@ -1165,7 +1160,8 @@ public class MIPETUtility {
     
     /**
      * Calculates the sum of the array elements.
-     * * @param anIntArray A double array
+     * 
+     * @param anIntArray A double array
      * @return Sum of the array elements
      */
     public long sum(int[] anIntArray) {
@@ -1180,7 +1176,8 @@ public class MIPETUtility {
     
     /**
      * Calculates the sum of element products of two arrays.
-     * * @param aDoubleArray1 A double array
+     * 
+     * @param aDoubleArray1 A double array
      * @param aDoubleArray2 Another double array
      * @return Sum of element products of two arrays
      */
@@ -1333,7 +1330,8 @@ public class MIPETUtility {
     
     /**
      * Write status message in console
-     * * @param message Status message
+     * 
+     * @param message Status message
      */
     public static void updateStatus(String message) {
         System.out.print("\r\u001b[K" + message);
@@ -1342,14 +1340,11 @@ public class MIPETUtility {
     
     /**
      * Read a part of .arc file and returns the content as StringBuilder object.
-     * * @param aPath
-     * A Path name
-     * @param aStartIdx
-     * Zero-based start line index
-     * @param aEndIdx
-     * Zero-based end line index
-     * @return 
-     * Content of the selected part of .arc file
+     * 
+     * @param aPath A Path name
+     * @param aStartIdx Zero-based start line index
+     * @param aEndIdx Zero-based end line index
+     * @return Content of the selected part of .arc file
      */
     public static StringBuilder readPartArcFile(Path aPath, int aStartIdx, 
             int aEndIdx) {
@@ -1376,10 +1371,9 @@ public class MIPETUtility {
     
     /**
      * Write Particle logfiles
-     * * @param aJobTaskRecords
-     * First Particle name, second Particle name, result directory name etc.
-     * @param aLabelValues
-     * 0: Label 1: Value
+     * 
+     * @param aJobTaskRecords First Particle name, second Particle name, result directory name etc.
+     * @param aLabelValues 0: Label 1: Value
      */
     public static void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String[][] aLabelValues) {
@@ -1416,12 +1410,10 @@ public class MIPETUtility {
     
     /**
      * Write Particlelogfiles
-     * * @param aJobTaskRecords
-     * Job task record list
-     * @param aLabel
-     * Label name
-     * @param aValues
-     * Value names
+     * 
+     * @param aJobTaskRecords Job task record list
+     * @param aLabel Label name
+     * @param aValues Value names
      */
     public void writeParticleLog(ArrayList<JobTaskRecord> aJobTaskRecords,
             String aLabel, String[] aValues) {
@@ -1461,12 +1453,10 @@ public class MIPETUtility {
     
     /**
      * Write Zij data
-     * * @param aJobTaskRecords
-     * Parameter and particle names etc.
-     * @param aCNs
-     * Coordination numbers
-     * @param aTemperature 
-     * Temperature
+     * 
+     * @param aJobTaskRecords Parameter and particle names etc.
+     * @param aCNs Coordination numbers
+     * @param aTemperature Temperature
      */
     public void writeZij_Table(ArrayList<JobTaskRecord> aJobTaskRecords,
             int[][] aCNs,
@@ -1509,25 +1499,22 @@ public class MIPETUtility {
     
     /**
      * Get Parameter name and particle pair names
-     * @param aPathName
-     * Path name list
-     * @return 
-     * 0: Parameter name
-     * 1: Particle name of first particle
-     * 2: Particle name of second particle
+     * 
+     * @param aPath Path name list
+     * @return 0: Parameter name
+     *         1: Particle name of first particle
+     *         2: Particle name of second particle
      */
-    public String[][] getParameterParticleNameList(
-            LinkedList<String> aPathName) {
-        if (aPathName == null || aPathName.isEmpty())  {
+    public String[][] getParameterParticleNameList(LinkedList<String> aPath) {
+        if (aPath == null || aPath.isEmpty())  {
             throw new IllegalArgumentException("Illegal argument was used in getParameterParticleName().");
         }
         LinkedList<String[]> parameterParticleList = new LinkedList<>();
 
-        for (String s : aPathName) {
+        for (String s : aPath) {
             int paramStartIndex = -1;
             int particleStartIndex = -1;
             int separateIndex = -1;
-
 
             for (int j = s.length() - 1; j >= 0; j--) {
                 if (s.charAt(j) == '_') {
@@ -1571,10 +1558,9 @@ public class MIPETUtility {
     
     /**
      * Save .key file
-     * @param keyPath
-     * Key path name
-     * @param aContent
-     * Content of .key file
+     * 
+     * @param keyPath Key path name
+     * @param aContent Content of .key file
      */
     public void writeKeyFile(Path keyPath, String aContent) {
         try {
@@ -1587,7 +1573,8 @@ public class MIPETUtility {
     
     /**
      * Write distance and energy values to create a diagram
-     * * @param aFileName: File name
+     * 
+     * @param aFileName: File name
      * @param aDistances: Distances
      * @param aDistanceIndices: Indices of distances
      * @param aEnergySorted: Sorted energy values

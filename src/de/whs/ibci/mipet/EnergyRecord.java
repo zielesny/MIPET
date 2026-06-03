@@ -21,21 +21,14 @@ package de.whs.ibci.mipet;
 
 /**
  * Record for storage energy datas
+ * 
  * @author Mirco Daniel
- * @param distances:
- *   Distances of particle centre i and particle centre j
- * @param Emins: 
- *   Lowest intermolecular energy of the examined configurations at given distance
- *   [i]: i distance index
- * @param wgtEmins:
- *   Weighted lowest intermolecular energy at given distance
- *   [i]: i distance index
- * @param eqDistance: 
- *   Equilibrium distance in Angstrom with wgtEmin
- * @param Emin:
- *   Lowest intermolecular energy of the examined configurations from all distances
- * @param wgtEmin: 
- *   Lowest weighted intermolecular energy of the examined configurations from all distances
+ * @param distances Distances of particle centre i and particle centre j
+ * @param eMins Lowest intermolecular energy of the examined configurations at given distance [i]: i distance index
+ * @param wgtEmins Weighted lowest intermolecular energy at given distance [i]: i distance index
+ * @param eqDistance Equilibrium distance in Angstrom with wgtEmin
+ * @param eMin Lowest intermolecular energy of the examined configurations from all distances
+ * @param wgtEmin Lowest weighted intermolecular energy of the examined configurations from all distances
  */
 public record EnergyRecord(
         double[] distances,

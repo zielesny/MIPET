@@ -24,7 +24,7 @@ package de.whs.ibci.mipet;
  * 
  * @author Mirco Daniel
  * @param distance: Distance in Angstrom between two particles (cetre to centre)
- * @param Emin: Lowest intermolecular energy of the examined configurations at given distance
+ * @param eMin: Lowest intermolecular energy of the examined configurations at given distance
  * @param wgtEmin: Weighted lowest intermolecular energy at given distance
  */
 public record Distance_EnergyRecord(

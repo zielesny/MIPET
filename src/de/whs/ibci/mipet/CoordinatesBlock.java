@@ -20,22 +20,36 @@
 package de.whs.ibci.mipet;
 
 /**
- *
+ * Class CoordinatesBlock
+ * 
  * @author Mirco Daniel
  */
 public class CoordinatesBlock {
     private final double[][] coord1;
     private final double[][][] coord2;
 
+    /**
+     * Constructor
+     * @param coord1 Coordinates of molecule 1 [atom_id][xyz]
+     * @param coord2 Coordinates of molceule 2 [molecule_id][atom_id][xyz]
+     */
     public CoordinatesBlock(double[][] coord1, double[][][] coord2) {
         this.coord1 = coord1;
         this.coord2 = coord2;
     }
 
+    /**
+     * Getter method for coordinates1
+     * @return Coordinates of molecule 1
+     */
     public double[][] getCoord1() { 
         return coord1; 
     }
     
+    /**
+     * Getter method for coordinates2
+     * @return Coordinates of molecules 2
+     */
     public double[][][] getCoord2() { 
         return coord2; 
     }
