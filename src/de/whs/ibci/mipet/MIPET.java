@@ -1844,8 +1844,25 @@ public class MIPET {
             System.exit(-1);
         }
         
-        smiles = MIPETUTIL
-                .getSmilesData(smilesDirectory + "/Smiles.dat");
+        // Path finding for SMILES (instead using System.getProperty) ---
+        String smilesPath = "Molecules" + FILESEPARATOR 
+                + "SMILES" + FILESEPARATOR + "Smiles.dat";
+        try {
+            // Get path of mipet.jar
+            File jarFile = new java.io.File(MIPET.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI());
+            if (jarFile.isFile()) {
+                // Path "app" in installation directory
+                String appDir = jarFile.getParent();
+                File testPath = new java.io.File(appDir, smilesPath);
+                if (testPath.exists()) {
+                    smilesPath = testPath.getAbsolutePath();
+                }
+            }
+        } catch (Exception e) {
+            // Ignorie and Fallback using relative path (for development)
+        }
+        smiles = MIPETUTIL.getSmilesData(smilesPath);
         
         // </editor-fold>
     }
@@ -1952,11 +1969,31 @@ public class MIPET {
      * SetParameters method
      */
     private static void setParameters() {
+        // Determine the main path of the installation
+        String appBaseDir = "";
+        try {
+            File jarFile = new java.io.File(MIPET.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI());
+            if (jarFile.isFile()) {
+                appBaseDir = jarFile.getParent() + File.separator; // e.g. "C:\programs\MIPET 1.0.6\app\"
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
         isTinker9 = MIPETUTIL.getResourceString("MIPET.Tinker9")
                 .equalsIgnoreCase("true");
         isTinkerOn = MIPETUTIL.getResourceString("MIPET.TinkerOn")
                 .equalsIgnoreCase("true");
         jobFileName = MIPETUTIL.getResourceString("MIPET.File.jobfile");
+        // Smart fallback for the job file
+        // 1. Try to find the file in current working directory
+        // 2. If not found then use the app-directory of the installation
+        if (!Files.exists(Paths.get(jobFileName)) && !appBaseDir.isEmpty()) {
+            Path fallbackJobPath = Paths.get(appBaseDir, jobFileName);
+            if (Files.exists(fallbackJobPath)) {
+                jobFileName = fallbackJobPath.toString();
+            }
+        }
         cpuCoreNumber = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETCPUCoreNumber"));
         isFibonacciSphereAlgorithm = MIPETUTIL.getResourceString(
@@ -2003,7 +2040,7 @@ public class MIPET {
                 "MIPETBfgsMaxIteration"));
         dielectricConstant = Double.parseDouble(MIPETUTIL.getResourceString(
                 "MIPETDielectricConstant"));
-        parameterDirectory = MIPETUTIL.getResourceString(
+        parameterDirectory = appBaseDir + MIPETUTIL.getResourceString(
                 "MIPET.Directory.paramDirectory");
         /*
          * Directory of tinker files
@@ -2033,7 +2070,7 @@ public class MIPET {
         }
         scratchDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.scratch");
-        smilesDirectory = MIPETUTIL.getResourceString(
+        smilesDirectory = appBaseDir + MIPETUTIL.getResourceString(
                 "MIPET.Directory.smiles");
         /*
           Directory of calculation related datas
@@ -2042,7 +2079,7 @@ public class MIPET {
                 "MIPET.Directory.calculation");
         resultDirectory = MIPETUTIL.getResourceString(
                 "MIPET.Directory.result");
-        moleculeDirectory = MIPETUTIL.getResourceString(
+        moleculeDirectory = appBaseDir + MIPETUTIL.getResourceString(
                 "MIPET.Directory.source");
         optXYZDirectory = calcDirectory + "/OptXYZ";
         optDistDirectory = calcDirectory + "/OptDist";

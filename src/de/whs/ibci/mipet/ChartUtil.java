@@ -205,20 +205,23 @@ public class ChartUtil {
             if (eAverageVsDistanceImage == null) {
                 return false;
             }
-            String eAverageVsDistanceImagePathname = 
-                new File(aEnergyDataPathName).getParent() + 
-                File.separatorChar + 
-                anEnergyGraphicsPrefix + 
-                "DistanceVsEaverage.jpg";
-            // </editor-fold>
+            String eAverageVsDistanceImagePathname
+                    = new File(aEnergyDataPathName).getParent()
+                    + File.separatorChar
+                    + anEnergyGraphicsPrefix
+                    + "DistanceVsEaverage.jpg";
+
             return ChartUtil.writeJpegImageToFile(
                     eAverageVsDistanceImage,
-                    new File(eAverageVsDistanceImagePathname));
+                    new File(eAverageVsDistanceImagePathname)
+            );
         } catch (NumberFormatException anException) {
             LOGGER.log(Level.SEVERE, 
                     "IOException during creating chart.", anException);
             return false;
         }
+        
+        // </editor-fold>
     }
     
     /**
@@ -239,40 +242,29 @@ public class ChartUtil {
      * @return Chart or null if chart could not be created
      */
     private JFreeChart createXyChart(
-        double[] aXValues, 
-        double[] aYValues,
-        String aTitle,
-        String aXAxisLabel,
-        String aYAxisLabel,
-        boolean anIsThickLines,
-        boolean anIsShapePaint, 
-        boolean anIsFillColorWhite, 
-        boolean anIsOutlinePaintWhite
+            double[] aXValues,
+            double[] aYValues,
+            String aTitle,
+            String aXAxisLabel,
+            String aYAxisLabel,
+            boolean anIsThickLines,
+            boolean anIsShapePaint,
+            boolean anIsFillColorWhite,
+            boolean anIsOutlinePaintWhite
     ) {
-        // <editor-fold defaultstate="collapsed" desc="Checks">
         if (aXValues == null || aYValues == null || aXValues.length != aYValues.length) {
             return null;
         }
-        // </editor-fold>
         try {
-            // <editor-fold defaultstate="collapsed" desc="- Create data series">
             XYSeries xySeries = new XYSeries(DATA_SERIES_NAME);
 
-            double xMin;
-            double xMax;
-            double yMin;
-            double yMax;
-            xMin = Double.MAX_VALUE;
-            xMax = -Double.MAX_VALUE;
-            yMin = Double.MAX_VALUE;
-            yMax = -Double.MAX_VALUE;
+            double xMin = Double.MAX_VALUE;
+            double xMax = -Double.MAX_VALUE;
+            double yMin = Double.MAX_VALUE;
+            double yMax = -Double.MAX_VALUE;
+
             for (int i = 0; i < aXValues.length; i++) {
-                // Safeguard for NaN values in value item
-                try {
-                    if (Double.isNaN(aXValues[i]) || Double.isNaN(aYValues[i])) {
-                        continue;
-                    }
-                } catch (Exception anException) {
+                if (Double.isNaN(aXValues[i]) || Double.isNaN(aYValues[i])) {
                     continue;
                 }
                 xMin = Math.min(xMin, aXValues[i]);
@@ -281,66 +273,66 @@ public class ChartUtil {
                 yMax = Math.max(yMax, aYValues[i]);
                 xySeries.add(aXValues[i], aYValues[i]);
             }
-            double xOffset;
-            if (Math.abs(xMax - xMin) < xMax * TINY_THRESHOLD) {
-                xOffset = (xMax + xMin) * 0.5 * 0.05;
-            } else {
-                xOffset = (xMax - xMin) * 0.05;
+
+            // Fallback, if there is no points
+            if (xMin == Double.MAX_VALUE) {
+                xMin = 0.0;
+                xMax = 1.0;
+                yMin = 0.0;
+                yMax = 1.0;
+            }
+
+            // Robust calculation of axis area
+            double xOffset = (xMax - xMin) * 0.05;
+            if (xOffset == 0.0) {
+                xOffset = (xMax == 0.0) ? 1.0 : Math.abs(xMax) * 0.05;
+            }
+            double yOffset = (yMax - yMin) * 0.05;
+            if (yOffset == 0.0) {
+                yOffset = (yMax == 0.0) ? 1.0 : Math.abs(yMax) * 0.05;
             }
             double x1 = xMin - xOffset;
             double x2 = xMax + xOffset;
-            double yOffset;
-            if (Math.abs(yMax - yMin) < yMax * TINY_THRESHOLD) {
-                yOffset = (yMax + yMin) * 0.5 * 0.05;
-            } else {
-                yOffset = (yMax - yMin) * 0.05;
-            }
             double y1 = yMin - yOffset;
             double y2 = yMax + yOffset;
-
             XYDataset xyDataset = new XYSeriesCollection(xySeries);
-            // </editor-fold>
-            // <editor-fold defaultstate="collapsed" desc="- Create chart">
-            JFreeChart xyChart = 
-                ChartFactory.createXYLineChart(
-                    aTitle, // Title
-                    aXAxisLabel, // xAxisLabel
-                    aYAxisLabel, // yAxisLabel
-                    xyDataset, // dataset
-                    PlotOrientation.VERTICAL, // orientation
-                    false, // legend flag
-                    false, // tooltips flag
-                    false  // URLs flag
-                ); 
-            // </editor-fold>
-            // <editor-fold defaultstate="collapsed" desc="- Set axis ranges">
+
+            // Make chart
+            JFreeChart xyChart = ChartFactory.createXYLineChart(
+                    aTitle, aXAxisLabel, aYAxisLabel, xyDataset,
+                    PlotOrientation.VERTICAL, false, false, false
+            );
+
             XYPlot xyPlot = (XYPlot) xyChart.getPlot();
+
+            // Configure renderer
+            XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) xyPlot.getRenderer();
+            renderer.setSeriesPaint(0, Color.BLACK);
+            if (anIsThickLines) {
+                renderer.setSeriesStroke(0, new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+            }
+            if (anIsShapePaint) {
+                renderer.setSeriesShape(0, new Ellipse2D.Float(-5.0f, -5.0f, 10.0f, 10.0f));
+                renderer.setSeriesShapesVisible(0, true);
+                renderer.setSeriesShapesFilled(0, true);
+                if (anIsFillColorWhite) {
+                    renderer.setUseFillPaint(true);
+                    renderer.setSeriesFillPaint(0, Color.WHITE);
+                } else if (anIsOutlinePaintWhite) {
+                    renderer.setSeriesOutlinePaint(0, Color.WHITE);
+                    renderer.setUseOutlinePaint(true);
+                }
+            }
+
+            // Set axis area after initialization
             ValueAxis xAxis = xyPlot.getDomainAxis();
             xAxis.setRange(x1, x2);
             ValueAxis yAxis = xyPlot.getRangeAxis();
             yAxis.setRange(y1, y2);
-            // </editor-fold>
-            // <editor-fold defaultstate="collapsed" desc="- Set outline, shapes and thickness">
-            XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) xyPlot.getRenderer();
-            renderer.setPaint(Color.BLACK);
-            if (anIsThickLines) {
-                renderer.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
-            }
-            if (anIsShapePaint) {
-                renderer.setShape(new Ellipse2D.Float(-5.0f, -5.0f, 10.0f, 10.0f));
-                renderer.setShapesVisible(true);
-                renderer.setShapesFilled(true);
-                if (anIsFillColorWhite) {
-                    renderer.setUseFillPaint(true);
-                    renderer.setFillPaint(Color.white);
-                } else if (anIsOutlinePaintWhite) {
-                    renderer.setOutlinePaint(Color.white);
-                    renderer.setUseOutlinePaint(true);
-                }
-            }
-            // </editor-fold>
             return xyChart;
         } catch (Exception anException) {
+            System.err.println("Fehler beim Zeichnen des Diagramms: " + anException.getMessage());
+            anException.printStackTrace();
             return null;
         }
     }
@@ -354,9 +346,9 @@ public class ChartUtil {
      * @return An image of the chart or null if image can not be created
      */
     private BufferedImage getImage(
-        JFreeChart aChart, 
-        int aWidth, 
-        int aHeight
+            JFreeChart aChart,
+            int aWidth,
+            int aHeight
     ) {
         // <editor-fold defaultstate="collapsed" desc="Checks">
         if (aChart == null || aWidth <= 0 || aHeight <= 0) {
@@ -364,8 +356,16 @@ public class ChartUtil {
         }
         // </editor-fold>
         try {
-            return aChart.createBufferedImage(aWidth, aHeight);
+            // Important: The picture has to be generated as TYPE_INT_RGB, 
+            // because the JPEG-encoder doen't support alpha-chanel!
+            return aChart.createBufferedImage(
+                    aWidth,
+                    aHeight,
+                    BufferedImage.TYPE_INT_RGB,
+                    null
+            );
         } catch (Exception anException) {
+            System.err.println("Fehler bei der Bildgenerierung: " + anException.getMessage());
             return null;
         }
     }
@@ -486,8 +486,8 @@ public class ChartUtil {
                 return false;
             }
         } catch (IOException anException) {
+            System.err.println("Error during saving of JPEGs (" + aFile.getName() + "): " + anException.getMessage());
             return false;
         }
     }
-    
 }
