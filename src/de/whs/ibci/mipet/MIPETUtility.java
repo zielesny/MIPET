@@ -1877,20 +1877,30 @@ public class MIPETUtility {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Private methods">
-    
     private void initialize() {
-        ResourceBundle bundle;
-        Path externalPath = Paths.get(BUNDLE_NAME_EXTERN);
-
+        ResourceBundle bundle = null;
+        
+        // Determine the real terminal path
+        String realWorkingDir = System.getenv("PWD");
+        Path externalPath;
+        if (realWorkingDir != null) {
+            externalPath = Paths.get(realWorkingDir, BUNDLE_NAME_EXTERN);
+        } else {
+            // Fallback for Windows / NetBeans
+            externalPath = Paths.get(BUNDLE_NAME_EXTERN);
+        }
         if (Files.exists(externalPath)) {
             try (InputStream is = Files.newInputStream(externalPath)) {
                 bundle = new PropertyResourceBundle(is);
             } catch (IOException ex) {
-                bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
-                        Locale.getDefault(), this.getClass().getClassLoader());
+                // Fallback see bottom
             }
-        } else {
-            bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN, 
+        }
+
+        // Fallback: There is no external file or it couldn't read
+        // Then: Read standard bundle.
+        if (bundle == null) {
+            bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
                     Locale.getDefault(), this.getClass().getClassLoader());
         }
         RESOURCE_BUNDLE = bundle;

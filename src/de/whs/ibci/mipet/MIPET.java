@@ -1801,14 +1801,14 @@ public class MIPET {
 
         // Fallback for test in NetBeans
         if (appTitle == null) {
-            appTitle = "MIPET (Version 1.0.6)";
+            appTitle = "MIPET (Version 1.0.7)";
         }
 
         // Ask for versionnumber 
         if (args.length > 0 && (args[0].equals("-v") || args[0]
                 .equals("--version"))) {
             System.out.println(appTitle);
-            return; // Quit the program
+            System.exit(0); // Quit the program
         }
         setParameters();
         
@@ -1844,7 +1844,7 @@ public class MIPET {
             System.exit(-1);
         }
         
-        // Path finding for SMILES (instead using System.getProperty) ---
+        // Path finding for SMILES (instead using System.getProperty)
         String smilesPath = "Molecules" + FILESEPARATOR 
                 + "SMILES" + FILESEPARATOR + "Smiles.dat";
         try {
@@ -1860,7 +1860,14 @@ public class MIPET {
                 }
             }
         } catch (Exception e) {
-            // Ignorie and Fallback using relative path (for development)
+            // Fallback for Linux/JPackage: use user.dir
+            String appDir = System.getProperty("user.dir");
+            if (appDir != null) {
+                File testPath = new java.io.File(appDir, smilesPath);
+                if (testPath.exists()) {
+                    smilesPath = testPath.getAbsolutePath();
+                }
+            }
         }
         smiles = MIPETUTIL.getSmilesData(smilesPath);
         
@@ -1874,7 +1881,17 @@ public class MIPET {
         particleNames = new ArrayList<>();
         newParticles = new ArrayList<>();
         oldParticles = new ArrayList<>();
-        Path jobPath = Paths.get(jobFileName);
+        
+        // Determine terminal path
+        String pwd = System.getenv("PWD");
+        Path jobPath;
+        if (pwd != null) {
+            // For the linux starter
+            jobPath = Paths.get(pwd, "MIPET.job");
+        } else {
+            // For Windows / NetBeans
+            jobPath = Paths.get(".", "MIPET.job");
+        }
         try (BufferedReader reader = Files.newBufferedReader(jobPath, 
                 StandardCharsets.UTF_8)) {
             String line;
@@ -1975,7 +1992,7 @@ public class MIPET {
             File jarFile = new java.io.File(MIPET.class.getProtectionDomain()
                     .getCodeSource().getLocation().toURI());
             if (jarFile.isFile()) {
-                appBaseDir = jarFile.getParent() + File.separator; // e.g. "C:\programs\MIPET 1.0.6\app\"
+                appBaseDir = jarFile.getParent() + File.separator; // e.g. "C:\programs\MIPET 1.0.7\app\"
             }
         } catch (Exception e) {
             // Ignore
@@ -1985,15 +2002,6 @@ public class MIPET {
         isTinkerOn = MIPETUTIL.getResourceString("MIPET.TinkerOn")
                 .equalsIgnoreCase("true");
         jobFileName = MIPETUTIL.getResourceString("MIPET.File.jobfile");
-        // Smart fallback for the job file
-        // 1. Try to find the file in current working directory
-        // 2. If not found then use the app-directory of the installation
-        if (!Files.exists(Paths.get(jobFileName)) && !appBaseDir.isEmpty()) {
-            Path fallbackJobPath = Paths.get(appBaseDir, jobFileName);
-            if (Files.exists(fallbackJobPath)) {
-                jobFileName = fallbackJobPath.toString();
-            }
-        }
         cpuCoreNumber = Integer.parseInt(MIPETUTIL.getResourceString(
                 "MIPETCPUCoreNumber"));
         isFibonacciSphereAlgorithm = MIPETUTIL.getResourceString(
