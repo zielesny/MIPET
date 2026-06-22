@@ -103,12 +103,22 @@ to automatically download the installer .exe of the latest version). Download th
 instructions to install MIPET. Note that the installation includes a full Java Runtime Environment (JRE). A more 
 detailed instruction can be found in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</a>.
 
+*Version 1.0.7*<br>
+Download MIPET.msi and run it<br>
+
 **Linux:**  
 Every release has a zip file attached which contains the MIPET Java archive with all dependencies (except Tinker) and a
 full Java runtime environment 
 (click <a href="https://github.com/zielesny/MIPET/releases/download/MIPET/MIPET_linux_x86_64.tar.gz">here</a> 
 to automatically download the zip file of the latest version). A more detailed instruction can be found
 in the <a href="https://github.com/zielesny/MIPET/tree/main/Tutorial">Tutorial</a>.
+
+*Version 1.0.7*<br>
+Download mipet-1.0.7.deb<br>
+Install it with: sudo dpkg -i ./mipet-1.0.7.deb<br>
+Make a symlink: sudo ln -sf /opt/mipet-1.0.7/bin/mipet_1.0.7 /usr/bin/mipet-1.0.7<br>
+Copy MIPET.job and MIPET.properties files to your working directory and change the directory names in MIPET.properties<br>
+Start: mipet-1.0.7<br>
 
 ### Tinker - Software Tools for Molecular Design
 In order to run MIPET, the Tinker molecular modeling tool package has to be added. For this, the Tinker executables and 
