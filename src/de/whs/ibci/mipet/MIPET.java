@@ -554,6 +554,7 @@ public class MIPET {
             LOGGER.log(Level.SEVERE, "Critical error during reading job file: " 
                     + ex.getMessage(), ex);
             System.err.println("Please verify that all .xyz and .prm files listed in the job file exist.");
+            System.exit(-1);
         }
         
         //</editor-fold>
@@ -1881,17 +1882,39 @@ public class MIPET {
         particleNames = new ArrayList<>();
         newParticles = new ArrayList<>();
         oldParticles = new ArrayList<>();
+        Path jobPath = null;
         
-        // Determine terminal path
+        // 1. Priority: Linux terminal (jpackage)
         String pwd = System.getenv("PWD");
-        Path jobPath;
         if (pwd != null) {
             // For the linux starter
             jobPath = Paths.get(pwd, "MIPET.job");
-        } else {
-            // For Windows / NetBeans
-            jobPath = Paths.get(".", "MIPET.job");
+        } 
+        
+        // 2. Priority: Windows / NetBeans
+        if (jobPath == null || !Files.exists(jobPath)){
+            try { 
+                File jarFile = new File(MIPET.class.getProtectionDomain()
+                        .getCodeSource().getLocation().toURI());
+                if (jarFile.isFile()) {
+                    jobPath = Paths.get(jarFile.getParent(), "MIPET.job");
+                }
+            } catch (Exception e) {
+                    // Is ignored, use fallback
+            }
         }
+            
+        // 3. Priority: Fallback to current directory (.)    
+        if (jobPath == null || !Files.exists(jobPath)) {
+            jobPath = Paths.get(".", "MIPET.job");
+        }    
+        
+        // 4. Safety check before reading
+        if (!Files.exists(jobPath)) {
+            throw new IllegalArgumentException("No MIPET.job found in: "
+                    + jobPath.toAbsolutePath() + ")");
+        }    
+            
         try (BufferedReader reader = Files.newBufferedReader(jobPath, 
                 StandardCharsets.UTF_8)) {
             String line;
@@ -1939,8 +1962,6 @@ public class MIPET {
                 LOGGER.log(Level.SEVERE, 
                     "No new particles in the job file listed.");
             }
-        } catch (FileNotFoundException ex) {
-            throw new IllegalArgumentException("No jobfile found.");
         } catch (IOException ex) {
             throw new IllegalArgumentException("IOException during"
                     + "reading job file.");
