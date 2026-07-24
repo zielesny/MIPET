@@ -3726,6 +3726,8 @@ public class MIPET {
             double aij = 0.;
 
             if (forceField_IE != null) {
+                final double TEMP_PRO_12 = temperature / 12;
+                final double CHI_FACTOR = 879.753604 / temperature; 
                 
                 for (int i = 0; i < jobSize; i++) {
                     particleName1 = aJobTaskRecords.get(i).particleName1();
@@ -3752,15 +3754,14 @@ public class MIPET {
                                     + z21 * e12
                                     - z11 * e11
                                     - z22 * e22;
-                            aij = temperature / 12 + 1.7483
-                                    * chiNumerator;
+                            aij = TEMP_PRO_12 + CHI_FACTOR * chiNumerator;
                             aijMap.put(particleName1 + "_" + particleName2, 
                                     aij);
                         }
 
                         // Calculation for CN = 1
                         chiNumerator = e12 + e12 - e11 - e22;
-                        aij = temperature / 12 + 1.7483 * chiNumerator;
+                        aij = TEMP_PRO_12 + CHI_FACTOR * chiNumerator;
                         aijMap1.put(particleName1 + "_" + particleName2, aij);
                     }
                 }
