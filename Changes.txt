@@ -1,3 +1,9 @@
+version 1.0.8 (28.07.2026)
+==========================
+* OPC water model in OPLSAA
+* Temperature correction of aij calculation reverted (now only for 300K)
+* Bugfix in aij formular: Chi-factor was recalculated for correct unit (kcal/mole/K)
+
 version 1.0.7 (16.06.2026)
 ==========================
 * makeMoleculeRecord(): assignment check in prm-file

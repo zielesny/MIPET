@@ -22,7 +22,6 @@ package de.whs.ibci.mipet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -1802,7 +1801,7 @@ public class MIPET {
 
         // Fallback for test in NetBeans
         if (appTitle == null) {
-            appTitle = "MIPET (Version 1.0.7)";
+            appTitle = "MIPET (Version 1.0.8)";
         }
 
         // Ask for versionnumber 
