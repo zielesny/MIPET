@@ -1880,25 +1880,42 @@ public class MIPETUtility {
     private void initialize() {
         ResourceBundle bundle = null;
         
-        // Determine the real terminal path
-        String realWorkingDir = System.getenv("PWD");
-        Path externalPath;
-        if (realWorkingDir != null) {
-            externalPath = Paths.get(realWorkingDir, BUNDLE_NAME_EXTERN);
-        } else {
-            // Fallback for Windows / NetBeans
-            externalPath = Paths.get(BUNDLE_NAME_EXTERN);
-        }
-        if (Files.exists(externalPath)) {
-            try (InputStream is = Files.newInputStream(externalPath)) {
-                bundle = new PropertyResourceBundle(is);
+        // Find out the user home directory
+        String userHome = System.getProperty("user.home");
+        Path configDir = Paths.get(userHome, ".mipet");
+        Path configPath = configDir.resolve(BUNDLE_NAME_EXTERN);
+        
+        // Check whether there is already a .properties file
+        if (!Files.exists(configPath)) {
+            try {
+                Files.createDirectories(configDir);
+                String internalResourcePath = BUNDLE_NAME_INTERN
+                        .replace('.', '/') + ".properties";
+                try (InputStream defaultStream = this.getClass()
+                        .getClassLoader()
+                        .getResourceAsStream(internalResourcePath)) {
+                    if (defaultStream != null) {
+                        Files.copy(defaultStream, configPath);
+                    } else {
+                        // Fallback: make an empty file, if not found
+                        Files.createFile(configPath);
+                    }
+                }
             } catch (IOException ex) {
-                // Fallback see bottom
+                LOGGER.log(Level.WARNING, "Couldn't find .properties file in home directory.", ex);
             }
         }
 
-        // Fallback: There is no external file or it couldn't read
-        // Then: Read standard bundle.
+        // Load properties from user home directory
+        if (Files.exists(configPath)) {
+            try (InputStream is = Files.newInputStream(configPath)) {
+                bundle = new PropertyResourceBundle(is);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Fehler beim Lesen der externen Properties im User-Home.", ex);
+            }
+        }
+
+        // Fallback 
         if (bundle == null) {
             bundle = ResourceBundle.getBundle(BUNDLE_NAME_INTERN,
                     Locale.getDefault(), this.getClass().getClassLoader());

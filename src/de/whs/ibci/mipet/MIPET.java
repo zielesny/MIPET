@@ -1652,7 +1652,7 @@ public class MIPET {
                     //</editor-fold>
                     //<editor-fold defaultstate="collapsed" desc="Clean scratch directory">
                     try {
-                        FileUtils.deleteDirectory(new File(scratchDirectory));
+                        FileUtils.cleanDirectory(new File(scratchDirectory));
                     } catch(IOException ex) {
                         LOGGER.log(Level.SEVERE, 
                                 "IOException during deleting scratch directory.", ex);
